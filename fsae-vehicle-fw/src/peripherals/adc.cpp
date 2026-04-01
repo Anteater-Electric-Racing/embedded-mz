@@ -7,21 +7,27 @@
 #include "vehicle/bse.h"
 #include "vehicle/faults.h"
 #include "vehicle/motor.h"
+#include "vehicle/shockTravel.h"
 #include "vehicle/telemetry.h"
+#include "vehicle/thermal.h"
 #include <ADC.h>
 #include <arduino_freertos.h>
 #include <chrono>
 #include <stdint.h>
 
-enum SensorIndexesADC0 { // TODO: Update with real values
-    APPS_1_INDEX,
-    APPS_2_INDEX,
-    BSE_1_INDEX,
-    BSE_2_INDEX,
-    SUSP_TRAV_LINPOT1,
-    SUSP_TRAV_LINPOT2,
-    SUSP_TRAV_LINPOT3,
-    SUSP_TRAV_LINPOT4
+enum SensorIndexesADC0 {    // TODO: Update with real values
+    THERMISTOR_1_INDEX = 0, // A0
+    APPS_1_INDEX = 5,
+    APPS_2_INDEX = 4, // A4
+    BSE_1_INDEX = 3,
+    BSE_2_INDEX = 2,
+    SUSP_TRAV_LINPOT1 = 6,
+    SUSP_TRAV_LINPOT2 = 7,
+    SUSP_TRAV_LINPOT3 = 8,
+    SUSP_TRAV_LINPOT4 = 9,
+    THERMISTOR_2_INDEX = 10, // A1
+    THERMISTOR_3_INDEX,      // A2
+    THERMISTOR_4_INDEX       // A3
 };
 
 enum SensorIndexesADC1 { // TODO: Update with real values
@@ -36,15 +42,16 @@ enum SensorIndexesADC1 { // TODO: Update with real values
 };
 
 uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {
-    A0, A1, A2, A3, A4,
-    A5, A6, A7}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21, 24, 25,
-                 // 19, 18, 14, 15, 17};
+    A0, A1, A2, A3, A4, A5, A6, A7, A8, A9 //, A16
+}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21,
+   // 24, 25, 19, 18, 14, 15, 17};
 uint16_t adc0Reads[SENSOR_PIN_AMT_ADC0];
 
 uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {
-    A7, A6, A5, A4, A3,
-    A2, A1, A0}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21, 24, 25,
-                 // 19, 18, 14, 15, 17};
+    // A17, A16, A15,
+    A7, A6, A5, A4,
+    A3, A2, A1, A0}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21,
+                     // 24, 25, 19, 18, 14, 15, 17};
 uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 static TickType_t lastWakeTime;
@@ -84,7 +91,7 @@ void threadADC(void *pvParameters) {
         for (uint16_t currentIndexADC0 = 0;
              currentIndexADC0 < SENSOR_PIN_AMT_ADC0; ++currentIndexADC0) {
             uint16_t currentPinADC0 = adc0Pins[currentIndexADC0];
-            uint16_t adcRead = adc->adc1->analogRead(currentPinADC0);
+            uint16_t adcRead = adc->adc0->analogRead(currentPinADC0);
             adc0Reads[currentIndexADC0] = adcRead;
         }
 
@@ -94,13 +101,10 @@ void threadADC(void *pvParameters) {
             uint16_t adcRead = adc->adc1->analogRead(currentPinADC1);
             adc1Reads[currentIndexADC1] = adcRead;
         }
-
-        // Update each sensors data
+        ShockTravelUpdateData(
+            adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
+            adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
         APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
         BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
-
-        // Handle any faults that were raised
-        // Faults_HandleFaults();
-        // Motor_UpdateMotor();
     }
 }

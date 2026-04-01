@@ -11,8 +11,32 @@
 #define mMCU2_ID 0x106
 #define mMCU3_ID 0x107
 
+#define mOBMS1_ID 0x6B0
+#define mOBMS2_ID 0x6B1
+#define mOBMS3_ID 0x6B2
+#define mOBMS4_ID 0x6B3
+
+#define pcc_ID 0x222
+
 #define mBMS1_ID 0x1A0
 #define mBMS2_ID 0x1A1
+
+// double check this
+#define mIMD_GENERAL_ID 0x18FF01F4
+#define mIMD_DETAIL_ID 0x18FF02F4
+#define mIMD_VOLTAGE_ID 0x18FF03F4
+#define mIMD_IT_SYSTEM_ID 0x18FF04F4
+
+// J1939 ID: Priority 6 (0x18) | PGN (0xEF00) | Dest (0xF4) | Source (0x17)
+#define IMD_CMD_ID 0x18EFF417
+
+// Indices from manual section 2.2
+#define IMD_IDX_THRESHOLD_ERROR 0x47
+#define IMD_IDX_STATUS_LOCK 0x6B
+
+// Lock States
+#define IMD_LOCK_UNLOCK 0xFC
+#define IMD_LOCK_LOCK 0xFD
 
 typedef enum {
     DIRECTION_STANDBY = 0,
@@ -209,9 +233,90 @@ typedef struct {
     float motorPhaseCurr; // Motor phase current in A
 } MCU3Data;
 
+typedef struct __attribute__((packed)) {
+    int16_t packCurrent;  // Byte 0-1: Pack Current (0.1A/bit)
+    uint16_t packVoltage; // Byte 2-3: Pack Voltage (0.1V/bit)
+    uint8_t packSOC;      // Byte 4: SOC (0.5%/bit)
+    uint8_t relayState;   // Byte 5: Relay State Bitmask
+    uint8_t reserved;     // Byte 6
+    uint8_t checksum;     // Byte 7
+} OBMS1;
+
+typedef struct __attribute__((packed)) {
+    uint16_t packDCL; // Byte 0-1: Discharge Current Limit (1A/bit)
+    uint16_t packCCL; // Byte 2-3: Charge Current Limit (1A/bit)
+    int8_t highTemp;  // Byte 4: Highest Temp (1C/bit)
+    int8_t lowTemp;   // Byte 5: Lowest Temp (1C/bit)
+    uint8_t reserved; // Byte 6
+    uint8_t checksum; // Byte 7
+} OBMS2;
+
+typedef struct __attribute__((packed)) {
+    uint16_t lowCellVolt;  // Byte 0-1: Lowest Cell Voltage (0.0001V/bit)
+    uint16_t highCellVolt; // Byte 2-3: Highest Cell Voltage (0.0001V/bit)
+    uint16_t avgCellVolt;  // Byte 4-5: Average Cell Voltage (0.0001V/bit)
+    uint8_t lowCellVoltID; // Byte 6: ID of the lowest voltage cell
+    uint8_t checksum;      // Byte 7
+} OBMS3;
+
+typedef struct __attribute__((packed)) {
+    uint16_t packResistance;  // Example: Pack Internal Resistance
+    uint16_t packOpenVoltage; // Example: Pack Open Circuit Voltage
+    uint8_t reserved[3];
+    uint8_t checksum;
+} OBMS4;
+
+typedef struct {
+    float packCurrent;  // Amps
+    float packVoltage;  // Volts
+    float soc;          // Percentage (0-100%)
+    uint8_t relayState; // Bitmask (Discharge, Charge, etc.)
+
+    float dischargeLimit; // Amps
+    float chargeLimit;    // Amps
+    int8_t highTemp;      // Celsius
+    int8_t lowTemp;       // Celsius
+
+    float lowCellVolt;  // Volts (e.g., 3.4215f)
+    float highCellVolt; // Volts
+    float avgCellVolt;  // Volts
+    uint8_t lowCellID;
+} OrionBMSData;
+
+typedef struct __attribute__((packed)) {
+    uint16_t R_iso_corrected; // [kOhm] Intel order
+    uint8_t R_iso_status;     // 0xFC: Startup, 0xFD: First Meas, 0xFE:
+    // Normal
+    uint8_t measurement_cnt;
+    uint16_t status_flags; // Warnings and
+    // Alarms (Bit 0: Error, Bit 4: Iso
+    //                          // Alarm, etc.)
+    uint8_t device_activity; // 0: Init, 1: Normal, 2: Self-test
+    uint8_t reserved;
+} IMD_General;
+
+typedef struct __attribute__((packed)) {
+    uint16_t hv_system;       // Offset 32128, 0.05V/bit
+    uint16_t hv_neg_to_earth; // Offset 32128, 0.05V/bit
+    uint16_t hv_pos_to_earth; // Offset 32128, 0.05V/bit
+    uint8_t measurement_cnt;
+    uint8_t reserved;
+} IMD_Voltage;
+
+// Unified storage for your application
+typedef struct {
+    float resistance; // kOhm
+    float hv_voltage; // Volts
+    uint16_t status;  // Raw flags
+    bool isolation_fault;
+} IMDData;
+
+OrionBMSData *BMS_GetOrionData();
+
 void MCU_Init();
 uint8_t ComputeChecksum(uint8_t *data);
 
 MCU1Data *MCU_GetMCU1Data();
 MCU2Data *MCU_GetMCU2Data();
 MCU3Data *MCU_GetMCU3Data();
+IMDData *IMD_GetInfo();

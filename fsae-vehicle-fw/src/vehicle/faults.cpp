@@ -7,14 +7,15 @@
 #define FAULT_BSE_MASK (0x1 << 4)
 #define FAULT_BPPS_MASK (0x1 << 5)
 #define FAULT_APPS_BRAKE_PLAUSIBILITY_MASK (0x1 << 6)
+#define LOW_BATTERY_VOLTAGE_MASK (0x1 << 7)
 
 #include "vehicle/faults.h"
 #include "utils/utils.h"
 #include "vehicle/motor.h"
 
-#if DEBUG_FLAG
+// #if DEBUG_FLAG
 #include <Arduino.h>
-#endif
+// #endif
 
 static uint32_t faultBitMap;
 
@@ -62,6 +63,10 @@ void Faults_SetFault(FaultType fault) {
         faultBitMap |= FAULT_APPS_BRAKE_PLAUSIBILITY_MASK;
         break;
     }
+    case LOW_BATTERY_VOLTAGE_FAULT: {
+        faultBitMap |= LOW_BATTERY_VOLTAGE_MASK;
+        break;
+    }
     default: {
         break;
     }
@@ -107,6 +112,10 @@ void Faults_ClearFault(FaultType fault) {
         faultBitMap &= ~FAULT_APPS_BRAKE_PLAUSIBILITY_MASK;
         break;
     }
+    case LOW_BATTERY_VOLTAGE_FAULT: {
+        faultBitMap &= ~LOW_BATTERY_VOLTAGE_MASK;
+        break;
+    }
     default: {
         break;
     }
@@ -116,17 +125,18 @@ void Faults_ClearFault(FaultType fault) {
 // currently having all faults being handled the same but leaving room for
 // future customization
 void Faults_HandleFaults() {
+
 #if DEBUG_FLAG
     Serial.print("Fault bitmap: ");
     Serial.println(faultBitMap);
 #endif
 
     if (faultBitMap == 0) {
-#if DEBUG_FLAG
-        Serial.println("Clearing all faults in handle faults");
-#endif
+        // #if DEBUG_FLAG
+        //         Serial.println("Clearing all faults in handle faults");
+        // #endif
 
-        Motor_ClearFaultState();
+        //         Motor_ClearFaultState();
         return;
     }
     if (faultBitMap & FAULT_OVER_CURRENT_MASK) {
@@ -148,6 +158,9 @@ void Faults_HandleFaults() {
         Motor_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_BRAKE_PLAUSIBILITY_MASK) {
+        Motor_SetFaultState();
+    }
+    if (faultBitMap & LOW_BATTERY_VOLTAGE_MASK) {
         Motor_SetFaultState();
     }
 }

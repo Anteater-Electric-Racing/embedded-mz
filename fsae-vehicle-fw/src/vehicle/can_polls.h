@@ -54,7 +54,6 @@
 #define IMD_LOCK_LOCK 0xFD
 
 // ====== DTI Inverter Packets ======= //
-
 typedef struct __attribute__((packed)) {
     uint8_t controlMode;
     // 1: CONTROL_MODE_SPEED
@@ -144,6 +143,10 @@ typedef struct __attribute__((packed)) {
     uint16_t minDC_Current;
     uint16_t avMinDC_Current;
 } PKT_DTI8;
+
+typedef struct {
+    // combined dti data into 1 struct
+} dtiData;
 
 // ============ Orion BMS, Isobender IMD ========================= //
 typedef struct __attribute__((packed)) {

@@ -16,7 +16,8 @@ TelemetryData telemetryData;
 
 void Telemetry_Init() {
     // TODO: Update initialization
-    telemetryData = { // Fill with reasonable dummy values
+    telemetryData = {
+        // Fill with reasonable dummy values
         .APPS_Travel = 0.0F,
         .BSEFront_PSI = 0.0F,
         .BSERear_PSI = 0.0F,
@@ -56,16 +57,19 @@ void Telemetry_Init() {
     };
 }
 
-void threadTelemetry(void *pvParameters){
-    static TickType_t lastWakeTime = xTaskGetTickCount(); // Initialize the last wake time
-    while(true){
+void threadTelemetry(void *pvParameters) {
+    static TickType_t lastWakeTime =
+        xTaskGetTickCount(); // Initialize the last wake time
+    while (true) {
         taskENTER_CRITICAL(); // Enter critical section
         telemetryData = {
             .APPS_Travel = APPS_GetAPPSReading(),
             .BSEFront_PSI = BSE_GetBSEReading()->bseFront_PSI,
             .BSERear_PSI = BSE_GetBSEReading()->bseFront_PSI,
-            .accumulatorVoltage = 0.0F, // TODO: Replace with actual accumulator voltage reading
-            .accumulatorTemp_F = 0.0F, // TODO: Replace with actual accumulator temperature reading
+            .accumulatorVoltage =
+                0.0F, // TODO: Replace with actual accumulator voltage reading
+            .accumulatorTemp_F = 0.0F, // TODO: Replace with actual accumulator
+                                       // temperature reading
             .motorState = Motor_GetState(),
 
             .motorSpeed = MCU_GetMCU1Data()->motorSpeed,
@@ -78,14 +82,16 @@ void threadTelemetry(void *pvParameters){
 
             .motorTemp = MCU_GetMCU2Data()->motorTemp,
             .mcuTemp = MCU_GetMCU2Data()->mcuTemp,
-            .dcMainWireOverVoltFault = MCU_GetMCU2Data()->dcMainWireOverVoltFault,
+            .dcMainWireOverVoltFault =
+                MCU_GetMCU2Data()->dcMainWireOverVoltFault,
             .motorPhaseCurrFault = MCU_GetMCU2Data()->motorPhaseCurrFault,
             .mcuOverHotFault = MCU_GetMCU2Data()->mcuOverHotFault,
             .resolverFault = MCU_GetMCU2Data()->resolverFault,
             .phaseCurrSensorFault = MCU_GetMCU2Data()->phaseCurrSensorFault,
             .motorOverSpdFault = MCU_GetMCU2Data()->motorOverSpdFault,
             .drvMotorOverHotFault = MCU_GetMCU2Data()->drvMotorOverHotFault,
-            .dcMainWireOverCurrFault = MCU_GetMCU2Data()->dcMainWireOverCurrFault,
+            .dcMainWireOverCurrFault =
+                MCU_GetMCU2Data()->dcMainWireOverCurrFault,
             .drvMotorOverCoolFault = MCU_GetMCU2Data()->drvMotorOverCoolFault,
             .mcuMotorSystemState = MCU_GetMCU2Data()->mcuMotorSystemState,
             .mcuTempSensorState = MCU_GetMCU2Data()->mcuTempSensorState,
@@ -103,13 +109,14 @@ void threadTelemetry(void *pvParameters){
         };
         taskEXIT_CRITICAL();
 
-        uint8_t* serializedData = (uint8_t*) &telemetryData;
+        uint8_t *serializedData = (uint8_t *)&telemetryData;
         CAN_ISOTP_Send(TELEMETRY_CAN_ID, serializedData, sizeof(TelemetryData));
 
-        vTaskDelayUntil(&lastWakeTime, pdMS_TO_TICKS(TELEMETRY_PERIOD_MS)); // Delay until the next telemetry update
+        vTaskDelayUntil(
+            &lastWakeTime,
+            pdMS_TO_TICKS(
+                TELEMETRY_PERIOD_MS)); // Delay until the next telemetry update
     }
 }
 
-TelemetryData const* Telemetry_GetData() {
-    return &telemetryData;
-}
+TelemetryData const *Telemetry_GetData() { return &telemetryData; }

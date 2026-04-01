@@ -1,6 +1,6 @@
 // Anteater Electric Racing, 2025
 
-#pragma once
+#include <Arduino.h>
 
 void CAN_Init();
 void CAN_Send(uint32_t id, uint64_t msg);

@@ -3,7 +3,9 @@
 #define THREAD_CAN_STACK_SIZE 128
 #define THREAD_CAN_PRIORITY 1
 
+#include <Arduino.h>
 #include <FlexCAN_T4.h>
+
 #include <arduino_freertos.h>
 #include <isotp.h>
 #include <stdint.h>

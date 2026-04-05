@@ -146,8 +146,7 @@ static void threadCANPoll(void *pvParameters) {
                 (float)((int16_t)CHANGE_ENDIANESS_16(dti2.dutyCycle)) *
                 DTI_16_SCALE;
             dtiData.inputVoltage =
-                (float)((int16_t)CHANGE_ENDIANESS_16(dti2.inputVoltage)) *
-                DTI_16_SCALE;    // REMOVE???
+                (float)((int16_t)CHANGE_ENDIANESS_16(dti2.inputVoltage));
             taskEXIT_CRITICAL(); // Exit critical section
             break;
         }

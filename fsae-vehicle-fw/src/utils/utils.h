@@ -3,9 +3,13 @@
 #pragma once
 
 /*
-
-    Misc KZ fixes (low priority):
-        MIGHT be incorrect packed struct order for setting charge/disch limits
+HIGH PRIORITY
+--> simplify state machine using DTI, write docs of how to config dti for mz,
+testing docs
+--> tssi bypass (using IMDCAN readings + 3 sec delay to then trigger normal
+operation)
+--> imd thershold increase
+--> LookupTable for throttle curve
 
         TODO: better serial monitor (python script with pySerial)
     (constantly running) needs all necessary fields
@@ -18,8 +22,6 @@
 
         IMD data check (1 msg read, HV mesage not read) -- IMD error code 512 is
     read until status is cleared
-
-        Fix torque output read from INVT (endianess)
 
         clean up code
 

@@ -17,17 +17,20 @@
  */
 
 // General ID TODO
-#define mDTI_ID 0x0
-
+#define mDTI_ID 0x65
 // PKT_R = Packet Recieve
-#define mPKT_1_ID 0x1F
-#define mPKT_2_ID 0x20
-#define mPKT_3_ID 0x21
-#define mPKT_4_ID 0x22
-#define mPKT_5_ID 0x23
-#define mPKT_6_ID 0x24
-#define mPKT_7_ID 0x25
-#define mPKT_8_ID 0x26
+
+void CANPoll_Init();
+typedef enum {
+    PKT_1_ID = 0x1F,
+    PKT_2_ID = 0x20,
+    PKT_3_ID = 0x21,
+    PKT_4_ID = 0x22,
+    PKT_5_ID = 0x23,
+    PKT_6_ID = 0x24,
+    PKT_7_ID = 0x25,
+    PKT_8_ID = 0x26
+} DTI_Recieve;
 
 #define pcc_ID 0x222
 
@@ -63,83 +66,85 @@ typedef struct __attribute__((packed)) {
     // 7: CONTROL_MODE_NONE
     // 0, 5, 6: NOT USED
     int16_t targetLq;
-    uint16_t motorPosition; // in degrees
-    uint8_t isMotorStill;   // in still position or not
-    uint16_t reserved;
+    int16_t motorPosition; // in degrees
+    int8_t isMotorStill;   // in still position or not
+    int16_t reserved;
 } PKT_DTI1;
 
 typedef struct __attribute__((packed)) {
-    int32_t eRPM;          // eRPM = motor RPM * number of motor pole pairs
-    int16_t dutyCycle;     // controller duty cycle
-    uint16_t inputVoltage; // dcVoltage
+    int32_t eRPM;         // eRPM = motor RPM * number of motor pole pairs
+    int16_t dutyCycle;    // controller duty cycle
+    int16_t inputVoltage; // dcVoltage
 } PKT_DTI2;
 
 typedef struct __attribute__((packed)) {
-    int16_t acCurrnet; // AC motor current (sign is regen or running)
+    int16_t acCurrent; // AC motor current (sign is regen or running)
     int16_t dcCurrent; // AC motor current (sign is regen or running)
-    uint32_t reserved;
+    int32_t reserved;
 } PKT_DTI3;
 
 typedef struct __attribute__((packed)) {
     int16_t controllerTemp; // temp of inverter semiconductors
     int16_t motorTemp;      // temp of motor measured by inverter
-    uint8_t faultCode;      // all inverter faults, add to faultMAP TODO
-    uint8_t reserved;       //
-    uint16_t reserved2;
+    int8_t faultCode;       // all inverter faults, add to faultMAP TODO
+    int8_t reserved;        //
+    int16_t reserved2;
 } PKT_DTI4;
 
 typedef struct __attribute__((packed)) {
     int32_t focLd; // foc alg Ld
-    int32_t focLq; // foc alg lq
+    int32_t focLq; // foc alg Lq
 } PKT_DTI5;
 
 typedef struct __attribute__((packed)) {
     int8_t throttleInput; // throttle straight to inverter
+    int8_t brakeInput;    // throttle straight to inverter
     // byte 2
-    bool digitalIn1;      // digital input
-    bool digitalIn2;      // digital input
-    bool digitalIn3;      // digital input
-    bool digitalIn4;      // digital input
-    bool digitalOut1;     // digital output
-    bool digitalOut2;     // digital output
-    bool digitalOut3;     // digital output
-    bool digitalOut4;     // digital output
+    bool digitalIn1 : 1; // digital input
+    bool digitalIn2 : 1; // digital input
+    bool digitalIn3 : 1;
+    bool digitalIn4 : 1;  // digital input
+    bool digitalOut1 : 1; // digital output
+    bool digitalOut2 : 1; // digital output
+    bool digitalOut3 : 1; // digital output
+    bool digitalOut4 : 1; // digital output
     uint8_t driveEnabled; // RTM toggle
     // byte 4
-    bool capTempLimitActive;
-    bool dcTempLimitActive;
-    bool driveEnableLimitActive;
-    bool IGBTaccelLimitActive;
-    bool IGBTtempLimitActive;
-    bool inputVoltageLimitActive;
-    bool motorAccelTempLimitActive;
-    bool motorTempLimitActive;
+    bool capTempLimitActive : 1;
+    bool dcTempLimitActive : 1;
+
+    bool driveEnableLimitActive : 1;
+    bool IGBTaccelLimitActive : 1;
+    bool IGBTtempLimitActive : 1;
+    bool inputVoltageLimitActive : 1;
+    bool motorAccelTempLimitActive : 1;
+    bool motorTempLimitActive : 1;
     // byte 5
-    bool RPMminLimitActive;
-    bool RPMmaxLimitActive;
-    bool powerLimitActive;
+    bool RPMminLimitActive : 1;
+    bool RPMmaxLimitActive : 1;
+    bool powerLimitActive : 1;
 
     // zeros
-    bool zero1;
-    bool zero2;
-    bool zero3;
-    bool zero4;
-    bool zero5;
+    bool zero1 : 1;
+    bool zero2 : 1;
+    bool zero3 : 1;
+    bool zero4 : 1;
+    bool zero5 : 1;
     uint8_t reserved;
     uint8_t CANmapVersion;
 
 } PKT_DTI6;
 
 typedef struct __attribute__((packed)) {
-    uint16_t maxAC_Current;
-    uint16_t avMaxAC_Current;
+    int16_t maxAC_Current;
+    int16_t avMaxAC_Current;
     int16_t minAC_Current;
     int16_t avMinAC_Current;
 } PKT_DTI7;
 
 typedef struct __attribute__((packed)) {
-    uint16_t maxDC_Current;
-    uint16_t avMaxDC_Current;
+    int16_t maxDC_Current;
+    int16_t avMaxDC_Current;
     int16_t minDC_Current;
     int16_t avMinDC_Current;
 } PKT_DTI8;
@@ -153,37 +158,38 @@ typedef struct {
     // 4: CONTROL_MODE_POS
     // 7: CONTROL_MODE_NONE
     // 0, 5, 6: NOT USED
-    int16_t targetLq;
-    uint16_t motorPosition; // in degrees
-    uint8_t isMotorStill;   // in still position or not
-    int32_t eRPM;           // eRPM = motor RPM * number of motor pole pairs
-    int16_t dutyCycle;      // controller duty cycle
-    uint16_t inputVoltage;  // dcVoltage
-    int16_t acCurrnet;      // AC motor current (sign is regen or running)
-    int16_t dcCurrent;      // AC motor current (sign is regen or running)
-    int16_t controllerTemp; // temp of inverter semiconductors
-    int16_t motorTemp;      // temp of motor measured by inverter
-    uint8_t faultCode;      // all inverter faults, add to faultMAP TODO
-    int32_t focLd;          // foc alg Ld
-    int32_t focLq;          // foc alg lq
+    float targetLq;
+    float motorPosition;  // in degrees
+    uint8_t isMotorStill; // in still position or not
+    float eRPM;           // eRPM = motor RPM * number of motor pole pairs
+    float dutyCycle;      // controller duty cycle
+    float inputVoltage;   // dcVoltage
+    float acCurrent;      // AC motor current (sign is regen or running)
+    float dcCurrent;      // AC motor current (sign is regen or running)
+    float controllerTemp; // temp of inverter semiconductors
+    float motorTemp;      // temp of motor measured by inverter
+    uint8_t faultCode;    // all inverter faults, add to faultMAP TODO
+    float focLd;          // foc alg Ld
+    float focLq;          // foc alg lq
 
     uint8_t driveEnabled; // RTM toggle
 
-    uint16_t maxAC_Current;
-    uint16_t avMaxAC_Current;
-    int16_t minAC_Current;
-    int16_t avMinAC_Current;
-    uint16_t maxDC_Current;
-    uint16_t avMaxDC_Current;
-    int16_t minDC_Current;
-    int16_t avMinDC_Current;
+    float maxAC_Current;
+    float avMaxAC_Current;
+    float minAC_Current;
+    float avMinAC_Current;
+    float maxDC_Current;
+    float avMaxDC_Current;
+    float minDC_Current;
+    float avMinDC_Current;
 
 } dtiData1;
 
 typedef struct {
     // combined dti data nonessential readings
 
-    uint8_t throttleInput; // throttle straight to inverter
+    float throttleInput; // throttle straight to inverter
+    float brakeInput;
     // byte 2
     bool digitalIn1;  // digital input
     bool digitalIn2;  // digital input
@@ -302,3 +308,5 @@ uint8_t ComputeChecksum(uint8_t *data);
 
 OrionBMSData *BMS_GetOrionData();
 IMDData *IMD_GetInfo();
+dtiData1 *DTI_GetDTIData();
+dtiData2 *DTI_GetDTI_ExtraData();

@@ -13,8 +13,8 @@
 
 #include "vehicle/apps.h"
 #include "vehicle/bse.h"
+#include "vehicle/can_polls.h"
 #include "vehicle/faults.h"
-#include "vehicle/ifl100-36.h"
 #include "vehicle/motor.h"
 #include "vehicle/pcc_receive.h"
 #include "vehicle/rtm_button.h"
@@ -27,9 +27,9 @@ typedef struct {
 
 static MotorData motorData;
 static TickType_t xLastWakeTime;
-static VCU1 vcu1 = {0};
-static BMS1 bms1 = {0};
-static BMS2 bms2 = {0};
+// static VCU1 vcu1 = {0};
+// static BMS1 bms1 = {0};
+// static BMS2 bms2 = {0};
 
 // Define 3 Presets (Steepness k, Midpoint x0)
 // Map 0: Rain (High precision, late power)
@@ -64,183 +64,200 @@ void Motor_Init() {
 void threadMotor(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
     while (true) {
-        // Clear packet contents
-        vcu1 = {0};
-        bms1 = {0};
-        bms2 = {0};
+        //     while (true) {
+        //         // Clear packet contents
+        //         vcu1 = {0};
+        //         bms1 = {0};
+        //         bms2 = {0};
 
-        switch (motorData.state) {
-        case MOTOR_STATE_OFF: {
-            break;
-        }
+        //         switch (motorData.state) {
+        //         case MOTOR_STATE_OFF: {
+        //             break;
+        //         }
 
-        case MOTOR_STATE_STANDBY: {
+        //         case MOTOR_STATE_STANDBY: {
 
-            vcu1.BMS_Main_Relay_Cmd = 0;
-            bms1.Pre_charge_Relay_FB = 0; // 1 = ON, 0 = OFF
-            bms1.Pre_charge_Finish_Sts = 0;
-            break;
-        }
+        //             vcu1.BMS_Main_Relay_Cmd = 0;
+        //             bms1.Pre_charge_Relay_FB = 0; // 1 = ON, 0 = OFF
+        //             bms1.Pre_charge_Finish_Sts = 0;
+        //             break;
+        //         }
 
-        case MOTOR_STATE_PRECHARGING: {
-            vcu1.BMS_Main_Relay_Cmd = 1;  // 1 = ON, 0 = OFF
-            bms1.Pre_charge_Relay_FB = 1; // 1 = ON, 0 = OFF
-            vcu1.VCU_TorqueReq = 0;
-            break;
-        }
+        //         case MOTOR_STATE_PRECHARGING: {
+        //             vcu1.BMS_Main_Relay_Cmd = 1;  // 1 = ON, 0 = OFF
+        //             bms1.Pre_charge_Relay_FB = 1; // 1 = ON, 0 = OFF
+        //             vcu1.VCU_TorqueReq = 0;
+        //             break;
+        //         }
 
-        case MOTOR_STATE_IDLE: {
+        //         case MOTOR_STATE_IDLE: {
 
-            vcu1.BMS_Main_Relay_Cmd = 1;    // 1 = ON, 0 = OFF
-            bms1.Pre_charge_Relay_FB = 1;   // 1 = ON, 0 = OFF
-            bms1.Pre_charge_Finish_Sts = 1; // 1 = ON, 0 = OFF
+        //             vcu1.BMS_Main_Relay_Cmd = 1;    // 1 = ON, 0 = OFF
+        //             bms1.Pre_charge_Relay_FB = 1;   // 1 = ON, 0 = OFF
+        //             bms1.Pre_charge_Finish_Sts = 1; // 1 = ON, 0 = OFF
 
-            // T6
-            vcu1.VCU_MotorMode = 0;
-            vcu1.VCU_TorqueReq = 0;
-            break;
-        }
+        //             // T6
+        //             vcu1.VCU_MotorMode = 0;
+        //             vcu1.VCU_TorqueReq = 0;
+        //             break;
+        //         }
 
-        case MOTOR_STATE_DRIVING: {
+        //         case MOTOR_STATE_DRIVING: {
 
-            /*============VARIABLE POWER DERATING (PREREQ: BMS) ============*/
-            // float maxBatteryCurrent = min(BATTERY_MAX_CURRENT_A, INFINITY);
-            // float maxRegenCurrent = min(BATTERY_MAX_REGEN_A, INFINITY);
+        //             /*============VARIABLE POWER DERATING (PREREQ: BMS)
+        //             ============*/
+        //             // float maxBatteryCurrent = min(BATTERY_MAX_CURRENT_A,
+        //             INFINITY);
+        //             // float maxRegenCurrent = min(BATTERY_MAX_REGEN_A,
+        //             INFINITY);
 
-            // pass into maxDischarge/maxRegen fields
+        //             // pass into maxDischarge/maxRegen fields
 
-            uint16_t maxDischarge =
-                (uint16_t)(BATTERY_MAX_CURRENT_A + 500) * 10;
-            uint16_t maxRegen = (uint16_t)(BATTERY_MAX_REGEN_A + 500) * 10;
-            bms2.sAllowMaxDischarge = CHANGE_ENDIANESS_16(maxDischarge);
-            bms2.sAllowMaxRegenCharge = CHANGE_ENDIANESS_16(
-                maxRegen); // Convert to little-endian format
+        //             uint16_t maxDischarge =
+        //                 (uint16_t)(BATTERY_MAX_CURRENT_A + 500) * 10;
+        //             uint16_t maxRegen = (uint16_t)(BATTERY_MAX_REGEN_A + 500)
+        //             * 10; bms2.sAllowMaxDischarge =
+        //             CHANGE_ENDIANESS_16(maxDischarge);
+        //             bms2.sAllowMaxRegenCharge = CHANGE_ENDIANESS_16(
+        //                 maxRegen); // Convert to little-endian format
 
-            // T5 BMS_Main_Relay_Cmd == 1 && VCU_MotorMode = 1/2
-            vcu1.BMS_Main_Relay_Cmd = 1;    // 1 = ON, 0 = OFF
-            bms1.Pre_charge_Relay_FB = 1;   // 1 = ON, 0 = OFF
-            bms1.Pre_charge_Finish_Sts = 1; // 1 = ON, 0 = OFF
+        //             // T5 BMS_Main_Relay_Cmd == 1 && VCU_MotorMode = 1/2
+        //             vcu1.BMS_Main_Relay_Cmd = 1;    // 1 = ON, 0 = OFF
+        //             bms1.Pre_charge_Relay_FB = 1;   // 1 = ON, 0 = OFF
+        //             bms1.Pre_charge_Finish_Sts = 1; // 1 = ON, 0 = OFF
 
-            vcu1.VehicleState = 1; // 0 = Not ready, 1 = Ready
+        //             vcu1.VehicleState = 1; // 0 = Not ready, 1 = Ready
 
-            /* Switched to reverse */
-            vcu1.GearLeverPos_Sts =
-                1;                   // 0 = Default, 1 = R, 2 = N, 3 = D, 4 = P
-            vcu1.AC_Control_Cmd = 1; // 0 = Not active, 1 = Active
-            vcu1.BMS_Aux_Relay_Cmd = 1; // 0 = not work, 1 = work
-            vcu1.VCU_WorkMode = 0;
-            vcu1.VCU_TorqueReq =
-                (uint8_t)((fabsf(motorData.desiredTorque) / MOTOR_MAX_TORQUE) *
-                          100); // Torque demand in percentage (0-99.6) 350Nm
-            vcu1.VCU_MotorMode = 1; // ? 1 : 2; // 0 = Standby, 1 = Drive, 2 =
-                                    // Generate Electricy, 3 = Reserved
-            break;
-        }
+        //             /* Switched to reverse */
+        //             vcu1.GearLeverPos_Sts =
+        //                 1;                   // 0 = Default, 1 = R, 2 = N, 3
+        //                 = D, 4 = P
+        //             vcu1.AC_Control_Cmd = 1; // 0 = Not active, 1 = Active
+        //             vcu1.BMS_Aux_Relay_Cmd = 1; // 0 = not work, 1 = work
+        //             vcu1.VCU_WorkMode = 0;
+        //             vcu1.VCU_TorqueReq =
+        //                 (uint8_t)((fabsf(motorData.desiredTorque) /
+        //                 MOTOR_MAX_TORQUE) *
+        //                           100); // Torque demand in percentage
+        //                           (0-99.6) 350Nm
+        //             vcu1.VCU_MotorMode = 1; // ? 1 : 2; // 0 = Standby, 1 =
+        //             Drive, 2 =
+        //                                     // Generate Electricy, 3 =
+        //                                     Reserved
+        //             break;
+        //         }
 
-        case MOTOR_STATE_FAULT: {
-            // T7 MCU_Warning_Level == 3
-            vcu1.BMS_Main_Relay_Cmd = 0;    // 1     = ON, 0 = OFF
-            bms1.Pre_charge_Relay_FB = 0;   // 1     = ON, 0 = OFF
-            bms1.Pre_charge_Finish_Sts = 0; // 1   = ON, 0 = OFF
-            vcu1.VCU_MotorMode = 0; // 1       0 = Standby, 1 = Drive, 2 =
-                                    // Generate// Electricy, 3 = Reserved
-            break;
-        }
+        //         case MOTOR_STATE_FAULT: {
+        //             // T7 MCU_Warning_Level == 3
+        //             vcu1.BMS_Main_Relay_Cmd = 0;    // 1     = ON, 0 = OFF
+        //             bms1.Pre_charge_Relay_FB = 0;   // 1     = ON, 0 = OFF
+        //             bms1.Pre_charge_Finish_Sts = 0; // 1   = ON, 0 = OFF
+        //             vcu1.VCU_MotorMode = 0; // 1       0 = Standby, 1 =
+        //             Drive, 2
+        //             =
+        //                                     // Generate// Electricy, 3 =
+        //                                     Reserved
+        //             break;
+        //         }
 
-        default: {
-            break;
-        }
-        }
+        //         default: {
+        //             break;
+        //         }
+        //         }
 
-        vcu1.CheckSum = ComputeChecksum((uint8_t *)&vcu1);
-        bms1.CheckSum = ComputeChecksum((uint8_t *)&bms1);
-        bms2.CheckSum = ComputeChecksum((uint8_t *)&bms2);
+        //         vcu1.CheckSum = ComputeChecksum((uint8_t *)&vcu1);
+        //         bms1.CheckSum = ComputeChecksum((uint8_t *)&bms1);
+        //         bms2.CheckSum = ComputeChecksum((uint8_t *)&bms2);
 
-        uint64_t vcu1_msg;
-        memcpy(&vcu1_msg, &vcu1, sizeof(vcu1_msg));
-        CAN_Send(mVCU1_ID, vcu1_msg);
+        //         uint64_t vcu1_msg;
+        //         memcpy(&vcu1_msg, &vcu1, sizeof(vcu1_msg));
+        //         CAN_Send(mVCU1_ID, vcu1_msg);
 
-        uint64_t bms1_msg;
-        memcpy(&bms1_msg, &bms1, sizeof(bms1_msg));
-        CAN_Send(mBMS1_ID, bms1_msg);
+        //         uint64_t bms1_msg;
+        //         memcpy(&bms1_msg, &bms1, sizeof(bms1_msg));
+        //         CAN_Send(mBMS1_ID, bms1_msg);
 
-        uint64_t bms2_msg;
-        memcpy(&bms2_msg, &bms2, sizeof(bms2_msg));
-        CAN_Send(mBMS2_ID, bms2_msg);
+        //         uint64_t bms2_msg;
+        //         memcpy(&bms2_msg, &bms2, sizeof(bms2_msg));
+        //         CAN_Send(mBMS2_ID, bms2_msg);
 
-        static float lastTorqueSent = 0.0f;
+        //         static float lastTorqueSent = 0.0f;
 
-        float torqueDelta = targetTorque - lastTorqueSent;
-        // Apply Deadband
-        if (APPS_GetAPPSReading() > 0.03f) {
-            targetTorque = torqueMap(APPS_GetAPPSReading());
-        }
+        //         float torqueDelta = targetTorque - lastTorqueSent;
+        //         // Apply Deadband
+        //         if (APPS_GetAPPSReading() > 0.03f) {
+        //             targetTorque = torqueMap(APPS_GetAPPSReading());
+        //         }
 
-        // might be very redundant
-        if (torqueDelta < -MAX_TORQUE_STEP_DOWN_PCT) { //
-            targetTorque = lastTorqueSent - MAX_TORQUE_STEP_DOWN_PCT;
-        } else if (APPS_GetAPPSReading() <= 0.03f) {
-            targetTorque = 0;
-        }
+        //         // might be very redundant
+        //         if (torqueDelta < -MAX_TORQUE_STEP_DOWN_PCT) { //
+        //             targetTorque = lastTorqueSent - MAX_TORQUE_STEP_DOWN_PCT;
+        //         } else if (APPS_GetAPPSReading() <= 0.03f) {
+        //             targetTorque = 0;
+        //         }
 
-        /*safety check if no regen at all*/
-        if (targetTorque <= 0) {
-            targetTorque = 0;
-        }
+        //         /*safety check if no regen at all*/
+        //         if (targetTorque <= 0) {
+        //             targetTorque = 0;
+        //         }
 
-        lastTorqueSent = targetTorque;
+        //         lastTorqueSent = targetTorque;
 
-        // float pedalTorque;
-        // float p = APPS_GetAPPSReading1();
-        // float TmaxCmd = (MOTOR_MAX_TORQUE * 0.5F);
+        //         // float pedalTorque;
+        //         // float p = APPS_GetAPPSReading1();
+        //         // float TmaxCmd = (MOTOR_MAX_TORQUE * 0.5F);
 
-        // // PIECEWISE pedal map
-        // // Breakpoints
-        // const float p1 = 0.10F;
-        // const float p2 = 0.50F;
+        //         // // PIECEWISE pedal map
+        //         // // Breakpoints
+        //         // const float p1 = 0.10F;
+        //         // const float p2 = 0.50F;
 
-        // // Relative slope scalars
-        // const float K_LOW = 1.2;
-        // const float K_MID = 3.42F;
-        // const float K_HIGH = 2.4F;
+        //         // // Relative slope scalars
+        //         // const float K_LOW = 1.2;
+        //         // const float K_MID = 3.42F;
+        //         // const float K_HIGH = 2.4F;
 
-        // // best constants: KLOW = 0.35, KMID = 1.0, K_HIGH = 0.7
+        //         // // best constants: KLOW = 0.35, KMID = 1.0, K_HIGH = 0.7
 
-        // // Compute mid slope so that p=1.0 -> TmaxCmd (keeps same top-end
-        // as
-        // // before)
-        // float denom =
-        //     (K_LOW * p1) + (K_MID * (p2 - p1)) + (K_HIGH * (1.0F - p2));
-        // float m2 = TmaxCmd / denom;
+        //         // // Compute mid slope so that p=1.0 -> TmaxCmd (keeps same
+        //         top-end
+        //         // as
+        //         // // before)
+        //         // float denom =
+        //         //     (K_LOW * p1) + (K_MID * (p2 - p1)) + (K_HIGH * (1.0F -
+        //         p2));
+        //         // float m2 = TmaxCmd / denom;
 
-        // float m1 = K_LOW * m2;
-        // float m3 = K_HIGH * m2;
+        //         // float m1 = K_LOW * m2;
+        //         // float m3 = K_HIGH * m2;
 
-        // if (p <= p1) {
-        //     pedalTorque = m1 * p + 5.0F;
-        // } else if (p <= p2) {
-        //     float T1 = m1 * p1;
-        //     pedalTorque = T1 + m2 * (p - p1) + 5.0F;
-        // } else {
-        //     float T1 = m1 * p1;
-        //     float T2 = T1 + m2 * (p2 - p1);
-        //     pedalTorque = T2 + m3 * (p - p2) + 5.0F;
-        // }
+        //         // if (p <= p1) {
+        //         //     pedalTorque = m1 * p + 5.0F;
+        //         // } else if (p <= p2) {
+        //         //     float T1 = m1 * p1;
+        //         //     pedalTorque = T1 + m2 * (p - p1) + 5.0F;
+        //         // } else {
+        //         //     float T1 = m1 * p1;
+        //         //     float T2 = T1 + m2 * (p2 - p1);
+        //         //     pedalTorque = T2 + m3 * (p - p2) + 5.0F;
+        //         // }
 
-        // Linear Map Torque
-        // if (APPS_GetAPPSReading1() > 0.06) {
-        //     pedalTorque = APPS_GetAPPSReading1() * (MOTOR_MAX_TORQUE *
-        //     0.2F);
-        // } else {
-        //     pedalTorque = 0;
-        // }
+        //         // Linear Map Torque
+        //         // if (APPS_GetAPPSReading1() > 0.06) {
+        //         //     pedalTorque = APPS_GetAPPSReading1() *
+        //         (MOTOR_MAX_TORQUE *
+        //         //     0.2F);
+        //         // } else {
+        //         //     pedalTorque = 0;
+        //         // }
 
-#if !HIMAC_FLAG
-        Motor_UpdateMotor((targetTorque));
-#endif
+        // #if !HIMAC_FLAG
+        //         Motor_UpdateMotor((targetTorque));
+        // #endif
 
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(5));
     }
+    //     }
 }
 
 #if !HIMAC_FLAG

@@ -30,7 +30,7 @@
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define BMS_FLAG 0 // TO REMOVE
-#define IMD_FLAG 1
+#define IMD_FLAG 0
 
 #define ACTIVE_MAP 1
 
@@ -156,7 +156,12 @@
 #define LINEAR_MAP(x, in_min, in_max, out_min, out_max)                        \
     ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
+#define DTI_16_SCALE 0.1F
+#define DTI_32_SCALE 0.01F
 #define CHANGE_ENDIANESS_16(x) (((x & 0xFF00) >> 8) | ((x & 0x00FF) << 8))
+#define CHANGE_ENDIANESS_32(x)                                                 \
+    (((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) |                      \
+     ((x & 0x00FF0000) >> 8) | ((x & 0xFF000000) >> 24))
 
 #define MOTOR_DIRECTION_STANDBY 0
 #define MOTOR_DIRECTION_FORWARD 1

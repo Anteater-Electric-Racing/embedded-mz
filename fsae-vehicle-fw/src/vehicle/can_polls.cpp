@@ -269,6 +269,7 @@ static void threadCANPoll(void *pvParameters) {
         }
 
         case mOBMS1_ID: {
+            // > 8 bytes - FIX
             // OBMS1 raw = {0};
             // memcpy(&raw, &rx_data, sizeof(raw));
 

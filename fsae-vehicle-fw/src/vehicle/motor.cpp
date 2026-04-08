@@ -131,9 +131,12 @@ void threadMotor(void *pvParameters) {
             vcu1.VCU_WorkMode = 0;
             vcu1.VCU_TorqueReq =
                 (uint8_t)((fabsf(motorData.desiredTorque) / MOTOR_MAX_TORQUE) *
-                          100); // Torque demand in percentage (0-99.6) 350Nm
-            vcu1.VCU_MotorMode = 1; // ? 1 : 2; // 0 = Standby, 1 = Drive, 2 =
-                                    // Generate Electricy, 3 = Reserved
+                          100 * 2.551);
+            // 2.551 = 1/0.392
+
+            // Torque demand in percentage (0-99.6) 350Nm
+            vcu1.VCU_MotorMode = 1; // ? 1 : 2; // 0 = Standby, 1 = Drive, 2
+                                    // = Generate Electricy, 3 = Reserved
             break;
         }
 

@@ -5,11 +5,11 @@
 
 #include "peripherals/adc.h"
 #include "peripherals/can.h"
-#include "shockTravel.h"
 #include "utils/utils.h"
-#include "vehicle/apps.h"
-#include "vehicle/bse.h"
-#include "vehicle/can_polls.h"
+#include "vehicle/comms/can_polls.h"
+#include "vehicle/devices/apps.h"
+#include "vehicle/devices/bse.h"
+#include "vehicle/devices/shockTravel.h"
 #include "vehicle/faults.h"
 #include "vehicle/motor.h"
 

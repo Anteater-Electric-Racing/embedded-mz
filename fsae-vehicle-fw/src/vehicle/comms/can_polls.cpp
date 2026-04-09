@@ -6,13 +6,13 @@
 
 #include "peripherals/can.h"
 
-#include "vehicle/telemetry.h"
+#include "../telemetry.h"
 
 #include "utils/utils.h"
 
 #include "pcc_receive.h"
 
-#include "imd.h"
+#include "vehicle/comms/imd.h"
 
 #define THREAD_CP_STACK_SIZE 128
 #define THREAD_CP_PRIORITY 1

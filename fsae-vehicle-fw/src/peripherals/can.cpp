@@ -11,7 +11,7 @@
 
 #include "peripherals/can.h"
 #include "utils/utils.h"
-#include "vehicle/can_polls.h"
+#include "vehicle/comms/can_polls.h"
 #include "vehicle/motor.h"
 #include "vehicle/telemetry.h"
 

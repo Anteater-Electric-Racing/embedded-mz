@@ -1,7 +1,7 @@
 /* AER 2026 */
 
 #include "shockTravel.h"
-#include "../utils/utils.h"
+#include "utils/utils.h"
 #include "vehicle/telemetry.h"
 #include <arduino_freertos.h>
 #include <cmath>

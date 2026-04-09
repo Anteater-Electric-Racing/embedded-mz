@@ -3,13 +3,13 @@
 #include "adc.h"
 #include "./vehicle/telemetry.h"
 #include "utils/utils.h"
-#include "vehicle/apps.h"
-#include "vehicle/bse.h"
+#include "vehicle/devices/apps.h"
+#include "vehicle/devices/bse.h"
+#include "vehicle/devices/shockTravel.h"
+#include "vehicle/devices/thermal.h"
 #include "vehicle/faults.h"
 #include "vehicle/motor.h"
-#include "vehicle/shockTravel.h"
 #include "vehicle/telemetry.h"
-#include "vehicle/thermal.h"
 #include <ADC.h>
 #include <arduino_freertos.h>
 #include <chrono>

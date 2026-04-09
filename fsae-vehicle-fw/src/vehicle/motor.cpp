@@ -11,13 +11,13 @@
 #include "utils/utils.h"
 #include <arduino_freertos.h>
 
-#include "vehicle/apps.h"
-#include "vehicle/bse.h"
-#include "vehicle/can_polls.h"
+#include "vehicle/comms/can_polls.h"
+#include "vehicle/comms/pcc_receive.h"
+#include "vehicle/devices/apps.h"
+#include "vehicle/devices/bse.h"
+#include "vehicle/devices/rtm_button.h"
 #include "vehicle/faults.h"
 #include "vehicle/motor.h"
-#include "vehicle/pcc_receive.h"
-#include "vehicle/rtm_button.h"
 #include "vehicle/telemetry.h"
 
 typedef struct {

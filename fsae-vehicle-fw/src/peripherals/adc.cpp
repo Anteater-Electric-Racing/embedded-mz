@@ -15,22 +15,24 @@
 #include <chrono>
 #include <stdint.h>
 
-enum SensorIndexesADC0 {    // TODO: Update with real values
-    THERMISTOR_1_INDEX = 0, // A0
-    APPS_1_INDEX = 5,
-    APPS_2_INDEX = 4, // A4
-    BSE_1_INDEX = 3,
-    BSE_2_INDEX = 2,
-    SUSP_TRAV_LINPOT1 = 6,
-    SUSP_TRAV_LINPOT2 = 7,
-    SUSP_TRAV_LINPOT3 = 8,
-    SUSP_TRAV_LINPOT4 = 9,
-    THERMISTOR_2_INDEX = 10, // A1
+enum SensorIndexesADC0 
+{    // TODO: Update with real values
+    THERMISTOR_1_INDEX      = 0, // A0
+    APPS_1_INDEX            = 5,
+    APPS_2_INDEX            = 4, // A4
+    BSE_1_INDEX             = 3,
+    BSE_2_INDEX             = 2,
+    SUSP_TRAV_LINPOT1       = 6,
+    SUSP_TRAV_LINPOT2       = 7,
+    SUSP_TRAV_LINPOT3       = 8,
+    SUSP_TRAV_LINPOT4       = 9,
+    THERMISTOR_2_INDEX      = 10, // A1
     THERMISTOR_3_INDEX,      // A2
     THERMISTOR_4_INDEX       // A3
 };
 
-enum SensorIndexesADC1 { // TODO: Update with real values
+enum SensorIndexesADC1 
+{ // TODO: Update with real values
     APPS_1_INDEX2,
     APPS_2_INDEX2,
     BSE_1_INDEX2,

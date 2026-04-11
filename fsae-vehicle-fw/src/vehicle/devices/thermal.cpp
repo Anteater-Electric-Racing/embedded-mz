@@ -1,4 +1,3 @@
-#include "vehicle/telemetry.h"
 #include <Arduino.h>
 
 #define DUTY_CYCLE_MAX 255

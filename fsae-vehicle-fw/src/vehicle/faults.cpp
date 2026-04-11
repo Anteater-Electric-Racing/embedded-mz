@@ -13,9 +13,7 @@
 #include "utils/utils.h"
 #include "vehicle/motor.h"
 
-// #if DEBUG_FLAG
 #include <Arduino.h>
-// #endif
 
 static uint32_t faultBitMap;
 

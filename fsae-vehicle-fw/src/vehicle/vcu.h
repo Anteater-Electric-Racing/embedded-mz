@@ -4,6 +4,8 @@
 
 #include <stdint.h>
 
+// include a LUT for throttle values
+
 typedef enum {
     MOTOR_STATE_OFF,
     MOTOR_STATE_STANDBY,

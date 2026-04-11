@@ -2,7 +2,7 @@
 #define TELEMETRY_CAN_ID 0x666 // Example CAN ID for telemetry messages
 #define TELEMETRY_PERIOD_MS 10 // Telemetry update period in milliseconds
 
-#include "vehicle/telemetry.h"
+#include "vehicle/comms/telemetry.h"
 
 #include <arduino_freertos.h>
 

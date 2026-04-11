@@ -11,7 +11,7 @@
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/shockTravel.h"
 #include "vehicle/faults.h"
-#include "vehicle/motor.h"
+#include "vehicle/vcu.h"
 
 typedef struct __attribute__((packed)) {
 

@@ -99,7 +99,7 @@ void threadTelemetry(void *pvParameters) {
             // .motorSpeed = MCU_GetMCU1Data()->motorSpeed,
             // .motorTorque = MCU_GetMCU1Data()->motorTorque,
             // .maxMotorTorque = MCU_GetMCU1Data()->maxMotorTorque,
-            .motorState = Motor_GetState(),
+            .vehicleState = VCU_GetState(),
             // .mcuMainState = MCU_GetMCU1Data()->mcuMainState,
             // .mcuWorkMode = MCU_GetMCU1Data()->mcuWorkMode,
 

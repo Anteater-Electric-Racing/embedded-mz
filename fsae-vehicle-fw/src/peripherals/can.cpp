@@ -11,7 +11,6 @@
 
 #include "peripherals/can.h"
 #include "utils/utils.h"
-#include "vehicle/comms/bus.h"
 #include "vehicle/comms/telemetry.h"
 #include "vehicle/devices/dti.h"
 #include "vehicle/vcu.h"
@@ -56,7 +55,7 @@ void CAN_Send(uint32_t id, uint64_t msg) {
 }
 
 // overload speific to DTI_message
-void CAN_Send(DTI_Message *msg) {
+void DTICAN_Send(DTIMessage *msg) {
     if (msg == nullptr)
         return;
     tx_msg.id = msg->id;
@@ -82,6 +81,7 @@ void CAN_Send(DTI_Message *msg) {
     can3.write(tx_msg);
     can2.write(tx_msg);
 }
+
 void CAN_Receive(uint32_t *rx_id, uint64_t *rx_data) {
     if (can3.read(rx_msg) || can2.read(rx_msg)) {
         *rx_id = rx_msg.id;

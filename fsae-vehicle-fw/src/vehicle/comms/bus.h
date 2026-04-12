@@ -20,7 +20,6 @@
 #define mDTI_ID 0x65
 // PKT_R = Packet Recieve
 
-void CANPoll_Init();
 typedef enum {
     PKT_1_ID = 0x1F,
     PKT_2_ID = 0x20,
@@ -310,4 +309,5 @@ IMDData *IMD_GetInfo();
 dtiData1 *DTI_GetDTIData();
 dtiData2 *DTI_GetDTI_ExtraData();
 
-static void threadCANPoll(void *pvParameters);
+void Bus_Init();
+void threadBus(void *pvParameters);

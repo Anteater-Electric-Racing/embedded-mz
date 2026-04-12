@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "peripherals/can.h"
 #include "utils/utils.h"
 #include <stdint.h>
 
@@ -26,9 +25,9 @@ typedef enum {
     PKT_SetDriveEnable_ID = 0x0C
 } DTISendID;
 
-typedef enum { AC_ONLY, SPEED } DTIControlMode;
+typedef enum { TORQUE, SPEED } DTIControlMode;
 
-typedef struct {
+typedef struct DTIMessage {
     uint32_t id;
     uint8_t dlc;
     bool is_bitfield;
@@ -42,7 +41,7 @@ typedef struct {
 
 // TODO include a LUT for throttle values.
 
-void DTILinkControlMode(DTIControlMode *mode);
+void DTI_LinkControlMode(DTIControlMode *mode);
 void DTI_SendEnableCommand(bool enable);
 void DTI_SendAccelCommand(float value);
 void DTI_SendBrakeCommand(float value);

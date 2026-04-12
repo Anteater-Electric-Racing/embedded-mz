@@ -40,7 +40,7 @@ typedef struct __attribute__((packed)) {
     float maxMotorTorque; // Max motor torque in Nm
     // float maxMotorBrakeTorque; // Max motor brake torque in Nm
     // MotorRotateDirection motorDirection; // Motor direction
-    MotorState motorState;
+    VehicleState vehicleState;
 
     // MCUMainState mcuMainState; // Motor main state
     // MCUWorkMode mcuWorkMode;   // MCU work mode

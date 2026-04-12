@@ -5,11 +5,9 @@
 #include "pcc.h"
 #include "peripherals/can.h"
 #include "utils/utils.h"
+#include "vehicle/comms/bus.h"
+#include "vehicle/comms/imd.h"
 #include "vehicle/comms/telemetry.h"
-#include "vehicle/devices/imd.h"
-
-#define THREAD_CP_STACK_SIZE 128
-#define THREAD_CP_PRIORITY 1
 
 static TickType_t xLastWakeTime;
 static uint32_t rx_id;
@@ -21,7 +19,7 @@ static dtiData2 dtiExtra;
 static OrionBMSData bmsData;
 static IMDData imdData;
 
-void CANPoll_Init() {
+void Bus_Init() {
 
     dtiData = {.controlMode = 0,
                // 1: CONTROL_MODE_SPEED
@@ -97,11 +95,9 @@ void CANPoll_Init() {
                .isolation_fault = false};
 
     // Initialize the motor thread
-    xTaskCreate(threadCANPoll, "threadCANPoll", THREAD_CP_STACK_SIZE, NULL,
-                THREAD_CP_PRIORITY, NULL);
 }
 
-static void threadCANPoll(void *pvParameters) {
+void threadBus(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
 
     while (true) {

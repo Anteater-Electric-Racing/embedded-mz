@@ -2,6 +2,8 @@
 // vehicle state goes in vcu.cpp
 
 #include "dti.h"
+#include "peripherals/can.h"
+
 // #include "tc.h"
 // #include "lc.h"
 
@@ -15,7 +17,6 @@ void DTI_LinkControlMode(DTIControlMode *mode) { internalMode = mode; }
 /**
  * Sends the enable command periodically to allow for motor output
  * @param enable true if RTD_button is pressed
- *
  * */
 void DTI_SendEnableCommand(bool enable) {
     DTIMessage enableMsg;
@@ -26,7 +27,7 @@ void DTI_SendEnableCommand(bool enable) {
     } else {
         enableMsg.data.bytes[0] = 0;
     }
-    CAN_Send(&enableMsg);
+    DTICAN_Send(&enableMsg);
 }
 
 /**
@@ -41,7 +42,7 @@ void DTI_SendAccelCommand(float value) {
     throttleMsg.is_bitfield = false;
 
     switch (*internalMode) {
-    case AC_ONLY: {
+    case TORQUE: {
         throttleMsg.id = ((PKT_SetRelativeCurrent_ID << 8) | DTI_NODE_ID);
         throttleMsg.dlc = 2;
         throttleMsg.data.half[0] = (int16_t)(value * 10);
@@ -58,7 +59,7 @@ void DTI_SendAccelCommand(float value) {
     } break;
     }
 
-    CAN_Send(&throttleMsg);
+    DTICAN_Send(&throttleMsg);
 }
 
 /**
@@ -71,5 +72,5 @@ void DTI_SendBrakeCommand(float value) {
     brakeMsg.dlc = 2;
     brakeMsg.is_bitfield = false;
     brakeMsg.data.half[0] = (int16_t)(value * 10);
-    CAN_Send(&brakeMsg);
+    DTICAN_Send(&brakeMsg);
 }

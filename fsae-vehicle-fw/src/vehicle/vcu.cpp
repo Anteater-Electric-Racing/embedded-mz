@@ -22,7 +22,7 @@
 #include "vehicle/vcu.h"
 
 static VehicleState vehicleState;
-static DTIControlMode controMode;
+static DriveState driveState;
 static TickType_t xLastWakeTime;
 
 static bool enableRegen = false;
@@ -40,7 +40,10 @@ static float k = 0.0f, x0 = 0.0f, low_limit = 0.0f, high_limit = 0.0f;
 void VCU_Init() {
     vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
     enableRegen = false;
-    controMode = AC_ONLY;
+
+    driveState.controlMode = TORQUE;
+    driveState.driveStrategy = OPEN_LOOP;
+    DTI_LinkControlMode(&driveState.controlMode);
 
     k = k_vals[ACTIVE_MAP];
     x0 = x0_vals[ACTIVE_MAP];
@@ -49,7 +52,7 @@ void VCU_Init() {
     high_limit = 1.0f / (1.0f + expf(-k * (1.0f - x0)));
 }
 
-void VCU_ThreadVCU(void *pvParameters) {
+void threadVCU(void *pvParameters) {
     while (true) {
 
         float pedalAccel = APPS_GetAPPSReading();
@@ -58,7 +61,7 @@ void VCU_ThreadVCU(void *pvParameters) {
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
-            if (PCC_PrechargeComplete) {
+            if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
             break;
@@ -101,14 +104,34 @@ void VCU_ThreadVCU(void *pvParameters) {
     }
 }
 
+// TODO switch to LUT for all applicable strategies
 float VCU_TorqueMap(float pedal) {
-    // Raw Sigmoid curve
-    float raw = 1.0f / (1.0f + expf(-k * (pedal - x0)));
-    float normalized_ratio = (raw - low_limit) / (high_limit - low_limit);
-    float target = (normalized_ratio * CAPPED_MOTOR_TORQUE);
+
+    float target = 0.0f;
+    switch (driveState.driveStrategy) {
+    case OPEN_LOOP:
+        // Raw Sigmoid curve
+        {
+            float raw = 1.0f / (1.0f + expf(-k * (pedal - x0)));
+            float normalized_ratio =
+                (raw - low_limit) / (high_limit - low_limit);
+            target = (normalized_ratio * CAPPED_MOTOR_TORQUE);
+
+            break;
+        }
+    case TRACTION_CTRL: {
+
+        /* TC implementation */
+    } break;
+    case LAUNCH_CTRL: {
+        /* LC implemnetation */
+    } break;
+    default: {
+        break;
+    }
+    }
     return target;
 }
-
 void VCU_ForceFaultState() { vehicleState = STATE_FAULT; }
 
 void VCU_ForceIdleState() {

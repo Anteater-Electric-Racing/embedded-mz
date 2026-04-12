@@ -10,7 +10,7 @@
 void CAN_Init();
 void CAN_Send(uint32_t id, uint64_t msg);
 
-void DTICAN_Send(DTIMessage *msg);
+void CAN_Send(DTIMessage *msg);
 
 void CAN_Receive(uint32_t *rx_id, uint64_t *rx_data);
 

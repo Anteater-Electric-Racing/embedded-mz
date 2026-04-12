@@ -28,8 +28,8 @@ void DTI_SetACLimits(float max, float min) {
     acMin.is_bitfield = false;
     acMin.data.half[0] = (int16_t)(min * 10);
 
-    DTICAN_Send(&acMax);
-    DTICAN_Send(&acMin);
+    CAN_Send(&acMax);
+    CAN_Send(&acMin);
 }
 void DTI_SetDCLimits(float max, float min) {
     DTIMessage dcMax;
@@ -45,8 +45,8 @@ void DTI_SetDCLimits(float max, float min) {
     dcMin.is_bitfield = false;
     dcMin.data.half[0] = (int16_t)(min * 10);
 
-    DTICAN_Send(&dcMax);
-    DTICAN_Send(&dcMin);
+    CAN_Send(&dcMax);
+    CAN_Send(&dcMin);
 }
 /**
  * Sends the enable command periodically to allow for motor output
@@ -61,7 +61,7 @@ void DTI_SendEnableCommand(bool enable) {
     } else {
         enableMsg.data.bytes[0] = 0;
     }
-    DTICAN_Send(&enableMsg);
+    CAN_Send(&enableMsg);
 }
 
 /**
@@ -93,7 +93,7 @@ void DTI_SendAccelCommand(float value) {
     } break;
     }
 
-    DTICAN_Send(&throttleMsg);
+    CAN_Send(&throttleMsg);
 }
 
 /**
@@ -106,5 +106,5 @@ void DTI_SendBrakeCommand(float value) {
     brakeMsg.dlc = 2;
     brakeMsg.is_bitfield = false;
     brakeMsg.data.half[0] = (int16_t)(value * 10);
-    DTICAN_Send(&brakeMsg);
+    CAN_Send(&brakeMsg);
 }

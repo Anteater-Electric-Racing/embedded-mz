@@ -55,7 +55,7 @@ void CAN_Send(uint32_t id, uint64_t msg) {
 }
 
 // overload speific to DTI_message
-void DTICAN_Send(DTIMessage *msg) {
+void CAN_Send(DTIMessage *msg) {
     if (msg == nullptr)
         return;
     tx_msg.id = ((msg->id) << 8 | DTI_NODE_ID);

@@ -9,7 +9,7 @@
 #include "utils/utils.h"
 #include <stdint.h>
 
-#define DTI_NODE_ID 0x65
+#define DTI_NODE_ID 0x41 // 65 in hex
 typedef enum {
     PKT_SetCurrent_ID = 0x01,
     PKT_SetBrakeCurrent_ID = 0x02,
@@ -45,3 +45,5 @@ void DTI_LinkControlMode(DTIControlMode *mode);
 void DTI_SendEnableCommand(bool enable);
 void DTI_SendAccelCommand(float value);
 void DTI_SendBrakeCommand(float value);
+void DTI_SetACLimits(float max, float min);
+void DTI_SetDCLimits(float max, float min);

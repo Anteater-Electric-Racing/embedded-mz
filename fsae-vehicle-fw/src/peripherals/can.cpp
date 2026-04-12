@@ -58,7 +58,7 @@ void CAN_Send(uint32_t id, uint64_t msg) {
 void DTICAN_Send(DTIMessage *msg) {
     if (msg == nullptr)
         return;
-    tx_msg.id = msg->id;
+    tx_msg.id = ((msg->id) << 8 | DTI_NODE_ID);
     tx_msg.len = msg->dlc;
     tx_msg.flags.extended = 1;
 
@@ -76,6 +76,11 @@ void DTICAN_Send(DTIMessage *msg) {
         uint64_t swapped = SWAP_64(msg->data.raw);
         memcpy(tx_msg.buf, &swapped, 8);
     }
+
+    // tx_msg.id = 0x0C41;
+    // tx_msg.flags.extended = 1;
+    // tx_msg.len = 1;
+    // tx_msg.buf[0] = 0x01; // High byte of 1000 (0x03E8)
 
     // TODO: ksthakkar fix duplicate writes - watch CAN utilization
     can3.write(tx_msg);

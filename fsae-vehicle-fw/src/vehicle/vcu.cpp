@@ -53,23 +53,29 @@ void VCU_Init() {
 }
 
 void threadVCU(void *pvParameters) {
+
     while (true) {
 
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
+        // DTI_SetDCLimits(10.0, -10.0);
+        // DTI_SetACLimits(10.0, -10.0);
+        DTI_SendEnableCommand(true);
+        DTI_SetDCLimits(60.0, -2.0);
+        DTI_SetACLimits(150.0, -20.0);
 
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
-            DTI_SendEnableCommand(false);
+            // DTI_SendEnableCommand(false);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
             break;
         case STATE_IDLE:
-            DTI_SendEnableCommand(false);
-            // transition to IDLE
-            // TODO Update brake light threshold if we only want to move when
-            // mech brakes are engaged
+            // DTI_SendEnableCommand(false);
+            //  transition to IDLE
+            //  TODO Update brake light threshold if we only want to move when
+            //  mech brakes are engaged
             if (BSE_BrakesPressed()) {
                 if (RTM_ButtonState() && Faults_CheckAllClear()) {
                     vehicleState = STATE_DRIVING;
@@ -92,7 +98,7 @@ void threadVCU(void *pvParameters) {
 
             break;
         case STATE_FAULT:
-            DTI_SendEnableCommand(false);
+            // DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
             }

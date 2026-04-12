@@ -7,27 +7,19 @@
 // include a LUT for throttle values
 
 typedef enum {
-    MOTOR_STATE_OFF,
-    MOTOR_STATE_STANDBY,
-    MOTOR_STATE_PRECHARGING,
-    MOTOR_STATE_IDLE,
-    MOTOR_STATE_DRIVING,
-    MOTOR_STATE_FAULT
-} MotorState;
+    STATE_OFF,
+    STATE_STANDBY,
+    STATE_PRECHARGING,
+    STATE_IDLE,
+    STATE_DRIVING,
+    STATE_FAULT
+} VehicleState;
 
-void threadMotor(void *pvParameters);
+typedef enum { OPEN_LOOP, TRACTION_CTRL, LAUNCH_CTRL } DriveStrategy;
 
-void Motor_Init();
-void Motor_UpdateMotor(float torqueDemand);
-void Motor_UpdateMotor(float torqueDemand, bool enablePrecharge,
-                       bool enablePower, bool enableRun, bool enableRegen,
-                       bool enableStandby);
-float torqueMap(float pedal);
-float Motor_GetTorqueDemand();
-MotorState Motor_GetState();
-void threadMotor(void *pvParameters);
-
-void Motor_SetFaultState();
-void Motor_ClearFaultState();
-void Motor_ClearToIdleFault();
-float Motor_TargetTorque();
+void VCU_Init();
+void VCU_ThreadVCU(void *pvParameters);
+void VCU_SetFaultState();
+void VCU_ClearFaultState();
+void VCU_ForceIdleState();
+void VCU_TorqueMap();

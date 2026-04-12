@@ -30,7 +30,7 @@ typedef enum {
     PKT_6_ID = 0x24,
     PKT_7_ID = 0x25,
     PKT_8_ID = 0x26
-} DTI_Recieve;
+} DTI_Recieve_ID;
 
 #define pcc_ID 0x222
 
@@ -303,10 +303,11 @@ typedef struct {
     bool isolation_fault;
 } IMDData;
 
-void MCU_Init();
 uint8_t ComputeChecksum(uint8_t *data);
 
 OrionBMSData *BMS_GetOrionData();
 IMDData *IMD_GetInfo();
 dtiData1 *DTI_GetDTIData();
 dtiData2 *DTI_GetDTI_ExtraData();
+
+static void threadCANPoll(void *pvParameters);

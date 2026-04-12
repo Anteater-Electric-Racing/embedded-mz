@@ -1,17 +1,12 @@
-#pragma once
+// #pragma once
 
-#include "can_polls.h"
+// #include "arduino_freertos.h"
+// #include "bus.h"
+// #include "pcc.h"
+// #include "peripherals/can.h"
+// #include "utils/utils.h"
+// #include "vehicle/comms/telemetry.h"
 
-#include "arduino_freertos.h"
-
-#include "peripherals/can.h"
-
-#include "vehicle/telemetry.h"
-
-#include "utils/utils.h"
-
-#include "pcc_receive.h"
-
-uint64_t PackIMDData(uint8_t index, uint16_t value);
-void IMD_UpdateThreshold(uint16_t threshold_kOhm);
-void IMD_InitializeConfiguration();
+// uint64_t PackIMDData(uint8_t index, uint16_t value);
+// void IMD_UpdateThreshold(uint16_t threshold_kOhm);
+// void IMD_InitializeConfiguration();

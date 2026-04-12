@@ -1,23 +1,15 @@
 // Anteater Electric Racing, 2025
 
-#include "can_polls.h"
-
+#include "bus.h"
 #include "arduino_freertos.h"
-
+#include "pcc.h"
 #include "peripherals/can.h"
-
-#include "../telemetry.h"
-
 #include "utils/utils.h"
-
-#include "pcc_receive.h"
-
-#include "vehicle/comms/imd.h"
+#include "vehicle/comms/telemetry.h"
+#include "vehicle/devices/imd.h"
 
 #define THREAD_CP_STACK_SIZE 128
 #define THREAD_CP_PRIORITY 1
-
-static void threadCANPoll(void *pvParameters);
 
 static TickType_t xLastWakeTime;
 static uint32_t rx_id;
@@ -143,8 +135,7 @@ static void threadCANPoll(void *pvParameters) {
             taskENTER_CRITICAL(); // Enter critical section
             dtiData.eRPM = (float)((int32_t)CHANGE_ENDIANESS_32(dti2.eRPM));
             dtiData.dutyCycle =
-                (float)((int16_t)CHANGE_ENDIANESS_16(dti2.dutyCycle)) *
-                DTI_16_SCALE;
+                (float)((int16_t)SWAP_16(dti2.dutyCycle)) * DTI_16_SCALE;
             dtiData.inputVoltage =
                 (float)((int16_t)CHANGE_ENDIANESS_16(dti2.inputVoltage));
             taskEXIT_CRITICAL(); // Exit critical section
@@ -264,7 +255,7 @@ static void threadCANPoll(void *pvParameters) {
         }
         case pcc_ID: {
             // Serial.print("PCC OK?");
-            processPCCMessage(rx_data);
+            PCC_ProcessPCCMessage(&rx_data);
             break;
         }
 

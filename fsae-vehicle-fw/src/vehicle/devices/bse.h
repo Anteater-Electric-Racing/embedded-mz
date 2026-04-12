@@ -11,3 +11,6 @@ typedef struct {
 void BSE_Init();
 void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2);
 BSEData *BSE_GetBSEReading();
+
+float BSE_GetBSEAverage();
+bool BSE_BrakesPressed();

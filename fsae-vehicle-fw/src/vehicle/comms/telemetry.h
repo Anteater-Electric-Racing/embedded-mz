@@ -6,10 +6,10 @@
 #include "peripherals/adc.h"
 #include "peripherals/can.h"
 #include "utils/utils.h"
-#include "vehicle/comms/can_polls.h"
+#include "vehicle/comms/bus.h"
 #include "vehicle/devices/apps.h"
 #include "vehicle/devices/bse.h"
-#include "vehicle/devices/shockTravel.h"
+#include "vehicle/devices/linpots.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
 

@@ -50,7 +50,7 @@ operation)
 
 #define WHEEL_SPEED_1_PIN 2
 #define WHEEL_SPEED_2_PIN 3
-#define RTM_BUTTON_PIN 36
+#define rtm_PIN 36
 #define BRAKE_LIGHT_PIN 9
 
 #define LOGIC_LEVEL_V 3.3F
@@ -160,10 +160,16 @@ operation)
 
 #define DTI_16_SCALE 0.1F
 #define DTI_32_SCALE 0.01F
+
+// TODO depreciate the following
 #define CHANGE_ENDIANESS_16(x) (((x & 0xFF00) >> 8) | ((x & 0x00FF) << 8))
 #define CHANGE_ENDIANESS_32(x)                                                 \
     (((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) |                      \
      ((x & 0x00FF0000) >> 8) | ((x & 0xFF000000) >> 24))
+
+#define SWAP_16(x) __builtin_bswap16(x)
+#define SWAP_32(x) __builtin_bswap32(x)
+#define SWAP_64(x) __builtin_bswap64(x)
 
 #define MOTOR_DIRECTION_STANDBY 0
 #define MOTOR_DIRECTION_FORWARD 1

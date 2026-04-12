@@ -53,26 +53,23 @@ void VCU_Init() {
 }
 
 void threadVCU(void *pvParameters) {
-
     while (true) {
-
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
-        // DTI_SetDCLimits(10.0, -10.0);
-        // DTI_SetACLimits(10.0, -10.0);
-        DTI_SendEnableCommand(true);
-        DTI_SetDCLimits(60.0, -2.0);
-        DTI_SetACLimits(150.0, -20.0);
+
+        Faults_HandleFaults();
 
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
-            // DTI_SendEnableCommand(false);
+            DTI_SendEnableCommand(false);
+            DTI_SetDCLimits(60.0, -2.0);
+            DTI_SetACLimits(150.0, -20.0);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
             break;
         case STATE_IDLE:
-            // DTI_SendEnableCommand(false);
+            DTI_SendEnableCommand(false);
             //  transition to IDLE
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
@@ -122,11 +119,9 @@ float VCU_TorqueMap(float pedal) {
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
             target = (normalized_ratio * CAPPED_MOTOR_TORQUE);
-
             break;
         }
     case TRACTION_CTRL: {
-
         /* TC implementation */
     } break;
     case LAUNCH_CTRL: {

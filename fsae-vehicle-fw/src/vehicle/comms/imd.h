@@ -1,3 +1,5 @@
+// transition imd parts from long bus.h to bms.h. Then include this in bus.h
+
 // #pragma once
 
 // #include "arduino_freertos.h"

@@ -1,7 +1,6 @@
 /**
  * Anteater Electric Racing, 2026
- * Description:
- *
+ * Description: DTI HV-550 control messages over CAN2
  **/
 
 #pragma once

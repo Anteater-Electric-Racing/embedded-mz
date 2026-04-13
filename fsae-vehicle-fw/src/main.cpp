@@ -10,6 +10,7 @@
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
 #include "vehicle/comms/telemetry.h"
+#include "vehicle/controls/bypass.h"
 #include "vehicle/devices/apps.h"
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/linpots.h"
@@ -43,6 +44,7 @@ void setup() { // runs once on bootup
     GPIO_Init();
     PCC_Init();
     thermal_Init();
+    Bypass_Init();
 
     Serial.begin(9600);
 
@@ -79,6 +81,7 @@ void threadMain(void *pvParameters) {
         /*============LOW PRIORITY GPIO UPDATES============*/
         digitalWrite(13, HIGH); // orange led on teensy
 
+        // Bypass_TSSI();
         // thermal_MCULoop();
         // thermal_forceOn();
 

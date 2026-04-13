@@ -31,6 +31,7 @@ void DTI_SetACLimits(float max, float min) {
     CAN_Send(&acMax);
     CAN_Send(&acMin);
 }
+
 void DTI_SetDCLimits(float max, float min) {
     DTIMessage dcMax;
     DTIMessage dcMin;

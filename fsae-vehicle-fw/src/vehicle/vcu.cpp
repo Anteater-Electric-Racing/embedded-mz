@@ -56,7 +56,6 @@ void threadVCU(void *pvParameters) {
     while (true) {
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
-
         Faults_HandleFaults();
 
         switch (vehicleState) {
@@ -133,7 +132,7 @@ float VCU_TorqueMap(float pedal) {
     }
     return target;
 }
-void VCU_ForceFaultState() { vehicleState = STATE_FAULT; }
+void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
 
 void VCU_ForceIdleState() {
     vehicleState = STATE_FAULT;

@@ -6,8 +6,8 @@
 -
 -
 
-## Testing and Validation
+## Testing and Validation (include a link or image as proof of the validation performed.)
 -
 -
 
-Include a link or image as proof of the validation performed.
+

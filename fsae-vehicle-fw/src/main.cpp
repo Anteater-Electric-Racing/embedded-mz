@@ -125,32 +125,7 @@ void threadMain(void *pvParameters) {
         Serial.print("Invt Temp: ");
         Serial.print(DTI_GetDTIData()->controllerTemp);
         Serial.print(" | ");
-        Serial.print("Motor Temp: ");
-        Serial.print(DTI_GetDTIData()->motorTemp);
-        Serial.print(" | ");
-        Serial.print("BatVolts: ");
-        Serial.print(DTI_GetDTIData()->inputVoltage);
-        Serial.print(" | ");
-        Serial.print("AC: ");
-        Serial.print(DTI_GetDTIData()->acCurrent);
-        Serial.print(" | ");
-        Serial.print("DC: ");
-        Serial.print(DTI_GetDTIData()->dcCurrent);
-        Serial.print(" | ");
-        Serial.print("Fault code: ");
-        Serial.print(DTI_GetDTIData()->faultCode);
-        Serial.print(" | ");
-        Serial.print("enable?: ");
-        Serial.print(DTI_GetDTIData()->driveEnabled);
-        Serial.print(" | ");
-        Serial.print("brakeInput: ");
-        Serial.print(DTI_GetDTI_ExtraData()->brakeInput);
-        Serial.print(" | ");
-        Serial.print("configMaxDC: ");
-        Serial.print(DTI_GetDTIData()->maxDC_Current);
-        Serial.print(" | ");
-        Serial.print("configMaxAC: ");
-        Serial.print(DTI_GetDTIData()->maxAC_Current);
+
         Serial.print("\r");
         // IMPLEMENT BETTER SERIAL PROCESSING(
         //     TEENSY does not support ANSI escape codes)

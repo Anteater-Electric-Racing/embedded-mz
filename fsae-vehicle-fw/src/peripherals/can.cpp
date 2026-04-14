@@ -49,40 +49,7 @@ void CAN_Send(uint32_t id, uint64_t msg) {
     tx_msg.id = id;
     memcpy(tx_msg.buf, &msg, sizeof(msg));
 
-    // TODO: maybe keep here as broadcast? - watch CAN utilization
-    can3.write(tx_msg);
-    can2.write(tx_msg);
-}
-
-// overload speific to DTI_message
-void CAN_Send(DTIMessage *msg) {
-    if (msg == nullptr)
-        return;
-    tx_msg.id = ((msg->id) << 8 | DTI_NODE_ID);
-    tx_msg.len = msg->dlc;
-    tx_msg.flags.extended = 1;
-
-    // swap to bigEndian before sending to DTI
-    if (msg->is_bitfield || msg->dlc <= 1) {
-        memcpy(tx_msg.buf, msg->data.bytes, 8);
-    } else if (msg->dlc == 2) {
-        uint16_t swapped = SWAP_16(msg->data.half[0]);
-        memcpy(tx_msg.buf, &swapped, 2);
-    } else if (msg->dlc == 4) {
-        uint32_t swapped = SWAP_32(msg->data.word[0]);
-        memcpy(tx_msg.buf, &swapped, 4);
-    } else {
-        // Fallback for 8-byte or odd lengths
-        uint64_t swapped = SWAP_64(msg->data.raw);
-        memcpy(tx_msg.buf, &swapped, 8);
-    }
-
-    // tx_msg.id = 0x0C41;
-    // tx_msg.flags.extended = 1;
-    // tx_msg.len = 1;
-    // tx_msg.buf[0] = 0x01; // High byte of 1000 (0x03E8)
-
-    // TODO: ksthakkar fix duplicate writes - watch CAN utilization
+    // @ksthakkar TODO: fix duplicate writes - watch CAN utilization
     can3.write(tx_msg);
     can2.write(tx_msg);
 }

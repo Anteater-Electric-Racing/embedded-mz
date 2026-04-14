@@ -23,6 +23,7 @@ void Bypass_Init() {
  * Logic:
  * Feedback LOW  & IMD Status Low -> Bypass ON (High)
  * Feedback HIGH -> Bypass OFF (Low) after delay
+ *
  */
 void Bypass_TSSI_Control() {
     bool feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);

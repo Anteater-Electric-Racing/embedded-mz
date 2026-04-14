@@ -86,7 +86,12 @@ void threadVCU(void *pvParameters) {
                 vehicleState = STATE_IDLE;
             } else {
                 DTI_SendEnableCommand(true);
-                DTI_SendAccelCommand(VCU_TorqueMap(pedalAccel));
+
+                float targetTorque = VCU_TorqueMap(pedalAccel);
+
+                // derate current before sending
+
+                DTI_SendAccelCommand(targetTorque);
                 if (enableRegen && BSE_BrakesPressed()) {
                     DTI_SendBrakeCommand(pedalBrake);
                 }

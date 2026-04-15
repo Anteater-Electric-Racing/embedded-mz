@@ -41,7 +41,7 @@ static float k = 0.0f, x0 = 0.0f, low_limit = 0.0f, high_limit = 0.0f;
 void VCU_Init() {
     vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
     enableRegen = false;
-    
+
     driveState.controlMode = TORQUE;
     driveState.driveStrategy = OPEN_LOOP;
     DTI_LinkControlMode(&driveState.controlMode);
@@ -63,7 +63,7 @@ void threadVCU(void *pvParameters) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
             DTI_SetDCLimits(60.0, -2.0);
-            DTI_SetACLimits(150.0, -20.0);
+            DTI_SetACLimits(150.0, -20.0);  
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
@@ -98,10 +98,10 @@ void threadVCU(void *pvParameters) {
                 float smallestFactor = (batteryFactor < motorFactor) ? (batteryFactor < inverterFactor ? batteryFactor : inverterFactor) : (motorFactor < inverterFactor ? motorFactor : inverterFactor); 
 
 
-                DTI_SetDCLimits(60.0*smallestFactor.-2.0);
-                DTI_SetACLimits(150.0*smallestFactor,-20.0);
+                DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
+                DTI_SetACLimits(150.0 * smallestFactor, -20.0);
 
-                DTI_SendAccelCommand(targetTorque*smallestFactor);
+                DTI_SendAccelCommand(targetTorque * smallestFactor);
                 if (enableRegen && BSE_BrakesPressed()) {
                     DTI_SendBrakeCommand(pedalBrake);
                 }

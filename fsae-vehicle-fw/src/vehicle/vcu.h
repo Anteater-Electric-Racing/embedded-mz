@@ -26,7 +26,7 @@ void threadVCU(void *pvParameters);
 void VCU_SetFaultState();
 void VCU_ClearFaultState();
 void VCU_ForceIdleState();
-float derate();
+float derate(float temperature);
 float VCU_TorqueMap(float pedal);
 
 VehicleState VCU_GetState();

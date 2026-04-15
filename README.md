@@ -7,6 +7,7 @@ flowchart TD
     PI(Pedal Input) -->|Analog| SC
     O(Orion BMS) -->|CAN| Pi
     %% OI(Omni Inverter) -->|CAN| Pi
+    TH(Thermistors) --> |Analog| SC
     SC(Teensy Omni Speed Controller) -->|CAN| Pi
     IMU(MPU6050 IMU) -->|I2C| SC
     GPS(NEO-6M GPS) -->|UART| SC
@@ -18,7 +19,7 @@ flowchart TD
         R -->|MQTT| D(["<a href='https://github.com/AlistairKeiller/FSAE/tree/master/fsae-dashboard' target='_blank'>Raspi Dashboard</a>"])
     end
     subgraph Graphana[Wireless Grafana]
-        I -->|HTTP| F(Full Histroy Preview)
+        I -->|HTTP| F(Full History Preview)
         R -->|MQTT| P(Real Time Preview)
     end
 ```
@@ -33,9 +34,9 @@ docker run -d -p 3000:3000 --name=grafana grafana/grafana-enterprise
 ```
 ### Setting up development environment
 - Open the project in VSCode
-- Install the [Devcontainer](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension for VSCode
+- Install the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension for VSCode
 - Open the command palette (Super+Shift+P) and run `Dev Containers: Rebuild and Reopen in Container`
 - The project will now be running in a container with all the necessary dependencies (rust) and services (grafana, influxdb)
 - Now run `cargo run --bin fsae-raspi` to start the logging service
 - You can view the dashboard at `http://localhost:3000` (default username: admin, password: admin)
-- You can view the influxdb database (`http://localhost:8086`) or mqtt broker (`localhost:1883`), by adding it as a data source in grafana
+- You can view the influxdb database (`http://localhost:8086`) or MQTT broker (`localhost:1883`), by adding it as a data source in Grafana

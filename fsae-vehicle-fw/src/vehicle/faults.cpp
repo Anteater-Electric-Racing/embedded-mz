@@ -10,12 +10,8 @@
 #define LOW_BATTERY_VOLTAGE_MASK (0x1 << 7)
 
 #include "vehicle/faults.h"
-#include "utils/utils.h"
-#include "vehicle/motor.h"
 
-// #if DEBUG_FLAG
 #include <Arduino.h>
-// #endif
 
 static uint32_t faultBitMap;
 
@@ -140,28 +136,28 @@ void Faults_HandleFaults() {
         return;
     }
     if (faultBitMap & FAULT_OVER_CURRENT_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_UNDER_VOLTAGE_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_OVER_TEMP_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_BSE_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_BPPS_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_BRAKE_PLAUSIBILITY_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & LOW_BATTERY_VOLTAGE_MASK) {
-        Motor_SetFaultState();
+        VCU_SetFaultState();
     }
 }
 

@@ -1,9 +1,10 @@
+// TO REOMVE
+
 #pragma once
 
 #include <stdint.h>
 
 typedef struct __attribute__((packed)) {
-    // uint32_t timestamp;
     uint8_t state;
     uint8_t errorCode;
     uint16_t accumulatorVoltage;
@@ -12,6 +13,7 @@ typedef struct __attribute__((packed)) {
 } PCC;
 
 void PCC_Init();
-void processPCCMessage(uint64_t);
-
+void PCC_ProcessPCCMessage(uint64_t *rx_data);
 PCC *PCC_GetData();
+
+bool PCC_PrechargeComplete();

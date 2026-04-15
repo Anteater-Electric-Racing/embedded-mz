@@ -5,13 +5,13 @@
 
 #include "peripherals/adc.h"
 #include "peripherals/can.h"
-#include "shockTravel.h"
 #include "utils/utils.h"
-#include "vehicle/apps.h"
-#include "vehicle/bse.h"
+#include "vehicle/comms/bus.h"
+#include "vehicle/devices/apps.h"
+#include "vehicle/devices/bse.h"
+#include "vehicle/devices/linpots.h"
 #include "vehicle/faults.h"
-#include "vehicle/ifl100-36.h"
-#include "vehicle/motor.h"
+#include "vehicle/vcu.h"
 
 typedef struct __attribute__((packed)) {
 
@@ -39,11 +39,11 @@ typedef struct __attribute__((packed)) {
     float motorTorque;    // Motor torque in Nm
     float maxMotorTorque; // Max motor torque in Nm
     // float maxMotorBrakeTorque; // Max motor brake torque in Nm
-    MotorRotateDirection motorDirection; // Motor direction
-    MotorState motorState;
+    // MotorRotateDirection motorDirection; // Motor direction
+    VehicleState vehicleState;
 
-    MCUMainState mcuMainState; // Motor main state
-    MCUWorkMode mcuWorkMode;   // MCU work mode
+    // MCUMainState mcuMainState; // Motor main state
+    // MCUWorkMode mcuWorkMode;   // MCU work mode
 
     float mcuVoltage;
     float motorPhaseCurrent;
@@ -53,7 +53,7 @@ typedef struct __attribute__((packed)) {
     int32_t motorTemp; // Motor temperature in C
     int32_t mcuTemp;   // Inverter temperature in C
 
-    MCUWarningLevel mcuWarningLevel; // MCU warning level
+    // MCUWarningLevel mcuWarningLevel; // MCU warning level
 
     // Dynamics Data
     float shocktravel1;

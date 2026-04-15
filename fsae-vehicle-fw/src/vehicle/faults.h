@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "utils/utils.h"
+#include "vehicle/vcu.h"
 #include <stdint.h>
 
 typedef enum {

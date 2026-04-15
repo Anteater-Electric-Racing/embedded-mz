@@ -72,3 +72,12 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
 }
 
 BSEData *BSE_GetBSEReading() { return &bseData; }
+
+float BSE_GetBSEAverage() {
+    return (bseData.bseFront_Reading + bseData.bseRear_Reading) / 2.0f;
+}
+
+bool BSE_BrakesPressed() {
+    return (BSE_GetBSEReading()->bseFront_Reading >= BRAKE_LIGHT_THRESHOLD &&
+            BSE_GetBSEReading()->bseRear_Reading >= BRAKE_LIGHT_THRESHOLD);
+}

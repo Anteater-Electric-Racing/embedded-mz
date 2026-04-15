@@ -3,9 +3,13 @@
 #pragma once
 
 /*
-
-    Misc KZ fixes (low priority):
-        MIGHT be incorrect packed struct order for setting charge/disch limits
+HIGH PRIORITY
+--> simplify state machine using DTI, write docs of how to config dti for mz,
+testing docs
+--> tssi bypass (using IMDCAN readings + 3 sec delay to then trigger normal
+operation)
+--> imd thershold increase
+--> LookupTable for throttle curve
 
         TODO: better serial monitor (python script with pySerial)
     (constantly running) needs all necessary fields
@@ -19,8 +23,6 @@
         IMD data check (1 msg read, HV mesage not read) -- IMD error code 512 is
     read until status is cleared
 
-        Fix torque output read from INVT (endianess)
-
         clean up code
 
     TODO Fixes:
@@ -30,7 +32,7 @@
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define BMS_FLAG 0 // TO REMOVE
-#define IMD_FLAG 1
+#define IMD_FLAG 0
 
 #define ACTIVE_MAP 1
 
@@ -45,10 +47,12 @@
 #define THREAD_CAN_TELEMETRY_PRIORITY 1
 #define THREAD_ADC_STACK_SIZE 128
 #define THREAD_ADC_PRIORITY 8
+#define THREAD_CP_STACK_SIZE 128
+#define THREAD_CP_PRIORITY 6
 
 #define WHEEL_SPEED_1_PIN 2
 #define WHEEL_SPEED_2_PIN 3
-#define RTM_BUTTON_PIN 36
+#define rtm_PIN 36
 #define BRAKE_LIGHT_PIN 9
 
 #define LOGIC_LEVEL_V 3.3F
@@ -116,8 +120,8 @@
 
 #define APPS_FAULT_TIME_THRESHOLD_MS 100
 
-#define APPS_IMPLAUSABILITY_THRESHOLD 0.2            // 10%
-#define APPS_BSE_PLAUSABILITY_TROTTLE_THRESHOLD 0.15 // 15%
+#define APPS_IMPLAUSABILITY_THRESHOLD 0.2             // 10%
+#define APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD 0.15 // 15%
 #define APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD                                  \
     0.50 // TODO: change back to PSI200    // IN VOLTS
 #define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05 // 5%
@@ -156,7 +160,18 @@
 #define LINEAR_MAP(x, in_min, in_max, out_min, out_max)                        \
     ((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
+#define DTI_16_SCALE 0.1F
+#define DTI_32_SCALE 0.01F
+
+// TODO depreciate the following
 #define CHANGE_ENDIANESS_16(x) (((x & 0xFF00) >> 8) | ((x & 0x00FF) << 8))
+#define CHANGE_ENDIANESS_32(x)                                                 \
+    (((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) |                      \
+     ((x & 0x00FF0000) >> 8) | ((x & 0xFF000000) >> 24))
+
+#define SWAP_16(x) __builtin_bswap16(x)
+#define SWAP_32(x) __builtin_bswap32(x)
+#define SWAP_64(x) __builtin_bswap64(x)
 
 #define MOTOR_DIRECTION_STANDBY 0
 #define MOTOR_DIRECTION_FORWARD 1

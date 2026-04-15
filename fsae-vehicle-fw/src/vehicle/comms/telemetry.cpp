@@ -2,7 +2,7 @@
 #define TELEMETRY_CAN_ID 0x666 // Example CAN ID for telemetry messages
 #define TELEMETRY_PERIOD_MS 10 // Telemetry update period in milliseconds
 
-#include "vehicle/telemetry.h"
+#include "vehicle/comms/telemetry.h"
 
 #include <arduino_freertos.h>
 
@@ -31,11 +31,11 @@ void Telemetry_Init() {
                      .motorSpeed = 0.0F,
                      .motorTorque = 0.0F,
                      .maxMotorTorque = 0.0F,
-                     .motorDirection = DIRECTION_STANDBY,
-                     .motorState = MOTOR_STATE_PRECHARGING,
+                     //  .motorDirection = DIRECTION_STANDBY,
+                     //  .motorState = MOTOR_STATE_PRECHARGING,
 
-                     .mcuMainState = STATE_STANDBY,
-                     .mcuWorkMode = WORK_MODE_STANDBY,
+                     //  .mcuMainState = STATE_STANDBY,
+                     //  .mcuWorkMode = WORK_MODE_STANDBY,
 
                      .mcuVoltage = 0.0F,
                      .motorPhaseCurrent = 0.0F,
@@ -49,7 +49,7 @@ void Telemetry_Init() {
                      // .motorOverSpdFault = false,
                      // .motorPhaseCurrFault = false,
                      // .motorStallFault = false,
-                     .mcuWarningLevel = ERROR_NONE,
+                     //  .mcuWarningLevel = ERROR_NONE,
 
                      .shocktravel1 = 0.0F,
                      .shocktravel2 = 0.0F,
@@ -96,40 +96,41 @@ void threadTelemetry(void *pvParameters) {
             .highCellVolt = BMS_GetOrionData()->highCellVolt,
             .avgCellVolt = BMS_GetOrionData()->avgCellVolt,
 
-            .motorSpeed = MCU_GetMCU1Data()->motorSpeed,
-            .motorTorque = MCU_GetMCU1Data()->motorTorque,
-            .maxMotorTorque = MCU_GetMCU1Data()->maxMotorTorque,
-            .motorState = Motor_GetState(),
-            .mcuMainState = MCU_GetMCU1Data()->mcuMainState,
-            .mcuWorkMode = MCU_GetMCU1Data()->mcuWorkMode,
+            // .motorSpeed = MCU_GetMCU1Data()->motorSpeed,
+            // .motorTorque = MCU_GetMCU1Data()->motorTorque,
+            // .maxMotorTorque = MCU_GetMCU1Data()->maxMotorTorque,
+            .vehicleState = VCU_GetState(),
+            // .mcuMainState = MCU_GetMCU1Data()->mcuMainState,
+            // .mcuWorkMode = MCU_GetMCU1Data()->mcuWorkMode,
 
-            .mcuVoltage = MCU_GetMCU3Data()->mcuVoltage,
-            .motorPhaseCurrent = MCU_GetMCU3Data()->motorPhaseCurr,
-            .mcuCurrent = MCU_GetMCU3Data()->mcuCurrent,
-            .motorTemp = MCU_GetMCU2Data()->motorTemp,
-            .mcuTemp = MCU_GetMCU2Data()->mcuTemp,
+            // .mcuVoltage = MCU_GetMCU3Data()->mcuVoltage,
+            // .motorPhaseCurrent = MCU_GetMCU3Data()->motorPhaseCurr,
+            // .mcuCurrent = MCU_GetMCU3Data()->mcuCurrent,
+            // .motorTemp = MCU_GetMCU2Data()->motorTemp,
+            // .mcuTemp = MCU_GetMCU2Data()->mcuTemp,
 
-            .mcuWarningLevel = MCU_GetMCU2Data()->mcuWarningLevel,
+            // .mcuWarningLevel = MCU_GetMCU2Data()->mcuWarningLevel,
 
             .shocktravel1 = Linpot_GetData()->shockTravel1_mm,
             .shocktravel2 = Linpot_GetData()->shockTravel2_mm,
             .shocktravel3 = Linpot_GetData()->shockTravel3_mm,
             .shocktravel4 = Linpot_GetData()->shockTravel4_mm,
 
-            .dcMainWireOverVoltFault =
-                MCU_GetMCU2Data()->dcMainWireOverVoltFault,
-            .motorPhaseCurrFault = MCU_GetMCU2Data()->motorPhaseCurrFault,
-            .mcuOverHotFault = MCU_GetMCU2Data()->mcuOverHotFault,
-            .resolverFault = MCU_GetMCU2Data()->resolverFault,
-            .phaseCurrSensorFault = MCU_GetMCU2Data()->phaseCurrSensorFault,
-            .motorOverSpdFault = MCU_GetMCU2Data()->motorOverSpdFault,
-            .drvMotorOverHotFault = MCU_GetMCU2Data()->drvMotorOverHotFault,
-            .dcMainWireOverCurrFa = MCU_GetMCU2Data()->dcMainWireOverCurrFault,
-            .drvMotorOverCoolFaul = MCU_GetMCU2Data()->drvMotorOverCoolFault,
-            .dcLowVoltWarning = MCU_GetMCU2Data()->dcLowVoltWarning,
-            .mcu12VLowVoltWarning = MCU_GetMCU2Data()->mcu12VLowVoltWarning,
-            .motorStallFault = MCU_GetMCU2Data()->motorStallFault,
-            .motorOpenPhaseFault = MCU_GetMCU2Data()->motorOpenPhaseFault,
+            // .dcMainWireOverVoltFault =
+            // MCU_GetMCU2Data()->dcMainWireOverVoltFault,
+            // .motorPhaseCurrFault = MCU_GetMCU2Data()->motorPhaseCurrFault,
+            // .mcuOverHotFault = MCU_GetMCU2Data()->mcuOverHotFault,
+            // .resolverFault = MCU_GetMCU2Data()->resolverFault,
+            // .phaseCurrSensorFault = MCU_GetMCU2Data()->phaseCurrSensorFault,
+            // .motorOverSpdFault = MCU_GetMCU2Data()->motorOverSpdFault,
+            // .drvMotorOverHotFault = MCU_GetMCU2Data()->drvMotorOverHotFault,
+            // .dcMainWireOverCurrFa =
+            // MCU_GetMCU2Data()->dcMainWireOverCurrFault, .drvMotorOverCoolFaul
+            // = MCU_GetMCU2Data()->drvMotorOverCoolFault, .dcLowVoltWarning =
+            // MCU_GetMCU2Data()->dcLowVoltWarning, .mcu12VLowVoltWarning =
+            // MCU_GetMCU2Data()->mcu12VLowVoltWarning, .motorStallFault =
+            // MCU_GetMCU2Data()->motorStallFault, .motorOpenPhaseFault =
+            // MCU_GetMCU2Data()->motorOpenPhaseFault,
 
             .faultMap = (int32_t)Faults_GetFaults()};
         taskEXIT_CRITICAL();

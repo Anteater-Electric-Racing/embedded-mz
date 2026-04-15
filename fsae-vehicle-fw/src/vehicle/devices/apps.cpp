@@ -2,8 +2,8 @@
 
 #include "apps.h"
 #include "utils/utils.h"
+#include "vehicle/comms/telemetry.h"
 #include "vehicle/faults.h"
-#include "vehicle/telemetry.h"
 #include <arduino_freertos.h>
 #include <cmath>
 
@@ -227,8 +227,8 @@ static void checkAndHandlePlausibilityFault() {
     Serial.println(BSEReading);
 #endif
 
-    if (APPS_GetAPPSReading() > APPS_BSE_PLAUSABILITY_TROTTLE_THRESHOLD &&
-        (BSEReading_Front > APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD)) {
+    if (APPS_GetAPPSReading() > APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD &&
+        (BSEReading > APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD)) {
         Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
     } else {
         if (APPS_GetAPPSReading() < APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD) {

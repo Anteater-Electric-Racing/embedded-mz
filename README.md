@@ -15,6 +15,9 @@ flowchart TD
     TS-CCM("Teensy 4.1 (CCM)") <--> |CAN| TS-PCC("Teensy 4.0 (PCC)")
     INV("Inverter (DTI HV-550)") <--> |CAN| TS-CCM
 
+    style TS-CCM fill:#FFE0B2,stroke:#333,color:#000
+    style TS-PCC fill:#FFE0B2,stroke:#333,color:#000
+
     TH([Thermistors]) --> |Analog| TS-PCC
     
     subgraph RASPI[Raspberry Pi]

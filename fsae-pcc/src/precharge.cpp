@@ -28,6 +28,7 @@ typedef struct {
     float accVoltage;
     float tsVoltage;
     float prechargeProgress;
+    bool isSafeTemperature;
 } PrechargeData;
 
 static PrechargeData pcData;
@@ -49,6 +50,7 @@ void prechargeInit() {
     pcData.accVoltage = 0.0F;  // Initialize filtered tractive system frequency
     pcData.tsVoltage = 0.0F;   // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
+    pcData.isSafeTemperature = false; // Initialize temperature check flag to false
 
     // Create precharge task
     xTaskCreate(prechargeTask, "PrechargeTask", PRECHARGE_STACK_SIZE, NULL,
@@ -307,4 +309,9 @@ int getPrechargeError() {
     taskEXIT_CRITICAL(); // Exit critical section
 
     return currentPrechargeError;
+}
+
+// Check thermistor for temperature reading: (Threshold: 69 C)
+bool checkSafeTemperature() {
+    // Read thermistor values, calculate current temperature and return boolean
 }

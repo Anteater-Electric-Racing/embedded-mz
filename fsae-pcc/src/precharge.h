@@ -25,3 +25,4 @@ float getTSVoltage();
 float getAccumulatorVoltage();
 PrechargeState getPrechargeState();
 int getPrechargeError();
+bool checkSafeTemperature();

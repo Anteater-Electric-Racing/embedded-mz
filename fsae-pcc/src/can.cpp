@@ -17,6 +17,7 @@ typedef struct __attribute__((packed)) {
     uint16_t accumulatorVoltage; // Accumulator voltage in volts
     uint16_t tsVoltage;          // Transmission side voltage in volts
     uint16_t prechargeProgress;  // Precharge progress in percent
+    uint8_t isSafeTemperature;   // Precharge temperature ok check
 } PCC;
 
 static PCC pccData;

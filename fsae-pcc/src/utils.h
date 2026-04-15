@@ -49,3 +49,8 @@
 #define Ct 1e-8
 #define FREQ_TO_VOLTAGE(FREQ)                                                  \
     (FREQ * Rt * Ct * Rl * 2.205F / Rs) * VOLTAGE_DIVIDER_RATIO
+
+
+// Temperature check
+#define THERMISTOR_PIN_1 = 22;
+#define THERMISTOR_PIN_2 = 23;

@@ -14,8 +14,8 @@ flowchart TD
     IMS(Elcon Charger) -->|CAN| Pi
     IMS(Elcon Charger) <-->|CAN| O
     SC(["<a href='https://github.com/AlistairKeiller/FSAE/tree/master/fsae-vehicle-fw' target='_blank'>Teensy/Speed Controller</a>"]) <-->|CAN| OI(Omni Inverter)
-    subgraph Pi[Raspberry Pi System]
-        R(["<a href='https://github.com/AlistairKeiller/FSAE/tree/master/fsae-raspi' target='_blank'>Raspi Logger</a>"]) -->|HTTP| I(InfluxDB)
+    subgraph Pi[Raspberry Pi]
+        R(["<a href='https://github.com/AlistairKeiller/FSAE/tree/master/fsae-raspi' target='_blank'>Raspi Logger</a>"]) -->|HTTP| I(TDengine)
         R -->|MQTT| D(["<a href='https://github.com/AlistairKeiller/FSAE/tree/master/fsae-dashboard' target='_blank'>Raspi Dashboard</a>"])
     end
     subgraph Graphana[Wireless Grafana]

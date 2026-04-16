@@ -54,6 +54,7 @@ void VCU_Init() {
 
 void threadVCU(void *pvParameters) {
     while (true) {
+        vcu_last_run_tick = xTaskGetTickCount();
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
         Faults_HandleFaults();

@@ -101,6 +101,7 @@ void threadBus(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
 
     while (true) {
+        can_last_run_tick = xTaskGetTickCount(); //update WDT tick
         // Read the CAN messages
         CAN_Receive(&rx_id, &rx_data);
         // TODO ADD SHIFT  >> by 8 here will ONLY work for DTI.. maybe not.

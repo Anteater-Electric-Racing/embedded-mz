@@ -77,6 +77,11 @@ void prechargeTask(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
 
     while (true) {
+        // Check thermistor readings, discharge if exceeded
+        if !(checkSafeTemperature()) {
+            state = STATE_DISCHARGE;
+        }
+
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
 

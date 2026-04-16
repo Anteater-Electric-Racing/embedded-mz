@@ -16,10 +16,12 @@
 
 #define TIME_HYSTERESIS_MS 20U
 
+#define THERMISTOR1_PIN 7
+#define THERMISTOR2_PIN 8
 #define THERMISTOR_T0_C 25
 #define THERMISTOR_R0 10000
 #define THERMISTOR_BETA 3880
-#define THERMISTOR_DIVIDER_RESISTOR 1000
+#define THERMISTOR_DIVIDER_RESISTOR 6800
 #define TEENSY_ADC_RESOLUTION_BITS = 12
 
 #define THERMISTOR_TEMPERATURE_THRESHOLD_C 69
@@ -347,8 +349,8 @@ bool checkSafeTemperature() {
     // Read thermistor values, calculate current temperature and return boolean
     // (Thermistor pins: A8, A9 (22, 23)) Thermistor power voltage: (3.3 V)
 
-    double T1ADC = analogRead(A8);
-    double T2ADC = analogRead(A9);
+    double T1ADC = analogRead(THERMISTOR1_PIN);
+    double T2ADC = analogRead(THERMISTOR2_PIN);
 
     double T1Temp = temperatureFromADC(T1ADC);
     double T2Temp = temperatureFromADC(T2ADC);

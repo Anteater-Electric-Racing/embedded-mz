@@ -60,6 +60,9 @@ void threadMain(void *pvParameters) {
         case STATE_ONLINE:
             Serial.print("ONLINE");
             break;
+        case STATE_CHARGING:
+            Serial.print("CHARGING");
+            break;
         case STATE_ERROR:
             Serial.print("ERROR");
             break;

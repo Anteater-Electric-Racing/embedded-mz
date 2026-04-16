@@ -9,10 +9,20 @@
 #include "semphr.h"
 #include "utils.h"
 
+#include <cmath>
+
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
 #define TIME_HYSTERESIS_MS 20U
+
+#define THERMISTOR_T0_C 25
+#define THERMISTOR_R0 10000
+#define THERMISTOR_BETA 3880
+#define THERMISTOR_DIVIDER_RESISTOR 1000
+#define TEENSY_ADC_RESOLUTION_BITS = 12
+
+#define THERMISTOR_TEMPERATURE_THRESHOLD_C 69
 
 // States (Global Variables)
 PrechargeState state = STATE_STANDBY;
@@ -50,7 +60,8 @@ void prechargeInit() {
     pcData.accVoltage = 0.0F;  // Initialize filtered tractive system frequency
     pcData.tsVoltage = 0.0F;   // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
-    pcData.isSafeTemperature = false; // Initialize temperature check flag to false
+    pcData.isSafeTemperature =
+        false; // Initialize temperature check flag to false
 
     // Create precharge task
     xTaskCreate(prechargeTask, "PrechargeTask", PRECHARGE_STACK_SIZE, NULL,
@@ -311,7 +322,32 @@ int getPrechargeError() {
     return currentPrechargeError;
 }
 
+// Return the temperature in Celsius based on ADC reading of thermistor.
+double temperatureFromADC(double adc){
+    // Prevent division by zero etc. by clamping ADC values.
+    if adc >= (1 << TEENSY_ADC_RESOLUTION_BITS) {
+        adc = (1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0;
+    }
+    if adc <= 0 {
+        adc = 1.0;
+    }
+
+    double resistorRatio = THERMISTOR_DIVIDER_RESISTOR / (THERMISTOR_R0 * (((double)(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0)/adc - 1.0));
+    
+    return 1.0 / ((1.0/(THERMISTOR_T0_C+273.15)) + (1.0/THERMISTOR_BETA)*(std::log(resistorRatio))) - 273.15;
+}
+
 // Check thermistor for temperature reading: (Threshold: 69 C)
 bool checkSafeTemperature() {
     // Read thermistor values, calculate current temperature and return boolean
+    // (Thermistor pins: A8, A9 (22, 23)) Thermistor power voltage: (3.3 V)
+
+    double T1ADC = analogRead(A8);
+    double T2ADC = analogRead(A9);
+
+    double T1Temp = temperatureFromADC(T1ADC);
+    double T2Temp = temperatureFromADC(T2ADC);
+
+    return (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C && T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C);
+    
 }

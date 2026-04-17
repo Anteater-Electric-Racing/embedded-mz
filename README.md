@@ -19,6 +19,8 @@ flowchart TD
     style TS-PCC fill:#FFE0B2,stroke:#333,color:#000
 
     TH([Thermistors]) --> |Analog| TS-PCC
+
+    PCC(Precharge Circuit) --> |Analog / Digital| TS-PCC
     
     subgraph RASPI[Raspberry Pi]
         R(["Raspi Logger"]) -->|HTTP| I(TDengine)

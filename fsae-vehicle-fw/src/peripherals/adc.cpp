@@ -9,6 +9,7 @@
 #include "vehicle/devices/thermal.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
+#include "wdt.h"
 
 #include <ADC.h>
 #include <arduino_freertos.h>
@@ -88,6 +89,7 @@ void threadADC(void *pvParameters) {
     lastWakeTime = xTaskGetTickCount();
     while (true) {
         vTaskDelayUntil(&lastWakeTime, TICKTYPE_FREQUENCY);
+        adc_last_run_tick = xTaskGetTickCount(); // Update Wdt tick
         for (uint16_t currentIndexADC0 = 0;
              currentIndexADC0 < SENSOR_PIN_AMT_ADC0; ++currentIndexADC0) {
             uint16_t currentPinADC0 = adc0Pins[currentIndexADC0];

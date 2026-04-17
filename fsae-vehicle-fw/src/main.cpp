@@ -5,6 +5,7 @@
 
 #include "peripherals/adc.h"
 #include "peripherals/can.h"
+#include "peripherals/wdt.h"
 
 #include "peripherals/gpio.h"
 #include "vehicle/comms/bus.h"
@@ -45,6 +46,7 @@ void setup() { // runs once on bootup
     PCC_Init();
     thermal_Init();
     Bypass_Init();
+    WDT_Init();
 
     Serial.begin(9600);
 
@@ -59,6 +61,8 @@ void setup() { // runs once on bootup
                 THREAD_CAN_TELEMETRY_PRIORITY, NULL);
     xTaskCreate(threadMain, "threadMain", THREAD_MAIN_STACK_SIZE, NULL,
                 THREAD_MAIN_PRIORITY, NULL);
+    xTaskCreate(threadWDT, "threadWDT", THREAD_WDT_STACK_SIZE, NULL,
+                THREAD_WDT_PRIORITY, NULL);
     vTaskStartScheduler();
 }
 
@@ -77,6 +81,7 @@ void threadMain(void *pvParameters) {
     int toggle = 0;
 #endif
     while (true) {
+        main_last_run_tick = xTaskGetTickCount(); // update WDT tick
 
         /*============LOW PRIORITY GPIO UPDATES============*/
         digitalWrite(13, HIGH); // orange led on teensy

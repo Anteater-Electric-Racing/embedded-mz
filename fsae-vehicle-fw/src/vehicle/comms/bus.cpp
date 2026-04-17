@@ -4,6 +4,7 @@
 #include "arduino_freertos.h"
 #include "pcc.h"
 #include "peripherals/can.h"
+#include "peripherals/wdt.h"
 #include "utils/utils.h"
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/imd.h"
@@ -101,7 +102,7 @@ void threadBus(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
 
     while (true) {
-        can_last_run_tick = xTaskGetTickCount(); //update WDT tick
+        can_last_run_tick = xTaskGetTickCount(); // update WDT tick
         // Read the CAN messages
         CAN_Receive(&rx_id, &rx_data);
         // TODO ADD SHIFT  >> by 8 here will ONLY work for DTI.. maybe not.

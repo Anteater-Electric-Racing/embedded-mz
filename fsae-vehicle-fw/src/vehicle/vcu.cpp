@@ -6,12 +6,13 @@
 #define LOW_VOLT_LIMIT 2.3F
 
 constexpr float TEMP_START = 70.0f; // Temperature at which Derating Starts
-constexpr float TEMP_MAX = 100.0f; // Max Temperature, any Temperature greater than this returns max derating factor
+constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
+                                    // than this returns max derating factor
 
+#include "vehicle/vcu.h"
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
 #include "utils/utils.h"
-#include <arduino_freertos.h>
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
 #include "vehicle/comms/telemetry.h"
@@ -20,8 +21,7 @@ constexpr float TEMP_MAX = 100.0f; // Max Temperature, any Temperature greater t
 #include "vehicle/devices/dti.h"
 #include "vehicle/devices/rtm.h"
 #include "vehicle/faults.h"
-#include "vehicle/vcu.h"
-
+#include <arduino_freertos.h>
 
 template <typename T> T constrain(T val, T minVal, T maxVal) {
     if (val < minVal)
@@ -72,7 +72,7 @@ void threadVCU(void *pvParameters) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
             DTI_SetDCLimits(60.0, -2.0);
-            DTI_SetACLimits(150.0, -20.0);  
+            DTI_SetACLimits(150.0, -20.0);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
@@ -101,11 +101,12 @@ void threadVCU(void *pvParameters) {
 
                 float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
                 float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
-                float inverterFactor = VCU_Derate(DTI_GetDTIData()->controllerTemp);
+                float inverterFactor =
+                    VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
-                //Get the Smallest Factor
-                float smallestFactor = min(batteryFactor,min(motorFactor,inverterFactor));
-
+                // Get the Smallest Factor
+                float smallestFactor =
+                    min(batteryFactor, min(motorFactor, inverterFactor));
 
                 DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
                 DTI_SetACLimits(150.0 * smallestFactor, -20.0);
@@ -130,13 +131,13 @@ void threadVCU(void *pvParameters) {
     }
 }
 
-
-float VCU_Derate(float temperature){
+float VCU_Derate(float temperature) {
     float factor = 1.0f;
     float min_factor = 0.2f;
     temperature = constrain(temperature, TEMP_START, TEMP_MAX);
-    //Piecewise Linear Derating 
-    factor = 1.0f - (1.0f - min_factor) * ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
+    // Piecewise Linear Derating
+    factor = 1.0f - (1.0f - min_factor) *
+                        ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
     return factor;
 }
 
@@ -160,7 +161,7 @@ float VCU_TorqueMap(float pedal) {
     case LAUNCH_CTRL: {
         /* LC implemnetation */
     } break;
-    default: {  
+    default: {
         break;
     }
     }

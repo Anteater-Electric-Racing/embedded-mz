@@ -1,5 +1,5 @@
 [package]
-name = "fsae-raspi"
+name = "fsae-daq"
 version = "0.1.0"
 edition = "2021"
 

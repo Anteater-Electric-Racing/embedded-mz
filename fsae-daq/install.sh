@@ -21,7 +21,7 @@ rm -rf "tdengine-tsdb-oss-${TD_VER}"*
 systemctl enable --now taosd
 
 echo "==> Patching and installing systemd service files for user '$REAL_USER'..."
-for SERVICE in fsae-raspi.service; do
+for SERVICE in fsae-daq.service; do
     sed \
         -e "s|__USER__|$REAL_USER|g" \
         -e "s|__HOME__|$REAL_HOME|g" \

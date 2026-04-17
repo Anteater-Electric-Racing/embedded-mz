@@ -3,15 +3,15 @@
 #define SPEED_CONTROL_ENABLED 0
 #define SPEED_P_GAIN 0.01F // Proportional gain for speed control
 #define SPEED_I_GAIN 0.1F  // Integral gain for speed control
-#define TEMP_START 70     // Temperature at which derating starts      
-#define TEMP_MAX 100     
 #define LOW_VOLT_LIMIT 2.3F
+
+constexpr float TEMP_START = 70.0f; // Temperature at which Derating Starts
+constexpr float TEMP_MAX = 100.0f; // Max Temperature, any Temperature greater than this returns max derating factor
 
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
 #include "utils/utils.h"
 #include <arduino_freertos.h>
-
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
 #include "vehicle/comms/telemetry.h"
@@ -21,6 +21,15 @@
 #include "vehicle/devices/rtm.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
+
+
+template <typename T> T constrain(T val, T minVal, T maxVal) {
+    if (val < minVal)
+        return minVal;
+    if (val > maxVal)
+        return maxVal;
+    return val;
+}
 
 static VehicleState vehicleState;
 static DriveState driveState;
@@ -90,12 +99,12 @@ void threadVCU(void *pvParameters) {
 
                 float targetTorque = VCU_TorqueMap(pedalAccel);
 
-                float batteryFactor = derate(BMS_GetOrionData()->highTemp);
-                float motorFactor = derate(DTI_GetDTIData()->motorTemp);
-                float inverterFactor = derate(DTI_GetDTIData()->controllerTemp);
+                float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
+                float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
+                float inverterFactor = VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
                 //Get the Smallest Factor
-                float smallestFactor = (batteryFactor < motorFactor) ? (batteryFactor < inverterFactor ? batteryFactor : inverterFactor) : (motorFactor < inverterFactor ? motorFactor : inverterFactor); 
+                float smallestFactor = min(batteryFactor,min(motorFactor,inverterFactor));
 
 
                 DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
@@ -122,21 +131,13 @@ void threadVCU(void *pvParameters) {
 }
 
 
-float derate(float temperature){
+float VCU_Derate(float temperature){
     float factor = 1.0f;
     float min_factor = 0.2f;
-
-    if(temperature<=TEMP_START){
-        return factor;
-    }
+    temperature = constrain(temperature, TEMP_START, TEMP_MAX);
     //Piecewise Linear Derating 
-    else if(temperature>TEMP_START && temperature < TEMP_MAX){
-        factor = 1.0f - (1.0f - min_factor) * ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
-        return factor;   
-    }
-    else{
-        return min_factor;
-    }
+    factor = 1.0f - (1.0f - min_factor) * ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
+    return factor;
 }
 
 // TODO switch to LUT for all applicable strategies
@@ -159,7 +160,7 @@ float VCU_TorqueMap(float pedal) {
     case LAUNCH_CTRL: {
         /* LC implemnetation */
     } break;
-    default: {
+    default: {  
         break;
     }
     }

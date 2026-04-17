@@ -2,7 +2,6 @@
 #include <Watchdog_t4.h>
 #include <arduino_freertos.h>
 
-#include "utils/utils.h"
 #include "wdt.h"
 
 #define ADC_FAULT_TIME_THRESHOLD_MS 100

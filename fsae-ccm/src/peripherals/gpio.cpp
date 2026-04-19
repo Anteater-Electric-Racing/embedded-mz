@@ -26,16 +26,16 @@ int GPIO_Read(int pin) {
 }
 
 void GPIO_SetHigh(int pin) {
-#ifdef digitalReadFast
-    return digitalReadFast(pin);
+#ifdef digitalWriteFast
+    return digitalWriteFast(pin, HIGH);
 #else
     digitalWrite(pin, HIGH);
 #endif
 }
 
 void GPIO_SetLow(int pin) {
-#ifdef digitalReadFast
-    return digitalReadFast(pin);
+#ifdef digitalWriteFast
+    return digitalWriteFast(pin, LOW);
 #else
     digitalWrite(pin, LOW);
 #endif

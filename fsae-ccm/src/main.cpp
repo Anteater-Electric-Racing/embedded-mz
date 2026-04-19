@@ -5,6 +5,7 @@
 
 #include "peripherals/adc.h"
 #include "peripherals/can.h"
+#include "peripherals/gpio.h"
 
 #include "peripherals/gpio.h"
 #include "vehicle/comms/bus.h"
@@ -16,6 +17,7 @@
 #include "vehicle/devices/linpots.h"
 #include "vehicle/devices/rtm.h"
 #include "vehicle/devices/thermal.h"
+#include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
 
@@ -45,6 +47,8 @@ void setup() { // runs once on bootup
     PCC_Init();
     thermal_Init();
     Bypass_Init();
+    GPIO_Init();
+    WSS_Init();
 
     Serial.begin(9600);
 

@@ -9,5 +9,7 @@ void GPIO_Init();
 // Read the current logical level of a GPIO pin.
 // Returns 0 for LOW, non-zero for HIGH.
 int GPIO_Read(int pin);
+void GPIO_SetHigh(int pin);
+void GPIO_SetLow(int pin);
 
 void GPIO_Toggle(int *toggle, int pin);

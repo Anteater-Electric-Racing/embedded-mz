@@ -67,7 +67,6 @@ void prechargeTask(void *pvParameters) {
     while (true) {
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
-        CAN_PollMessages();
 
         // taskENTER_CRITICAL(); // Ensure atomic access to state
         switch (state) {
@@ -108,7 +107,7 @@ void prechargeTask(void *pvParameters) {
                 state = STATE_STANDBY;
                 break;
             }
-            if (millis() - CAN_GetBMSLastRxTime() > BMS_CAN_TIMEOUT_MS) {
+            if ((xTaskGetTickCount() - CAN_GetBMSLastRxTime()) > pdMS_TO_TICKS(BMS_CAN_TIMEOUT_MS)) {
                 state = STATE_ERROR;
                 errorCode |= ERR_BMS_CAN_TIMEOUT;
                 break;
@@ -288,9 +287,10 @@ void charging() {
     // close AIRs
     digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
 
-    static uint32_t lastPrint = 0U;
-    uint32_t now = millis();
-    if (now >= lastPrint + CHARGING_PRINT_INTERVAL_MS) {
+    // changed to using ticks instead of milliseconds
+    static TickType_t lastPrint = 0;
+    TickType_t now = xTaskGetTickCount();
+    if ((now - lastPrint) >= pdMS_TO_TICKS(CHARGING_PRINT_INTERVAL_MS)) {
         lastPrint = now;
         // print charger data from BMS
         Serial.print("CHARGING: PackV=");

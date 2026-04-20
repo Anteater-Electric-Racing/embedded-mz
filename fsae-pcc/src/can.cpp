@@ -2,6 +2,7 @@
 
 #define THREAD_CAN_STACK_SIZE 128
 #define THREAD_CAN_PRIORITY 1
+#define THREAD_CAN_PERIOD_MS 2
 
 #include "can.h"
 #include <FlexCAN_T4.h>
@@ -17,9 +18,7 @@
 // charger safety byte
 #define CHARGER_SAFETY_BYTE 6
 // charger safety mask
-#define CHARGER_SAFETY_MASK 0x08
-// bms can timeout
-#define BMS_CAN_TIMEOUT_MS 1500U
+constexpr uint8_t CHARGER_SAFETY_MASK = 0x08;
 
 typedef struct __attribute__((packed)) {
     uint8_t state;               // Precharge state
@@ -37,7 +36,7 @@ typedef struct {
     float packVoltage;
     float packCCL;
     uint8_t rollingCounter;
-    uint32_t lastRxTime;
+    TickType_t lastRxTime;
 } ChargerData;
 
 // struct for charger data declaration
@@ -45,6 +44,9 @@ static ChargerData chargerData;
 
 FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> can2;
 static CAN_message_t pccMsg;
+
+// dedicated task: drains the CAN rx fifo independent of the precharge loop
+static void canTask(void *pvParameters);
 
 void CAN_Init() {
     can2.begin();
@@ -58,6 +60,10 @@ void CAN_Init() {
     can2.setFIFOFilter(1, BMS_CHARGER_CMD_CAN_ID, STD);
 
     chargerData = {0};
+
+    // create can task
+    xTaskCreate(canTask, "CAN", THREAD_CAN_STACK_SIZE, NULL,
+                THREAD_CAN_PRIORITY, NULL);
 }
 
 void CAN_SendPCCMessage(uint8_t state, uint8_t errorCode,
@@ -89,7 +95,7 @@ void CAN_SendPCCMessage(uint8_t state, uint8_t errorCode,
     // Serial.print('\n');
 }
 
-void CAN_PollMessages() {
+static void pollMessages() {
     CAN_message_t rxMsg;
 
     while (can2.read(rxMsg)) {
@@ -98,7 +104,7 @@ void CAN_PollMessages() {
             // set charger safety active
             chargerData.safetyActive =
                 (rxMsg.buf[CHARGER_SAFETY_BYTE] & CHARGER_SAFETY_MASK) != 0;
-            chargerData.lastRxTime = millis();    
+            chargerData.lastRxTime = xTaskGetTickCount();
         } else if (rxMsg.id == BMS_CHARGER_CMD_CAN_ID) {
             // check if charger safety is active
             if (!chargerData.safetyActive) {
@@ -113,6 +119,17 @@ void CAN_PollMessages() {
     }
 }
 
+// dedicated task: drains the CAN rx fifo independent of the precharge loop
+static void canTask(void *pvParameters) {
+    (void)pvParameters;
+    TickType_t lastWake = xTaskGetTickCount();
+    const TickType_t period = pdMS_TO_TICKS(THREAD_CAN_PERIOD_MS);
+    while (true) {
+        pollMessages();
+        vTaskDelayUntil(&lastWake, period);
+    }
+}
+
 // check if charger safety is active
 bool CAN_IsChargerSafetyActive() {
     bool active;
@@ -123,8 +140,8 @@ bool CAN_IsChargerSafetyActive() {
 }
 
 // get last bms can rx time
-uint32_t CAN_GetBMSLastRxTime() {
-    uint32_t t;
+TickType_t CAN_GetBMSLastRxTime() {
+    TickType_t t;
     taskENTER_CRITICAL();
     t = chargerData.lastRxTime;
     taskEXIT_CRITICAL();

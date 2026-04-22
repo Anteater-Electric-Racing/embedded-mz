@@ -110,8 +110,7 @@ static void pollMessages() {
             if (!chargerData.safetyActive) {
                 continue;
             }
-            uint16_t rawVoltage =
-                ((uint16_t)rxMsg.buf[0] << 8) | rxMsg.buf[1];
+            uint16_t rawVoltage = ((uint16_t)rxMsg.buf[0] << 8) | rxMsg.buf[1];
             chargerData.packVoltage = rawVoltage / 10.0F;
             chargerData.packCCL = rxMsg.buf[2] * 8.0F / 10.0F;
             chargerData.rollingCounter = rxMsg.buf[6];

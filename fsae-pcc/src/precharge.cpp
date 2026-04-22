@@ -107,7 +107,8 @@ void prechargeTask(void *pvParameters) {
                 state = STATE_STANDBY;
                 break;
             }
-            if ((xTaskGetTickCount() - CAN_GetBMSLastRxTime()) > pdMS_TO_TICKS(BMS_CAN_TIMEOUT_MS)) {
+            if ((xTaskGetTickCount() - CAN_GetBMSLastRxTime()) >
+                pdMS_TO_TICKS(BMS_CAN_TIMEOUT_MS)) {
                 state = STATE_ERROR;
                 errorCode |= ERR_BMS_CAN_TIMEOUT;
                 break;
@@ -235,8 +236,8 @@ void precharge() {
             }
             // Precharge complete
             else {
-                state = CAN_IsChargerSafetyActive() ? STATE_CHARGING
-                                                    : STATE_ONLINE;
+                state =
+                    CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
                 Serial.print(" * Precharge complete at: ");
                 Serial.print(now - timePrechargeStart);
                 Serial.print("ms, ");

@@ -3,14 +3,16 @@
 #define SPEED_CONTROL_ENABLED 0
 #define SPEED_P_GAIN 0.01F // Proportional gain for speed control
 #define SPEED_I_GAIN 0.1F  // Integral gain for speed control
-
 #define LOW_VOLT_LIMIT 2.3F
 
+constexpr float TEMP_START = 70.0f; // Temperature at which Derating Starts
+constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
+                                    // than this returns max derating factor
+
+#include "vehicle/vcu.h"
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
 #include "utils/utils.h"
-#include <arduino_freertos.h>
-
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
 #include "vehicle/comms/telemetry.h"
@@ -19,7 +21,15 @@
 #include "vehicle/devices/dti.h"
 #include "vehicle/devices/rtm.h"
 #include "vehicle/faults.h"
-#include "vehicle/vcu.h"
+#include <arduino_freertos.h>
+
+template <typename T> T constrain(T val, T minVal, T maxVal) {
+    if (val < minVal)
+        return minVal;
+    if (val > maxVal)
+        return maxVal;
+    return val;
+}
 
 static VehicleState vehicleState;
 static DriveState driveState;
@@ -89,9 +99,19 @@ void threadVCU(void *pvParameters) {
 
                 float targetTorque = VCU_TorqueMap(pedalAccel);
 
-                // derate current before sending
+                float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
+                float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
+                float inverterFactor =
+                    VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
-                DTI_SendAccelCommand(targetTorque);
+                // Get the Smallest Factor
+                float smallestFactor =
+                    min(batteryFactor, min(motorFactor, inverterFactor));
+
+                DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
+                DTI_SetACLimits(150.0 * smallestFactor, -20.0);
+
+                DTI_SendAccelCommand(targetTorque * smallestFactor);
                 if (enableRegen && BSE_BrakesPressed()) {
                     DTI_SendBrakeCommand(pedalBrake);
                 }
@@ -109,6 +129,16 @@ void threadVCU(void *pvParameters) {
         }
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(5));
     }
+}
+
+float VCU_Derate(float temperature) {
+    float factor = 1.0f;
+    float min_factor = 0.2f;
+    temperature = constrain(temperature, TEMP_START, TEMP_MAX);
+    // Piecewise Linear Derating
+    factor = 1.0f - (1.0f - min_factor) *
+                        ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
+    return factor;
 }
 
 // TODO switch to LUT for all applicable strategies

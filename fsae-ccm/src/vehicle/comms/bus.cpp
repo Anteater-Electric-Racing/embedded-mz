@@ -103,8 +103,8 @@ void threadBus(void *pvParameters) {
     while (true) {
         // Read the CAN messages
         CAN_Receive(&rx_id, &rx_data);
-        // ADD SHIFT  >> by 8 here // will ONLY work for DTI. TODO: make it work
-        // for all in same loop??
+        // TODO ADD SHIFT  >> by 8 here will ONLY work for DTI.. maybe not.
+        // distinguish case for all in same loop??
         switch ((rx_id >> 8)) {
         case PKT_1_ID: {
             PKT_DTI1 dti1 = {0};

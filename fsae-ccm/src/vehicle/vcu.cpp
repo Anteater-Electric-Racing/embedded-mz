@@ -12,7 +12,12 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/vcu.h"
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
+#include "peripherals/wdt.h"
+
 #include "utils/utils.h"
+
+#include <arduino_freertos.h>
+
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
 #include "vehicle/comms/telemetry.h"
@@ -64,6 +69,7 @@ void VCU_Init() {
 
 void threadVCU(void *pvParameters) {
     while (true) {
+        vcu_last_run_tick = xTaskGetTickCount(); // update WDT tick
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
         Faults_HandleFaults();

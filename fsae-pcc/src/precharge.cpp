@@ -51,6 +51,7 @@ static void updateVoltage(int pin);
 static void standby();
 static void precharge();
 static void running();
+static void charging();
 static void errorState();
 
 // Initialize mutex and precharge task
@@ -110,7 +111,29 @@ void prechargeTask(void *pvParameters) {
             if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
                 state = STATE_DISCHARGE;
             }
+            if (CAN_IsChargerSafetyActive()) {
+                state = STATE_CHARGING;
+                break;
+            }
             running();
+            break;
+        }
+        case STATE_CHARGING: {
+            if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
+                state = STATE_DISCHARGE;
+                break;
+            }
+            if (!CAN_IsChargerSafetyActive()) {
+                state = STATE_STANDBY;
+                break;
+            }
+            if ((xTaskGetTickCount() - CAN_GetBMSLastRxTime()) >
+                pdMS_TO_TICKS(BMS_CAN_TIMEOUT_MS)) {
+                state = STATE_ERROR;
+                errorCode |= ERR_BMS_CAN_TIMEOUT;
+                break;
+            }
+            charging();
             break;
         }
         case STATE_ERROR: {
@@ -184,6 +207,10 @@ void standby() {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
     }
+    if (CAN_IsChargerSafetyActive()) {
+        lastState = STATE_STANDBY;
+        state = STATE_PRECHARGE;
+    }
 }
 
 // PRECHARGE STATE: Close AIR- and precharge relay, monitor precharge voltage
@@ -229,7 +256,8 @@ void precharge() {
             }
             // Precharge complete
             else {
-                state = STATE_ONLINE;
+                state =
+                    CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
                 Serial.print(" * Precharge complete at: ");
                 Serial.print(now - timePrechargeStart);
                 Serial.print("ms, ");
@@ -270,6 +298,32 @@ void running() {
     digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
 }
 
+// CHARGING STATE: AIRs closed, print charger data from BMS
+void charging() {
+    // print charger data from BMS
+    if (lastState != STATE_CHARGING) {
+        lastState = STATE_CHARGING;
+        Serial.println(" === CHARGING");
+    }
+    // close AIRs
+    digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
+
+    // changed to using ticks instead of milliseconds
+    static TickType_t lastPrint = 0;
+    TickType_t now = xTaskGetTickCount();
+    if ((now - lastPrint) >= pdMS_TO_TICKS(CHARGING_PRINT_INTERVAL_MS)) {
+        lastPrint = now;
+        // print charger data from BMS
+        Serial.print("CHARGING: PackV=");
+        Serial.print(CAN_GetChargerVoltage(), 1);
+        Serial.print("V  CCL=");
+        Serial.print(CAN_GetChargerCCL(), 1);
+        Serial.print("A  Counter=");
+        Serial.print(CAN_GetChargerCounter());
+        Serial.print("\r");
+    }
+}
+
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
@@ -290,6 +344,9 @@ void errorState() {
             Serial.println("   *Precharge too slow. Potential causes:\n   - "
                            "Wiring fault\n   - Discharge is stuck-on\n   - "
                            "Target precharge percent is too high");
+        }
+        if (errorCode & ERR_BMS_CAN_TIMEOUT) {
+            Serial.println("   *BMS CAN communication timeout.");
         }
         if (errorCode & ERR_STATE_UNDEFINED) {
             Serial.println("   *State not defined in The State Machine.");

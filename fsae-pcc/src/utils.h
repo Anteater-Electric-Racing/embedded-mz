@@ -36,6 +36,9 @@
 
 #define ACCUM_MIN_VOLTAGE 9
 
+// charging print interval
+#define CHARGING_PRINT_INTERVAL_MS 500U
+
 // #define VOLTAGE_DIVIDER_R1 0
 // #define VOLTAGE_DIVIDER_R2 1
 #define VOLTAGE_DIVIDER_R1 510000 * 5

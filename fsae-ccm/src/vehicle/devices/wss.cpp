@@ -9,6 +9,7 @@ static const unsigned long CALC_INTERVAL_MS = 100;
 
 static volatile unsigned int pulsesWheel1 = 0;
 static volatile unsigned int pulsesWheel2 = 0;
+
 static unsigned long lastCalcTime = 0;
 
 static float currentRPM1 = 0.0f;
@@ -21,9 +22,9 @@ static void ISR_Wheel2() { ++pulsesWheel2; }
 
 void WSS_Init() {
     pinMode(2, INPUT_PULLUP);
-    pinMode(3, INPUT_PULLUP);
-
     attachInterrupt(digitalPinToInterrupt(2), ISR_Wheel1, FALLING);
+
+    pinMode(3, INPUT_PULLUP);
     attachInterrupt(digitalPinToInterrupt(3), ISR_Wheel2, FALLING);
 }
 
@@ -54,5 +55,6 @@ void WSS_Update() {
 
 float WSS_GetRPM1() { return currentRPM1; }
 float WSS_GetRPM2() { return currentRPM2; }
-float WSS_GetSpeed1_MPS() { return currentSpeedMPS1; }
-float WSS_GetSpeed2_MPS() { return currentSpeedMPS2; }
+
+float WSS_GetSpeed1_MPH() { return currentSpeedMPS1 * 2.23694f; }
+float WSS_GetSpeed2_MPH() { return currentSpeedMPS2 * 2.23694f; }

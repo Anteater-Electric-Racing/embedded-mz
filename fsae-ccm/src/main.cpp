@@ -81,9 +81,24 @@ void threadMain(void *pvParameters) {
     int toggle = 0;
 #endif
     while (true) {
+        WSS_Update();
 
         /*============LOW PRIORITY GPIO UPDATES============*/
         digitalWrite(13, HIGH); // orange led on teensy
+
+#if WSS_FLAG
+        Serial.print("W1 RPM: ");
+        Serial.print(WSS_GetRPM1());
+        Serial.print(" | W1 MPH: ");
+        Serial.print(WSS_GetSpeed1_MPH());
+
+        Serial.print(" | W2 RPM: ");
+        Serial.print(WSS_GetRPM2());
+        Serial.print(" | W2 MPH: ");
+        Serial.print(WSS_GetSpeed2_MPH());
+
+        Serial.print("\r");
+#endif
 
         // Bypass_TSSI();
         // thermal_MCULoop();
@@ -361,6 +376,7 @@ void threadMain(void *pvParameters) {
             enableStandby); // Update motor with the current torque demand
 
 #endif
+
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100)); // Delay for 100ms
     }
 }

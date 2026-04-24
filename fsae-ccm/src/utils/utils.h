@@ -28,9 +28,10 @@ operation)
     TODO Fixes:
     BIG MZ Change - INTERUPT BASED CAN Testing:
 */
-#define SERIALMONITOR_FLAG 1
+#define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
+#define WSS_FLAG 1
 #define BMS_FLAG 0 // TO REMOVE
 #define IMD_FLAG 0
 

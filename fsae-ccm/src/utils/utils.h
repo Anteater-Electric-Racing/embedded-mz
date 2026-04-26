@@ -128,7 +128,7 @@ operation)
     0.50 // TODO: change back to PSI200    // IN VOLTS
 #define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05 // 5%
 
-#define BSE_VOLTAGE_DIVIDER 2.0F // TODO: Update with real value: 1.515151F
+#define BSE_VOLTAGE_DIVIDER 1.515151F // TODO: Update with real value: 1.515151F
 #define BSE_ADC_VALUE_TO_VOLTAGE(x)                                            \
     (x * (LOGIC_LEVEL_V / ADC_MAX_VALUE)) *                                    \
         BSE_VOLTAGE_DIVIDER // ADC value to voltage conversion

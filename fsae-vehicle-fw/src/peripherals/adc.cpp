@@ -24,11 +24,21 @@
 #define NUM_SCANS           32      // Scan rows per buffer half
 #define NUM_CHANNELS_CH0    4       // Chain/DMA 0 channel count
 #define NUM_CHANNELS_CH1    4       // Chain/DMA 1 channel count
+#define SAMPLE_RATE_HZ      1000    // 1kHz (adjust as needed)
+
+#define ADC_HW_TRIGGER_0    ( 1U << 0 )
+#define ADC_HW_TRIGGER_1    ( 1U << 1 )
+
+constexpr uint32_t PIT_CLOCK_FREQ_HZ        = 50'000'000;
+constexpr uint32_t PIT0_SAMPLE_PERIOD_HZ    = 1'000;
+constexpr uint32_t PIT1_SAMPLE_PERIOD_HZ    = 1'000;
+constexpr uint32_t PHASE_OFFSET_US          = 50;
+
 
 // ============================================================
 //  Sensor → Analog Pin → ADC1 Channel mapping
 //  Chain 0: first 4 sensors  (Trigger 0, slots 0-3)
-//  Chain 1: last  4 sensors  (Trigger 4, slots 0-3)
+//  Chain 1: last  4 sensors  (Trigger 1, slots 0-3)
 //
 //  Sensor                | A-Pin | Pad              | ADC1 ch
 //  ----------------------|-------|------------------|--------
@@ -93,7 +103,7 @@ ADC *adc = new ADC();
 void ADC_Init()
 {
     // ADC 0
-    adc->adc0->setAveraging( 0 );
+    adc->adc0->setAveraging( 0 ); // TODO - turned off averaging for now, change back later?
     adc->adc0->setResolution( ADC_RESOLUTION );
     adc->adc0->setConversionSpeed( ADC_CONVERSION_SPEED::HIGH_SPEED );
     adc->adc0->setReference( ADC_REFERENCE::REF_3V3 );
@@ -119,31 +129,138 @@ QuadEncoder * quadEncoder = new QuadEncoder();
 
 static void XBAR_init()
 {
-    // PIT_TRIGGER0 -> ADC_ETC trigger input 0 (fires Chain 0)
+    // PIT_TRIGGER0 -> XBAR trigger 0 -> ADC_ETC trigger input 0 (fires Chain 0)
     quadEncoder->xbar_connect( XBARA1_IN_PIT_TRIGGER0, XBARA1_OUT_ADC_ETC_TRIG00 );
 
-    // PIT_TIGGER1 -> ADC_ETC trigger input 4 (fires chain 1)
+    // PIT_TIGGER1 -> XBAR trigger 1 -> ADC_ETC trigger input 1 (fires chain 1)
     // Use 0 and 10 to keep them on separate ADC1 triggr registers.
-    quadEncoder->xbar_connect( XBARA1_IN_PIT_TRIGGER1, XBARA1_OUT_ADC_ETC_TRIG10 );
+    quadEncoder->xbar_connect( XBARA1_IN_PIT_TRIGGER1, XBARA1_OUT_ADC_ETC_TRIG01 );
 }
 
 // Initialize ADC ETC to rotate channels
-static void ADC_etc_init()
+static void ADC_ETC_init()
 {
+    // 67.6.1.2 Rev3
+    // Software reset pulse
     ADC_ETC_CTRL = ADC_ETC_CTRL_SOFTRST;
     ADC_ETC_CTRL = 0;
 
-    // bit 0 = Group 0 Trigger 0 (TRIG00, fed by PIT0 via XBAR)
-    // bit 4 = Group 1 Trigger 0 (TRIG10, fed by PIT1 via XBAR)
-    ADC_ETC_CTRL = ADC_ETC_CTRL_TRIG_ENABLE( 0x11 );
+    // Enable trigger input, allows for XBAR to signal ADC_ETC
+    // bit 0 = TRIG00, fed by PIT0 via XBAR
+    // bit 1 = TRIG01, fed by PIT1 via XBAR
+    ADC_ETC_CTRL = ADC_ETC_CTRL_TRIG_ENABLE( ( 1U << 0 ) | ( 1U << 1) ) |
+                   ADC_ETC_CTRL_PRE_DIVIDER( 0 ); // Controls how much the ADC_ETC clock is divided (default 0)
 
-    ADC_ETC_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH0 - 1 ) | // 4 conversions
-                   ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 0 ); // Wait for any other active triggers with
-                                                         // higher prio (1-7) to finish first
+    // Enable DMA request generation for TRIG0 and TRIG1
+    ADC_ETC_DMA_CTRL = ( 1U << 0 ) | ( 1U << 1 );
 
-    ADC_ETC_TRIG0_CHAIN_1_0 = ADC_ETC_TRIG_CHAIN_HWTS0( adc1_ch_c0[ 0 ] ) |
-                              ADC_ETC_TRIG_CHAIN_B2B0;
+    ADC_ETC_TRIG0_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH0 - 1 ) | // 4 conversions
+                         ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 7 );
+    ADC_ETC_TRIG1_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH0 - 1 ) | // 4 conversions
+                         ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 7 );
 
+    // -----------------------------
+    // TRIG0 handles sensors 0-3 (update as needed) 67.5.1.8 rev2
+    // CSEL - which ADC input channel to select
+    // B2B - whether to immediatly start the next channel converison
+    // IE - whether to generate an interrupt when this segment finishes
+    // HWT - which ADC hardware trigger input to use
+    // -----------------------------
+    ADC_ETC_TRIG0_CHAIN_1_0 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c0[ 0 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B0 |
+                              ADC_ETC_TRIG_CHAIN_IE0( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS0( ADC_HW_TRIGGER_0 ) | 
+
+                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c0[ 1 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B1 |
+                              ADC_ETC_TRIG_CHAIN_IE1( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS1( ADC_HW_TRIGGER_0 );
+
+    ADC_ETC_TRIG0_CHAIN_3_2 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c0[ 2 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B0 |
+                              ADC_ETC_TRIG_CHAIN_IE0( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS0( ADC_HW_TRIGGER_0 ) |
+
+                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c0[ 3 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B1 |
+                              ADC_ETC_TRIG_CHAIN_IE1( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS1( ADC_HW_TRIGGER_0 );
+
+    ADC_ETC_TRIG0_CHAIN_5_4 = 0;
+    ADC_ETC_TRIG0_CHAIN_7_6 = 0;
+
+    // -----------------------------
+    // TRIG1 handles sensors 4-7 (update as needed)
+    // -----------------------------
+    ADC_ETC_TRIG1_CHAIN_1_0 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c0[ 4 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B0 |
+                              ADC_ETC_TRIG_CHAIN_IE0( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS0( ADC_HW_TRIGGER_1 ) | 
+
+                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c0[ 5 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B1 |
+                              ADC_ETC_TRIG_CHAIN_IE1( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS1( ADC_HW_TRIGGER_1 );
+
+    ADC_ETC_TRIG1_CHAIN_3_2 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c0[ 6 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B0 |
+                              ADC_ETC_TRIG_CHAIN_IE0( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS0( ADC_HW_TRIGGER_1 ) |
+
+                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c0[ 7 ] ) |
+                              ADC_ETC_TRIG_CHAIN_B2B1 |
+                              ADC_ETC_TRIG_CHAIN_IE1( 0 ) |
+                              ADC_ETC_TRIG_CHAIN_HWTS1( ADC_HW_TRIGGER_1 );
+
+    ADC_ETC_TRIG1_CHAIN_5_4 = 0;
+    ADC_ETC_TRIG1_CHAIN_7_6 = 0;
+}
+
+// Initialize PIT timers
+static void PIT_init()
+{
+    // Disable both PIT channels while configuring
+    IMXRT_PIT_CHANNELS[ 0 ].TCTRL = 0;
+    IMXRT_PIT_CHANNELS[ 1 ].TCTRL = 0;
+
+    // Enable PIT
+    PIT_MCR = PIT_MCR_FRZ;
+
+    // Clear any previous flags
+    IMXRT_PIT_CHANNELS[ 0 ].TFLG = 1;
+    IMXRT_PIT_CHANNELS[ 1 ].TFLG = 1;
+
+    // Set up sample rates
+    IMXRT_PIT_CHANNELS[ 0 ].LDVAL = ( PIT0_SAMPLE_PERIOD_HZ / PIT_CLOCK_FREQ_HZ ) - 1;
+    IMXRT_PIT_CHANNELS[ 1 ].LDVAL = ( PIT1_SAMPLE_PERIOD_HZ / PIT_CLOCK_FREQ_HZ ) - 1;
+
+    // Start PIT0
+    IMXRT_PIT_CHANNELS[ 0 ].TCTRL = PIT_TCTRL_TEN;
+
+    // Delay PIT1 start by a bit
+    delayMicroseconds( PHASE_OFFSET_US );
+    IMXRT_PIT_CHANNELS[ 1 ].TCTRL = PIT_TCTRL_TEN;
+}
+
+// Initialize DMA channels (0 and 1)
+static void DMA_init()
+{
+    
+}
+
+void * DMA_ISR()
+{
+
+}
+
+void Full_Hardware_Init()
+{
+    clocks_init();
+    ADC_Init();
+    XBAR_init();
+    ADC_ETC_init();
+    DMA_init();
+    PIT_init();
 }
 
 void threadADC(void *pvParameters) {

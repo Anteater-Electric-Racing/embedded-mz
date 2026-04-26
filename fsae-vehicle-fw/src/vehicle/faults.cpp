@@ -7,7 +7,8 @@
 #define FAULT_BSE_MASK (0x1 << 4)
 #define FAULT_BPPS_MASK (0x1 << 5)
 #define FAULT_APPS_BRAKE_PLAUSIBILITY_MASK (0x1 << 6)
-#define LOW_BATTERY_VOLTAGE_MASK (0x1 << 7)
+#define FAULT_CAN_MASK (0x1 << 7)
+#define LOW_BATTERY_VOLTAGE_MASK (0x1 << 8)
 
 #include "vehicle/faults.h"
 
@@ -59,6 +60,13 @@ void Faults_SetFault(FaultType fault) {
         faultBitMap |= FAULT_APPS_BRAKE_PLAUSIBILITY_MASK;
         break;
     }
+    case FAULT_CAN: {
+#if DEBUG_FLAG
+        Serial.println("Setting CAN fault");
+#endif
+        faultBitMap |= FAULT_CAN_MASK;
+        break;
+    }
     case LOW_BATTERY_VOLTAGE_FAULT: {
         faultBitMap |= LOW_BATTERY_VOLTAGE_MASK;
         break;
@@ -108,6 +116,13 @@ void Faults_ClearFault(FaultType fault) {
         faultBitMap &= ~FAULT_APPS_BRAKE_PLAUSIBILITY_MASK;
         break;
     }
+    case FAULT_CAN: {
+#if DEBUG_FLAG
+        Serial.println("Clearing CAN fault");
+#endif
+        faultBitMap &= ~FAULT_CAN_MASK;
+        break;
+    }
     case LOW_BATTERY_VOLTAGE_FAULT: {
         faultBitMap &= ~LOW_BATTERY_VOLTAGE_MASK;
         break;
@@ -154,6 +169,9 @@ void Faults_HandleFaults() {
         VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_BRAKE_PLAUSIBILITY_MASK) {
+        VCU_SetFaultState();
+    }
+    if (faultBitMap & FAULT_CAN_MASK) {
         VCU_SetFaultState();
     }
     if (faultBitMap & LOW_BATTERY_VOLTAGE_MASK) {

@@ -145,6 +145,8 @@ operation)
 
 #define BSE_CUTOFF_HZ 100.0F
 
+#define CAN_FAULT_TIME_THRESHOLD_MS 100
+
 #define MOTOR_MAX_TORQUE 260.0F // TODO: Update with real value //used to be 260
 #define CAPPED_MOTOR_TORQUE 80.0F
 #define MAX_TORQUE_STEP_UP_PCT 0F

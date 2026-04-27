@@ -19,6 +19,9 @@ static dtiData2 dtiExtra;
 static OrionBMSData bmsData;
 static IMDData imdData;
 
+static TickType_t canLatestHealthyStateTime = 0;
+static uint32_t canAgeMs = 0;
+
 void Bus_Init() {
 
     dtiData = {.controlMode = 0,
@@ -102,8 +105,20 @@ void threadBus(void *pvParameters) {
 
     while (true) {
         can_last_run_tick = xTaskGetTickCount(); // update WDT tick
+
         // Read the CAN messages
-        CAN_Receive(&rx_id, &rx_data);
+        if (CAN_Receive(&rx_id, &rx_data)) {
+            canLatestHealthyStateTime = xTaskGetTickCount();
+            // update healthy state time on successful CAN
+        }
+        canAgeMs = (can_last_run_tick - canLatestHealthyStateTime) *
+                   portTICK_PERIOD_MS;
+        if (canAgeMs > CAN_FAULT_TIME_THRESHOLD_MS) { // 100 ms
+            Faults_SetFault(FAULT_CAN);
+        } else {
+            Faults_ClearFault(FAULT_CAN);
+        }
+
         // TODO ADD SHIFT  >> by 8 here will ONLY work for DTI.. maybe not.
         // distinguish case for all in same loop??
         switch ((rx_id >> 8)) {

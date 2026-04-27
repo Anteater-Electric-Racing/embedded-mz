@@ -15,6 +15,7 @@ typedef enum {
     FAULT_BSE,
     FAULT_BPPS,
     FAULT_APPS_BRAKE_PLAUSIBILITY,
+    FAULT_CAN,
     LOW_BATTERY_VOLTAGE_FAULT
 } FaultType;
 

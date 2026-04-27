@@ -18,9 +18,9 @@
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/dti.h"
 #include "vehicle/devices/rtm.h"
+#include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
-
 static VehicleState vehicleState;
 static DriveState driveState;
 static TickType_t xLastWakeTime;
@@ -57,7 +57,7 @@ void threadVCU(void *pvParameters) {
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
         Faults_HandleFaults();
-
+        WSS_Update();
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);

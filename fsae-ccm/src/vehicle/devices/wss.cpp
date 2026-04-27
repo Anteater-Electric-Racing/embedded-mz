@@ -2,11 +2,12 @@
 
 #include "wss.h"
 #include <Arduino.h>
+#include <arduino_freertos.h>
+using namespace arduino;
 
 static const float WHEEL_CIRCUMFERENCE_M = 1.6; // TODO
 static const int PULSES_PER_REV = 12;           // TODO
-static const unsigned long CALC_INTERVAL_MS = 100;
-
+static const float MPS_TO_MPH = 2.23694f;
 static volatile unsigned int pulsesWheel1 = 0;
 static volatile unsigned int pulsesWheel2 = 0;
 
@@ -29,32 +30,29 @@ void WSS_Init() {
 }
 
 void WSS_Update() {
-    unsigned long currentTime = millis();
+    unsigned long currentTime = xTaskGetTickCount() * portTICK_PERIOD_MS;
+    float dt_ms = currentTime - lastCalcTime;
 
-    if (currentTime - lastCalcTime >= CALC_INTERVAL_MS) {
-        noInterrupts();
+    noInterrupts();
 
-        unsigned int currentPulses1 = pulsesWheel1;
-        unsigned int currentPulses2 = pulsesWheel2;
-        pulsesWheel1 = 0;
-        pulsesWheel2 = 0;
+    unsigned int currentPulses1 = pulsesWheel1;
+    unsigned int currentPulses2 = pulsesWheel2;
+    pulsesWheel1 = 0;
+    pulsesWheel2 = 0;
 
-        interrupts();
+    interrupts();
 
-        currentRPM1 = ((float)currentPulses1 / PULSES_PER_REV) *
-                      (60000.0f / CALC_INTERVAL_MS);
-        currentRPM2 = ((float)currentPulses2 / PULSES_PER_REV) *
-                      (60000.0f / CALC_INTERVAL_MS);
+    currentRPM1 = ((float)currentPulses1 / PULSES_PER_REV) * (60000.0f / dt_ms);
+    currentRPM2 = ((float)currentPulses2 / PULSES_PER_REV) * (60000.0f / dt_ms);
 
-        currentSpeedMPS1 = (currentRPM1 / 60.0f) * WHEEL_CIRCUMFERENCE_M;
-        currentSpeedMPS2 = (currentRPM2 / 60.0f) * WHEEL_CIRCUMFERENCE_M;
+    currentSpeedMPS1 = (currentRPM1 / 60.0f) * WHEEL_CIRCUMFERENCE_M;
+    currentSpeedMPS2 = (currentRPM2 / 60.0f) * WHEEL_CIRCUMFERENCE_M;
 
-        lastCalcTime = currentTime;
-    }
+    lastCalcTime = currentTime;
 }
 
 float WSS_GetRPM1() { return currentRPM1; }
 float WSS_GetRPM2() { return currentRPM2; }
 
-float WSS_GetSpeed1_MPH() { return currentSpeedMPS1 * 2.23694f; }
-float WSS_GetSpeed2_MPH() { return currentSpeedMPS2 * 2.23694f; }
+float WSS_GetSpeed1_MPH() { return currentSpeedMPS1 * MPS_TO_MPH; }
+float WSS_GetSpeed2_MPH() { return currentSpeedMPS2 * MPS_TO_MPH; }

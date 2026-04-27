@@ -20,6 +20,7 @@ static OrionBMSData bmsData;
 static IMDData imdData;
 
 static TickType_t canLatestHealthyStateTime = 0;
+static uint32_t canAgeMs = 0;
 
 void Bus_Init() {
 

@@ -33,14 +33,14 @@ void WSS_Update() {
     unsigned long currentTime = xTaskGetTickCount() * portTICK_PERIOD_MS;
     float dt_ms = currentTime - lastCalcTime;
 
-    noInterrupts();
+    taskENTER_CRITICAL();
 
     unsigned int currentPulses1 = pulsesWheel1;
     unsigned int currentPulses2 = pulsesWheel2;
     pulsesWheel1 = 0;
     pulsesWheel2 = 0;
 
-    interrupts();
+    taskEXIT_CRITICAL();
 
     currentRPM1 = ((float)currentPulses1 / PULSES_PER_REV) * (60000.0f / dt_ms);
     currentRPM2 = ((float)currentPulses2 / PULSES_PER_REV) * (60000.0f / dt_ms);

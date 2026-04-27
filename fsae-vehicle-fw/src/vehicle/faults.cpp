@@ -62,7 +62,7 @@ void Faults_SetFault(FaultType fault) {
     }
     case FAULT_CAN: {
 #if DEBUG_FLAG
-        Serial.println("Setting CAN fault");
+        Serial.println("Setting CAN Timeout Fault");
 #endif
         faultBitMap |= FAULT_CAN_MASK;
         break;
@@ -118,7 +118,7 @@ void Faults_ClearFault(FaultType fault) {
     }
     case FAULT_CAN: {
 #if DEBUG_FLAG
-        Serial.println("Clearing CAN fault");
+        Serial.println("Clearing CAN Timeout Fault");
 #endif
         faultBitMap &= ~FAULT_CAN_MASK;
         break;

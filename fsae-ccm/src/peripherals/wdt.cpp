@@ -95,7 +95,7 @@ void threadWDT(void *pvParameters) {
         // pet if 0b0000
         if (mask == WDT_REQUIRED_MASK) {
             WDT.feed(); // pet hardware watchdog
-            Serial.println("WDT fed successfully");
+                        // Serial.println("WDT fed successfully");
         } else {
             if (mask & WDT_BIT_ADC) {
                 Serial.println("WDT: ADC thread overdue");

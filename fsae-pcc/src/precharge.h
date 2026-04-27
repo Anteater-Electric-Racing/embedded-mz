@@ -7,6 +7,7 @@ enum PrechargeState {
     STATE_PRECHARGE,
     STATE_DISCHARGE,
     STATE_ONLINE,
+    STATE_CHARGING,
     STATE_ERROR,
     STATE_UNDEFINED
 };
@@ -15,7 +16,7 @@ enum {
     ERR_NONE = 0b00000000,
     ERR_PRECHARGE_TOO_FAST = 0b00000001,
     ERR_PRECHARGE_TOO_SLOW = 0b00000010,
-
+    ERR_BMS_CAN_TIMEOUT = 0b00000100,
     ERR_STATE_UNDEFINED = 0b10000000,
 };
 
@@ -25,3 +26,5 @@ float getTSVoltage();
 float getAccumulatorVoltage();
 PrechargeState getPrechargeState();
 int getPrechargeError();
+double temperatureFromADC(double adc);
+bool checkSafeTemperature();

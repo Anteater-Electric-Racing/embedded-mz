@@ -7,7 +7,7 @@ Requires=taosd.service
 User=__USER__
 WorkingDirectory=__HOME__/Documents/embedded
 ExecStartPre=/bin/sh -c 'until taos -s "SELECT SERVER_VERSION();" > /dev/null 2>&1; do sleep 2; done'
-ExecStart=__HOME__/.cargo/bin/cargo run --bin fsae-raspi --release
+ExecStart=__HOME__/.cargo/bin/cargo run --bin fsae-daq --release
 Restart=always
 RestartSec=10
 

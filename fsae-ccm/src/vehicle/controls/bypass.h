@@ -1,5 +1,8 @@
 
 
+#include "utils/utils.h"
+#include <EEPROM.h>
+
 #define TSSI_BYPASS_PIN 2
 #define TSSI_FEEDBACK_PIN 3
 

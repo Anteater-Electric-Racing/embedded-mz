@@ -85,8 +85,9 @@ void threadMain(void *pvParameters) {
 
         /*============LOW PRIORITY GPIO UPDATES============*/
         digitalWrite(13, HIGH); // orange led on teensy
+        EEPROM.update(faultAddress, currentFault);
 
-        // Bypass_TSSI();
+        Bypass_TSSI();
         // thermal_MCULoop();
         // thermal_forceOn();
 

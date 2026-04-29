@@ -26,6 +26,7 @@
 #define TORQUE_MAX_NM 20 // Maximum torque demand in Nm
 
 static TickType_t xLastWakeTime;
+TaskHandle_t workerTaskHandler = NULL; 
 
 void threadMain(void *pvParameters);
 
@@ -44,7 +45,7 @@ void setup() { // runs once on bootup
     thermal_Init();
 
     xTaskCreate(threadADC, "threadADC", THREAD_ADC_STACK_SIZE, NULL,
-                THREAD_ADC_PRIORITY, NULL);
+                THREAD_ADC_PRIORITY, &workerTaskHandler);
     xTaskCreate(threadMotor, "threadMotor", THREAD_MOTOR_STACK_SIZE, NULL,
                 THREAD_MOTOR_PRIORITY, NULL);
     xTaskCreate(threadTelemetry, "threadTelemetryCAN",

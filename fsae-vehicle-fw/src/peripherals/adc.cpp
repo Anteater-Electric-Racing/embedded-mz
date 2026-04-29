@@ -29,6 +29,9 @@
 #define ADC_HW_TRIGGER_0    ( 1U << 0 )
 #define ADC_HW_TRIGGER_1    ( 1U << 1 )
 
+#define DMAMUX_SOURCE_ADC_ETC_TRIG0 40
+#define DMAMUX_SOURCE_ADC_ETC_TRIG1 41
+
 constexpr uint32_t PIT_CLOCK_FREQ_HZ        = 50'000'000;
 constexpr uint32_t PIT0_SAMPLE_PERIOD_HZ    = 1'000;
 constexpr uint32_t PIT1_SAMPLE_PERIOD_HZ    = 1'000;
@@ -75,11 +78,15 @@ DMAChannel dma0;
 DMAChannel dma1;
 
 __attribute__((section(".noinit.$RAM2"), aligned(32)))
-volatile uint16_t adc_buffer[ 2 ][ NUM_CHANNELS * NUM_SCANS ];
+volatile uint16_t adc_buf_ch0[ 2 ][ NUM_SCANS * NUM_CHANNELS_CH0 ]; // LP1-4
+
+__attribute__((section(".noinit.$RAM2"), aligned(32)))
+volatile uint16_t adc_buf_ch1[ 2 ][ NUM_SCANS * NUM_CHANNELS_CH1 ]; // APPS1, APPS2, BSE1, BSE2
 
 volatile uint8_t active_buffer = 0;
 
 extern TaskHandle_t workerTaskHandler;
+
 
 // Initialize clock gating
 static void clocks_init()
@@ -102,6 +109,7 @@ ADC *adc = new ADC();
 
 void ADC_Init()
 {
+
     // ADC 0
     adc->adc0->setAveraging( 0 ); // TODO - turned off averaging for now, change back later?
     adc->adc0->setResolution( ADC_RESOLUTION );
@@ -156,7 +164,7 @@ static void ADC_ETC_init()
 
     ADC_ETC_TRIG0_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH0 - 1 ) | // 4 conversions
                          ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 7 );
-    ADC_ETC_TRIG1_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH0 - 1 ) | // 4 conversions
+    ADC_ETC_TRIG1_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH1 - 1 ) | // 4 conversions
                          ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 7 );
 
     // -----------------------------
@@ -192,22 +200,22 @@ static void ADC_ETC_init()
     // -----------------------------
     // TRIG1 handles sensors 4-7 (update as needed)
     // -----------------------------
-    ADC_ETC_TRIG1_CHAIN_1_0 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c0[ 4 ] ) |
+    ADC_ETC_TRIG1_CHAIN_1_0 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c1[ 0 ] ) |
                               ADC_ETC_TRIG_CHAIN_B2B0 |
                               ADC_ETC_TRIG_CHAIN_IE0( 0 ) |
                               ADC_ETC_TRIG_CHAIN_HWTS0( ADC_HW_TRIGGER_1 ) | 
 
-                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c0[ 5 ] ) |
+                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c1[ 1 ] ) |
                               ADC_ETC_TRIG_CHAIN_B2B1 |
                               ADC_ETC_TRIG_CHAIN_IE1( 0 ) |
                               ADC_ETC_TRIG_CHAIN_HWTS1( ADC_HW_TRIGGER_1 );
 
-    ADC_ETC_TRIG1_CHAIN_3_2 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c0[ 6 ] ) |
+    ADC_ETC_TRIG1_CHAIN_3_2 = ADC_ETC_TRIG_CHAIN_CSEL0( adc1_ch_c1[ 2 ] ) |
                               ADC_ETC_TRIG_CHAIN_B2B0 |
                               ADC_ETC_TRIG_CHAIN_IE0( 0 ) |
                               ADC_ETC_TRIG_CHAIN_HWTS0( ADC_HW_TRIGGER_1 ) |
 
-                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c0[ 7 ] ) |
+                              ADC_ETC_TRIG_CHAIN_CSEL1( adc1_ch_c1[ 3 ] ) |
                               ADC_ETC_TRIG_CHAIN_B2B1 |
                               ADC_ETC_TRIG_CHAIN_IE1( 0 ) |
                               ADC_ETC_TRIG_CHAIN_HWTS1( ADC_HW_TRIGGER_1 );
@@ -231,8 +239,8 @@ static void PIT_init()
     IMXRT_PIT_CHANNELS[ 1 ].TFLG = 1;
 
     // Set up sample rates
-    IMXRT_PIT_CHANNELS[ 0 ].LDVAL = ( PIT0_SAMPLE_PERIOD_HZ / PIT_CLOCK_FREQ_HZ ) - 1;
-    IMXRT_PIT_CHANNELS[ 1 ].LDVAL = ( PIT1_SAMPLE_PERIOD_HZ / PIT_CLOCK_FREQ_HZ ) - 1;
+    IMXRT_PIT_CHANNELS[ 0 ].LDVAL = ( PIT_CLOCK_FREQ_HZ / PIT0_SAMPLE_PERIOD_HZ) - 1;
+    IMXRT_PIT_CHANNELS[ 1 ].LDVAL = ( PIT_CLOCK_FREQ_HZ / PIT1_SAMPLE_PERIOD_HZ) - 1;
 
     // Start PIT0
     IMXRT_PIT_CHANNELS[ 0 ].TCTRL = PIT_TCTRL_TEN;
@@ -242,15 +250,39 @@ static void PIT_init()
     IMXRT_PIT_CHANNELS[ 1 ].TCTRL = PIT_TCTRL_TEN;
 }
 
-// Initialize DMA channels (0 and 1)
-static void DMA_init()
+void DMA_ISR()
 {
-    
+    dma0.clearInterrupt();
+    active_buffer ^= 1;
+
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(workerTaskHandler, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-void * DMA_ISR()
+static void DMA_init()
 {
+    // Setup DMA 0 (Chain 0: Sensors 0-3)
+    dma0.sourceBuffer((uint32_t*)&ADC_ETC_TRIG0_RESULT_1_0, 8);
+    dma0.destinationBuffer((uint16_t*)&adc_buf_ch0[0][0], NUM_SCANS * NUM_CHANNELS_CH0 * 2);
+    dma0.triggerAtHardwareEvent(DMAMUX_SOURCE_ADC_ETC_TRIG0);
+    dma0.TCD->NBYTES_MLNO = 8;
+    dma0.TCD->DOFF = 2;
+    dma0.TCD->DLASTSGA = -((int32_t)NUM_SCANS * NUM_CHANNELS_CH0 * 2);
 
+    // DMA 1 (Chain 1: APPS1, APPS2, BSE1, BSE2) -> flat buffer, no stride needed
+    dma1.sourceBuffer((uint32_t*)&ADC_ETC_TRIG1_RESULT_1_0, 8);
+    dma1.destinationBuffer((uint16_t*)&adc_buf_ch1[0][0], NUM_SCANS * NUM_CHANNELS_CH1 * 2);
+    dma1.triggerAtHardwareEvent(DMAMUX_SOURCE_ADC_ETC_TRIG1);
+    dma1.TCD->NBYTES_MLNO = 8;
+    dma1.TCD->DOFF = 2;
+    dma1.TCD->DLASTSGA = -((int32_t)NUM_SCANS * NUM_CHANNELS_CH1 * 2);
+
+    dma0.interruptAtCompletion();
+    dma0.attachInterrupt(DMA_ISR);
+
+    dma0.enable();
+    dma1.enable();
 }
 
 void Full_Hardware_Init()
@@ -267,27 +299,30 @@ void threadADC(void *pvParameters) {
 #if DEBUG_FLAG
     Serial.print("Beginning adc thread");
 #endif
+    Full_Hardware_Init();
 
-    lastWakeTime = xTaskGetTickCount();
-    while (true) {
-        vTaskDelayUntil(&lastWakeTime, TICKTYPE_FREQUENCY);
-        for (uint16_t currentIndexADC0 = 0;
-             currentIndexADC0 < SENSOR_PIN_AMT_ADC0; ++currentIndexADC0) {
-            uint16_t currentPinADC0 = adc0Pins[currentIndexADC0];
-            uint16_t adcRead = adc->adc0->analogRead(currentPinADC0);
-            adc0Reads[currentIndexADC0] = adcRead;
-        }
+    while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY)) {
+        uint8_t finished_buffer = active_buffer ^ 1;
 
-        for (uint16_t currentIndexADC1 = 0;
-             currentIndexADC1 < SENSOR_PIN_AMT_ADC1; ++currentIndexADC1) {
-            uint16_t currentPinADC1 = adc1Pins[currentIndexADC1];
-            uint16_t adcRead = adc->adc1->analogRead(currentPinADC1);
-            adc1Reads[currentIndexADC1] = adcRead;
-        }
-        ShockTravelUpdateData(
-            adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
-            adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
-        APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
-        BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
+        arm_dcache_delete((void*)adc_buf_ch0[finished_buffer], sizeof(adc_buf_ch0[finished_buffer]));
+        arm_dcache_delete((void*)adc_buf_ch1[finished_buffer], sizeof(adc_buf_ch1[finished_buffer]));
+
+        uint32_t last = (NUM_SCANS - 1) * NUM_CHANNELS_CH0;
+
+        // Chain 0: linear pots
+        uint16_t lp1 = adc_buf_ch0[finished_buffer][last + 0];
+        uint16_t lp2 = adc_buf_ch0[finished_buffer][last + 1];
+        uint16_t lp3 = adc_buf_ch0[finished_buffer][last + 2];
+        uint16_t lp4 = adc_buf_ch0[finished_buffer][last + 3];
+
+        // Chain 1: APPS + BSE
+        uint16_t apps1 = adc_buf_ch1[finished_buffer][last + 0];
+        uint16_t apps2 = adc_buf_ch1[finished_buffer][last + 1];
+        uint16_t bse1  = adc_buf_ch1[finished_buffer][last + 2];
+        uint16_t bse2  = adc_buf_ch1[finished_buffer][last + 3];
+
+        ShockTravelUpdateData(lp1, lp2, lp3, lp4);
+        APPS_UpdateData(apps1, apps2);
+        BSE_UpdateData(bse1, bse2);
     }
 }

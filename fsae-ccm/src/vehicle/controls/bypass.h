@@ -8,3 +8,4 @@
 
 void Bypass_Init();
 void Bypass_TSSI();
+void Bypass_TSSI_Full();

@@ -37,6 +37,13 @@ void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
 void Bypass_TSSI() {
     feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
 
+    Serial.print("feedbackStatus = ");
+    Serial.print(feedbackStatus);
+    Serial.print(" | ");
+    Serial.print("isFault = ");
+    Serial.print(feedbackStatus);
+    Serial.print("\r");
+
     if (feedbackStatus == LOW && !is_fault) {
         // Feedback is LOW, turn bypass ON immediately
         digitalWrite(TSSI_BYPASS_PIN, HIGH);

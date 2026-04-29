@@ -83,13 +83,10 @@ void threadMain(void *pvParameters) {
     while (true) {
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
 
-        /*============LOW PRIORITY GPIO UPDATES============*/
+        /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
-        EEPROM.update(faultAddress, currentFault);
 
         Bypass_TSSI();
-        // thermal_MCULoop();
-        // thermal_forceOn();
 
         // if (BSE_GetBSEReading()->bseFront_Reading > BRAKE_LIGHT_THRESHOLD &&
         //     BSE_GetBSEReading()->bseRear_Reading > BRAKE_LIGHT_THRESHOLD) {

@@ -21,14 +21,15 @@ Steps to perform:
 
 Results
 - Hardware Validation:
-    - Inverter Precharged properly
-    - Motor Spins freely (kind of )
-    - TODO: Encoder readings (1 full Rotation)
-    - TODO: Verify phase leads not shorting
+    - DONE: Inverter Precharged properly
+    - DONE: Motor Spins freely by hand (kind of )
+    - DONE: Encoder readings (1 full Rotation)
+    - DONE by electrical leads: Verify phase leads not shorting
 - Calibration
     - Open Loop Testing
     - Encoder FOC
     - Encoder Nonlinearity
     - Closed Loop Testing
     - Manual Mode
-    - CAN2 Mode
+    - Run via CAN2 Mode
+    - Complete

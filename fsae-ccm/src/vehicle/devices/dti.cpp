@@ -68,6 +68,7 @@ void DTI_SendEnableCommand(bool enable) {
 /**
  * Adjusts CAN_IDs only, not data values themselves. Sends over CANbus
  * @param value should be appropriately scaled for control mode
+ * Torque expects percenate, Speed expects RPM unit
  *  */
 void DTI_SendAccelCommand(float value) {
     if (internalMode == nullptr)

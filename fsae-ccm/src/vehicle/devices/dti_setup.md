@@ -25,11 +25,36 @@ Results
     - DONE: Motor Spins freely by hand (kind of )
     - DONE: Encoder readings (1 full Rotation)
     - DONE by electrical leads: Verify phase leads not shorting
-- Calibration
-    - Open Loop Testing
-    - Encoder FOC
-    - Encoder Nonlinearity
-    - Closed Loop Testing
-    - Manual Mode
-    - Run via CAN2 Mode
-    - Complete
+- Calibration and Spin (4/30/2026)
+    - FAIL Open Loop Testing
+    - DONE Encoder FOC
+    - TBD Encoder Nonlinearity
+    - TBD Closed Loop Testing
+    - DONE Manual Mode
+    - TBD Run via CAN2 Mode
+
+
+Calibration 2nd Round: 5/1/2026
+- Redo Encoder Calibration sequence (3 times)
+- Document offsets, take avg of the 3
+- Offset 1: 170.35
+- Offset 2: 169.91
+- Offset 3: 170.35
+- Average: 170.17
+
+delayed: MTPA and MFW checks
+Use passive sampling tool to ensure good data
+For MFW spin to target rpm and remove target and then fall
+
+Control via CCM
+Ensure DTI CAN config is right
+Test Brake Command (Regen), Test forward and reverse AC Current Command, ensure proper feedback and scaling of data.
+
+Try Encoder Non-linearity test
+Spin via external soruce is ideal, but likely spin via CCM
+If not good data figure sum out
+
+If time permits do testing of speed control/FOC current control
+
+
+Document everything in a .md file for now and add to github

@@ -25,7 +25,7 @@
 #include <unistd.h>
 
 #define TORQUE_STEP 1
-#define TORQUE_MAX_NM 20 // Maximum torque demand in Nm
+#define TORQUE_MAX_NM 120 // Maximum torque demand in Nm
 
 static TickType_t xLastWakeTime;
 
@@ -71,14 +71,9 @@ void threadMain(void *pvParameters) {
 
 #if HIMAC_FLAG
     float torqueDemand = 0;
-    bool enableStandby = false;
-    bool enablePrecharge = true;
-    bool enablePower = false;
-    bool enableRun = false;
+    VCU_SetDebugPedalDemand(0.0f);
 
     bool enableRegen = false;
-
-    int toggle = 0;
 #endif
     while (true) {
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
@@ -86,7 +81,7 @@ void threadMain(void *pvParameters) {
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
 
-        Bypass_TSSI();
+        // Bypass_TSSI();
 
         // if (BSE_GetBSEReading()->bseFront_Reading > BRAKE_LIGHT_THRESHOLD &&
         //     BSE_GetBSEReading()->bseRear_Reading > BRAKE_LIGHT_THRESHOLD) {
@@ -160,23 +155,28 @@ void threadMain(void *pvParameters) {
         Serial.print("\r");
 #endif
 #if HIMAC_FLAG
+
         /*
          * Read user input from Serial to control torque demand.
-         * 'w' or 'W' to increase torque demand,
-         * 's' or 'S' to decrease torque demand,
+         * 'w' or 'W' to increase torque demand,(apply throttle)
+         * 's' or 'S' to decrease torque demand, (let go throttle)
          *
-         * 'p' or 'P' to enter precharging state from standby,
-         * 'l' or 'L' to enter standby from precharging
-         *
-         * 'o' or 'O' to enter run state,
-         * 'k' or 'K' to go back to idle from run
+         * '2' key = Precharging
+         * '3' key = IDLE
+         * '4' key = DRIVE
+         * 'f' is fault state
          *
          * ' ' (space) to stop all torque. (reset w/s to 0)
-         * R to toggle regen
          *
          * The torque demand is limited between 0 and TORQUE_MAX_NM.
          *
-         * Telemetry: battery current, phase current, motor speed,
+         * Telemetry to show in 1 line :
+         * battery current, invt side current, contorl mode
+         * motor speed RPM, throttle input and output read by invt
+         *
+         * For copilot, look at the structs in dti.h or bus.h to see what
+         * data is avaliable
+         *
          * temperature(s)
          */
 
@@ -184,11 +184,28 @@ void threadMain(void *pvParameters) {
             char input = Serial.read();
 
             switch (input) {
+            case '2': {
+                VCU_SetState(STATE_PRECHARGING);
+                torqueDemand = 0;
+                VCU_SetDebugPedalDemand(0.0f);
+                break;
+            }
+            case '3': {
+                VCU_SetState(STATE_IDLE);
+                torqueDemand = 0;
+                VCU_SetDebugPedalDemand(0.0f);
+                break;
+            }
+            case '4': {
+                VCU_SetState(STATE_DRIVING);
+                break;
+            }
             case 'w': // Increase torque demand
             case 'W': {
                 if (torqueDemand < TORQUE_MAX_NM) {
                     torqueDemand += TORQUE_STEP; // Increment torque demand
                 }
+                VCU_SetDebugPedalDemand(torqueDemand / TORQUE_MAX_NM);
                 break;
             }
             case 's': // Decrease torque demand
@@ -196,168 +213,52 @@ void threadMain(void *pvParameters) {
                 if (torqueDemand > 0) {
                     torqueDemand -= TORQUE_STEP; // Decrement torque demand
                 }
-                break;
-            }
-            case 'l':
-            case 'L': { // Standby state
-                enableStandby = true;
-                enablePrecharge = false; // Disable Precharge
-                enablePower = false;     // Disable run state
-                enableRun = false;       // Disable run state
-                break;
-            }
-            case 'p': // Precharge state
-            case 'P': {
-                enableStandby = false;
-                enablePrecharge = true; // Set flag to enable precharging
-                enablePower = false;    // Disable run state
-                enableRun = false;      // Disable run state
-                torqueDemand = 0;       // Reset torque demand
-                break;
-            }
-            case 'o': // IDLE: Power Ready state
-            case 'O': {
-                enableStandby = false;
-                enablePrecharge = false; // Disable precharging
-                enablePower = true;      // Set flag to enable power ready state
-                enableRun = false;       // Set flag to enable run state
-                break;
-            }
-            case 'i':
-            case 'I': { // Run state
-                enableStandby = false;
-                enablePrecharge = false; // Disable precharging
-                enablePower = false;     // Set flag to enable power ready state
-                enableRun = true;        // Set flag to enable run state
+                VCU_SetDebugPedalDemand(torqueDemand / TORQUE_MAX_NM);
                 break;
             }
             case ' ': { // Stop all torque
                 torqueDemand = 0;
-                // enableRun = false;       // Disable run state
-                // enablePrecharge = false; // Disable precharging
-                // enablePower = false;
-                // enableRun = false;
+                VCU_SetDebugPedalDemand(0.0f);
+
                 break;
             }
             case 'f': // Fault state
             case 'F': {
-                // Serial.println("Entering fault state");
-                enableRun = false;       // Disable run state
-                enablePrecharge = false; // Disable precharging
-                enablePower = false;
-                torqueDemand = 0;      // Reset torque demand
-                Motor_SetFaultState(); // Set motor to fault state
-                break;
-            }
-            case 'b':
-            case 'B': {
-                digitalWrite(9, 1);
-                toggle = 1;
-                break;
-            }
-            case 'n':
-            case 'N': {
-                digitalWrite(9, 0);
-                toggle = 0;
-                break;
-            }
-            case 'r':
-            case 'R': {
-                enableRegen = !enableRegen;
+                VCU_SetFaultState(); // Set VCU to fault state
                 break;
             }
             default:
                 break;
             }
         }
-        // Telemetry: Read battery current, phase current, motor speed,
-        // temperature(s)
-        Serial.print("PP:");
-        Serial.print(PCC_GetData()->prechargeProgress);
-        Serial.print(" | ");
-        Serial.print("AV: ");
-        Serial.print(PCC_GetData()->accumulatorVoltage);
-        Serial.print(" | ");
-        Serial.print("TS: ");
-        Serial.print(PCC_GetData()->tsVoltage);
-        Serial.print(" | ");
-        Serial.print("C State: ");
-        Serial.print(MCU_GetMCU1Data()->mcuMainState);
-        Serial.print(" | ");
 
-        Serial.print("T State: ");
-        Serial.print(Motor_GetState());
-        Serial.print(" | ");
+        // Telemetry: battery current, invt side current, control mode, motor
+        // speed RPM, throttle input and output, temperatures
+        Serial.print("State: ");
+        Serial.print(VCU_GetState());
+        Serial.print(" | InvCurr: ");
+        Serial.print(DTI_GetDTIData()->acCurrent);
+        Serial.print("A | DriveEn: ");
+        Serial.print(DTI_GetDTIData()->driveEnabled);
+        Serial.print(" | Mode: ");
+        Serial.print(DTI_GetDTIData()->controlMode);
+        Serial.print(" | RPM: ");
+        Serial.print(DTI_GetDTIData()->eRPM);
+        Serial.print(" | ThrottleIn: ");
+        Serial.print((torqueDemand / TORQUE_MAX_NM));
+        Serial.print("% | ThrottleOut: ");
+        Serial.print(DTI_GetDTIData()->targetLq);
+        Serial.print(" | DutyCycle: ");
+        Serial.print(DTI_GetDTIData()->dutyCycle, 2);
+        Serial.print(" | BatTemp: ");
+        Serial.print(BMS_GetOrionData()->highTemp);
+        Serial.print("C | MotorTemp: ");
+        Serial.print(DTI_GetDTIData()->motorTemp);
+        Serial.print("C | InvTemp: ");
+        Serial.print(DTI_GetDTIData()->controllerTemp);
+        Serial.print("C");
 
-        Serial.print("Torque/APPS: ");
-        Serial.print(torqueDemand);
-        Serial.print(" / ");
-        Serial.print(APPS_GetAPPSReading1());
-        Serial.print(" / ");
-        Serial.print(BSE_GetBSEReading()->bseFront_Reading);
-
-        // if (enableRun) {
-        //     torqueDemand = APPS_GetAPPSReading1() * 10;
-        // }
-
-        Serial.print(" | ");
-        Serial.print("RPM: ");
-        Serial.print(MCU_GetMCU1Data()->motorSpeed);
-
-        //  Telemetry: Read battery current, phase current, motor speed,
-        //  temperature(s)
-        Serial.print(" | ");
-        Serial.print("B Volt: ");
-        Serial.print(MCU_GetMCU3Data()->mcuVoltage);
-        Serial.print(" | ");
-        Serial.print("B Curr: ");
-        Serial.print(MCU_GetMCU3Data()->mcuCurrent);
-        Serial.print(" | ");
-        Serial.print("P Curr: ");
-        Serial.print(MCU_GetMCU3Data()->motorPhaseCurr);
-        // Serial.print(" | ");
-        // Serial.print("MCU Temp: ");
-        // Serial.print(MCU_GetMCU2Data()->mcuTemp);
-        // Serial.print(" | ");
-        // Serial.print("Mtr Temp: ");
-        // Serial.print(MCU_GetMCU2Data()->motorTemp);
-
-        // Serial.print(" | ");
-        // Serial.print("Regen: ");
-        // Serial.print(enableRegen);
         Serial.print("\r");
-        // print all errors if they are true in one line
-        Serial.print("  |  ");
-        if (MCU_GetMCU2Data()->dcMainWireOverVoltFault)
-            Serial.println("DC Over Volt Fault, ");
-        if (MCU_GetMCU2Data()->motorPhaseCurrFault)
-            Serial.println("Motor Phase Curr Fault, ");
-        if (MCU_GetMCU2Data()->mcuOverHotFault)
-            Serial.println("MCU Over Hot Fault, ");
-        if (MCU_GetMCU2Data()->resolverFault)
-            Serial.println("Resolver Fault, ");
-        if (MCU_GetMCU2Data()->phaseCurrSensorFault)
-            Serial.println("Phase Curr Sensor Fault, ");
-        if (MCU_GetMCU2Data()->motorOverSpdFault)
-            Serial.println("Motor Over Spd Fault, ");
-        if (MCU_GetMCU2Data()->drvMotorOverHotFault)
-            Serial.println("Driver Motor Over Hot Fault, ");
-        if (MCU_GetMCU2Data()->dcMainWireOverCurrFault)
-            Serial.println("DC Main Wire Over Curr Fault, ");
-        if (MCU_GetMCU2Data()->drvMotorOverCoolFault)
-            Serial.println("Driver Motor Over Cool Fault, ");
-        if (MCU_GetMCU2Data()->dcLowVoltWarning)
-            Serial.println("DC Low Volt Warning, ");
-        if (MCU_GetMCU2Data()->mcu12VLowVoltWarning)
-            Serial.println("MCU 12V Low Volt Warning, ");
-        if (MCU_GetMCU2Data()->motorStallFault)
-            Serial.println("Motor Stall Fault, ");
-        if (MCU_GetMCU2Data()->motorOpenPhaseFault)
-            Serial.println("Motor Open Phase Fault, ");
-
-        Motor_UpdateMotor(
-            torqueDemand, enablePrecharge, enablePower, enableRun, enableRegen,
-            enableStandby); // Update motor with the current torque demand
 
 #endif
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(50)); // Delay for 100ms

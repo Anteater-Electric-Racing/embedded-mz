@@ -59,7 +59,7 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
             // // #if DEBUG_FLAG
             // Serial.println("Setting BSE fault");
             // // #endif
-            Faults_SetFault(FAULT_BSE);
+            // Faults_SetFault(FAULT_BSE);
         }
 
     } else {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "arduino_freertos.h"
 #include <stdint.h>
 
 extern TickType_t canLatestHealthyStateTime;

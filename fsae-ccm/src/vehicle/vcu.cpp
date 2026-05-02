@@ -127,7 +127,7 @@ void threadVCU(void *pvParameters) {
 
             DTI_SendAccelCommand(targetTorque * smallestFactor);
 
-            Serial.println(targetTorque * smallestFactor);
+            // Serial.println(targetTorque * smallestFactor);
             if (enableRegen && BSE_BrakesPressed()) {
                 DTI_SendBrakeCommand(pedalBrake);
             }

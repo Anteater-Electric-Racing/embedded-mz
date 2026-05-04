@@ -43,35 +43,6 @@ static TickType_t xLastWakeTime;
 static bool enableRegen = false;
 static float debugPedalDemand = 0.0f;
 
-// EMRAX 228 MV motor parameters from DTI HV-550 config tool
-constexpr float DTI_EMRAX_POLE_PAIRS = 10.0f;
-constexpr float DTI_EMRAX_LAMBDA_PM_WB = 0.071002f; // 71.002 mWb
-constexpr float DTI_EMRAX_LD_H = 0.00014480f;       // 144.80 µH
-constexpr float DTI_EMRAX_LQ_H = 0.00014480f;       // 144.80 µH
-constexpr float MIN_FLUX_LINKAGE_WB = 0.001f;
-constexpr float MAX_AC_DRIVE_CURRENT_A = 150.0f;
-
-static float VCU_TorqueToCurrent(float torqueNm) {
-    // Use actual measured d-axis and q-axis currents from packet 0x23
-    // (PKT_DTI5).
-    float idActual = DTI_GetDTIData()->focId;
-    float lambdaEff =
-        DTI_EMRAX_LAMBDA_PM_WB + (DTI_EMRAX_LD_H - DTI_EMRAX_LQ_H) * idActual;
-
-    if (lambdaEff >= 0.0f && lambdaEff < MIN_FLUX_LINKAGE_WB) {
-        lambdaEff = MIN_FLUX_LINKAGE_WB;
-    } else if (lambdaEff < 0.0f && lambdaEff > -MIN_FLUX_LINKAGE_WB) {
-        lambdaEff = -MIN_FLUX_LINKAGE_WB;
-    }
-
-    float iqFromTorque =
-        (2.0f * torqueNm) / (3.0f * DTI_EMRAX_POLE_PAIRS * lambdaEff);
-    float currentMagnitude =
-        sqrtf(idActual * idActual + iqFromTorque * iqFromTorque);
-
-    return currentMagnitude;
-}
-
 // Define 3 Presets (Steepness k, Midpoint x0)
 // Map 0: Rain (High precision, late power)
 // Map 1: Endurance (Balanced, predictable)
@@ -151,27 +122,17 @@ void threadVCU(void *pvParameters) {
             float smallestFactor =
                 min(batteryFactor, min(motorFactor, inverterFactor));
 
-            float dcCurrentLimit = 60.0f * smallestFactor;
-            float acCurrentLimit = MAX_AC_DRIVE_CURRENT_A * smallestFactor;
-            DTI_SetDCLimits(dcCurrentLimit, -2.0);
-            DTI_SetACLimits(acCurrentLimit, -20.0);
+            DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
+            DTI_SetACLimits(150.0 * smallestFactor, -20.0);
 
-            float deratedTorque = targetTorque * smallestFactor;
-            float targetCurrent = VCU_TorqueToCurrent(deratedTorque);
-            targetCurrent = constrain(targetCurrent, 0.0f, acCurrentLimit);
-
-            // Convert absolute current (A) to relative percentage (0-100%)
-            float relativeCurrentPercent =
-                (targetCurrent / acCurrentLimit) * 100.0f;
-            DTI_SendAccelCommand(relativeCurrentPercent);
+            DTI_SendAccelCommand(targetTorque * smallestFactor);
 
             // Serial.println(targetTorque * smallestFactor);
             if (enableRegen && BSE_BrakesPressed()) {
                 DTI_SendBrakeCommand(pedalBrake);
             }
-        }
+        } break;
 
-        break;
         case STATE_FAULT:
             // DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {

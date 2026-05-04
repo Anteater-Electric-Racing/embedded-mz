@@ -61,11 +61,10 @@ void Faults_SetFault(FaultType fault) {
         break;
     }
     case FAULT_CAN: {
-        // #if DEBUG_FLAG
-        Serial.print(Faults_GetFaults(), BIN);
-        Serial.print(" | ");
+#if DEBUG_FLAG
+
         Serial.println("Setting CAN Timeout Fault");
-        // #endif
+#endif
         faultBitMap |= FAULT_CAN_MASK;
         break;
     }

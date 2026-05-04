@@ -18,6 +18,8 @@ taos = { version = "0.12.3", features = ["ws"] }
 serde_repr = "0.1.20"
 itoa = "1.0.17"
 ryu = "1.0.23"
+questdb-rs = "6.1.0"
+
 
 [dev-dependencies]
 reqwest = "0.13.2"

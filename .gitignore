@@ -2,3 +2,5 @@
 .vscode
 .DS_Store
 .idea
+/src/grafana.log
+lol

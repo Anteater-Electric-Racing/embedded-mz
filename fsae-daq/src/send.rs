@@ -2,18 +2,28 @@ use std::sync::Arc;
 
 use rumqttc::{AsyncClient, ClientError, MqttOptions, QoS};
 use serde::Serialize;
-use taos::taos_query::common::{SchemalessPrecision, SchemalessProtocol, SmlDataBuilder};
-use taos::{AsyncQueryable, AsyncTBuilder, TaosBuilder};
+use tracing::{error, info};
 use tokio::sync::mpsc::error::TrySendError;
-use tokio::sync::mpsc::Sender;
 use tokio::sync::{Mutex, OnceCell};
 use tokio::time::Duration;
-use tracing::error;
+use tokio::sync::mpsc::Sender;
+
+use taos::taos_query::common::{SchemalessPrecision, SchemalessProtocol, SmlDataBuilder};
+use taos::{AsyncQueryable, AsyncTBuilder, TaosBuilder};
+
+use questdb::{
+    Result,
+    ingress::{
+        //Sender,
+        SenderBuilder,
+        TimestampNanos}};
 
 pub const TAOS_URL: &str = "taos+ws://localhost:6041/fsae";
 pub const MQTT_ID: &str = "fsae";
 pub const MQTT_HOST: &str = "127.0.0.1";
 pub const MQTT_PORT: u16 = 1883;
+pub const QUESTDB_URL: &str = "http::addr=host.docker.internal:9000"; //this is probably (defintly) the wrong link but it does let me connect
+
 
 const CREATE_DB: &str =
     "CREATE DATABASE IF NOT EXISTS fsae WAL_LEVEL 2 WAL_FSYNC_PERIOD 0 STT_TRIGGER 1 KEEP 365d";
@@ -27,6 +37,37 @@ pub trait Reading: Serialize {
 static TDENGINE: OnceCell<Sender<String>> = OnceCell::const_new();
 static MQTT_CLIENT: OnceCell<AsyncClient> = OnceCell::const_new();
 
+async fn get_questdb_sender(){
+    let mut sender = SenderBuilder::from_conf(QUESTDB_URL).expect("Sender should have been made").build().expect("and built");
+
+    let (tx, rx) = tokio::sync::mpsc::channel(100_000);
+    let rx = Arc::new(Mutex::new(rx));
+
+    tokio::spawn(async move {
+        let mut buffer: Vec<String> = Vec::new();
+        while rx.lock().await.recv_many(&mut buffer, 5000).await > 0 {
+            let mut qdb_buffer: questdb::ingress::Buffer = sender.new_buffer();
+            qdb_buffer
+                .table("test").expect("lol")
+                .column_str("data dump",buffer).expect("lol") //This is also probably wrong. It looks like buffer is a really long 1d array of data, so we probably need to split it up into columns properly first. IDK
+                .at(TimestampNanos::now());
+        }
+        
+    });
+    
+    /*let data = SmlDataBuilder::default()
+        .protocol(SchemalessProtocol::Line)
+        .precision(SchemalessPrecision::Millisecond)
+        .data(std::mem::take(&mut buffer))
+        .req_id(id)
+        .build()
+        .unwrap_or_else(|e| panic!("Failed to build SML data: {e}"));
+    id = id.wrapping_add(1);*/
+
+    //return sender;
+}
+
+
 async fn connect_with_retry(builder: &TaosBuilder) -> taos::Taos {
     loop {
         match builder.build().await {
@@ -38,6 +79,7 @@ async fn connect_with_retry(builder: &TaosBuilder) -> taos::Taos {
         }
     }
 }
+
 
 async fn get_tdengine_sender() -> &'static Sender<String> {
     TDENGINE
@@ -56,7 +98,7 @@ async fn get_tdengine_sender() -> &'static Sender<String> {
                 }
             }
 
-            for _ in 0..4 {
+            for _ in 0..1 {
                 let rx = rx.clone();
                 let builder = builder.clone();
                 tokio::spawn(async move {
@@ -77,6 +119,7 @@ async fn get_tdengine_sender() -> &'static Sender<String> {
 
                         match taos.put(&data).await {
                             Ok(_) => {
+                                info!(consecutive_failures, "Suceeded!");
                                 consecutive_failures = 0;
                             }
                             Err(e) => {
@@ -177,7 +220,7 @@ pub fn now_ms() -> u64 {
 }
 
 pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms: u64) {
-    let mut value = match serde_json::to_value(&message) {
+    let mut value: serde_json::Value = match serde_json::to_value(&message) {
         Ok(v) => v,
         Err(e) => {
             error!(%e, "Failed to serialize message");

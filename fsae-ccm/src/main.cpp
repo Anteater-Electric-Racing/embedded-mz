@@ -111,8 +111,8 @@ void threadMain(void *pvParameters) {
         Serial.print("ControlMode: ");
         Serial.print(DTI_GetDTIData()->controlMode);
         Serial.print(" | ");
-        Serial.print("targetLq ");
-        Serial.print(DTI_GetDTIData()->targetLq);
+        Serial.print("targetIq ");
+        Serial.print(DTI_GetDTIData()->targetIq);
         Serial.print(" | ");
         Serial.print("ERPM: ");
         Serial.print(DTI_GetDTIData()->eRPM);
@@ -247,7 +247,7 @@ void threadMain(void *pvParameters) {
         Serial.print(" | ThrottleIn: ");
         Serial.print((torqueDemand / TORQUE_MAX_NM));
         Serial.print("% | ThrottleOut: ");
-        Serial.print(DTI_GetDTIData()->targetLq);
+        Serial.print(DTI_GetDTIData()->targetIq);
         Serial.print(" | DutyCycle: ");
         Serial.print(DTI_GetDTIData()->dutyCycle, 2);
         Serial.print(" | BatTemp: ");

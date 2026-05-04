@@ -22,7 +22,6 @@ static IMDData imdData;
 TickType_t canLatestHealthyStateTime = 0;
 static uint32_t canAgeMs = 0;
 
-
 void Bus_Init() {
 
     dtiData = {.controlMode = 0,
@@ -32,7 +31,7 @@ void Bus_Init() {
                // 4: CONTROL_MODE_POS
                // 7: CONTROL_MODE_NONE
                // 0, 5, 6: NOT USED
-               .targetLq = 0,
+               .targetIq = 0,
                .motorPosition = 0, // in degrees
                .isMotorStill = 0,  // in still position or not
                .eRPM = 0,      // eRPM = motor RPM * number of motor pole pairs
@@ -43,8 +42,8 @@ void Bus_Init() {
                .controllerTemp = 0, // temp of inverter semiconductors
                .motorTemp = 0,      // temp of motor measured by inverter
                .faultCode = 0,      // all inverter faults, add to faultMAP TODO
-               .focLd = 0,          // foc alg Ld
-               .focLq = 0,          // foc alg lq.
+               .focId = 0,          // foc alg Id
+               .focIq = 0,          // foc alg Iq
                .driveEnabled = 0,   // RTM toggle.
                .maxAC_Current = 0,
                .avMaxAC_Current = 0,
@@ -126,8 +125,8 @@ void threadBus(void *pvParameters) {
 
             taskENTER_CRITICAL(); // Enter critical section
             dtiData.controlMode = dti1.controlMode,
-            dtiData.targetLq =
-                (float)((int16_t)CHANGE_ENDIANESS_16(dti1.targetLq)) *
+            dtiData.targetIq =
+                (float)((int16_t)CHANGE_ENDIANESS_16(dti1.targetIq)) *
                 DTI_16_SCALE;
             dtiData.motorPosition =
                 (float)((int16_t)CHANGE_ENDIANESS_16(dti1.motorPosition)) *
@@ -183,9 +182,9 @@ void threadBus(void *pvParameters) {
             PKT_DTI5 dti5 = {0};
             memcpy(&dti5, &rx_data, sizeof(dti5));
             taskENTER_CRITICAL();
-            dtiData.focLd = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focLd)) *
+            dtiData.focId = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focId)) *
                             DTI_32_SCALE;
-            dtiData.focLq = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focLq)) *
+            dtiData.focIq = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focIq)) *
                             DTI_32_SCALE;
             taskEXIT_CRITICAL();
             break;

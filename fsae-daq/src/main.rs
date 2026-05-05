@@ -7,10 +7,7 @@ mod test;
 use can::read_can;
 use mqtt::mqttd;
 
-use questdb::{
-    ingress::{
-        Sender,
-        TimestampNanos}};
+
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {

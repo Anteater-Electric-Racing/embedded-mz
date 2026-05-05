@@ -14,6 +14,8 @@ extern uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 extern ADC *adc;
 
+TaskHandle_t adcDecoderTaskHandle;
+
 enum SensorIndexesADC0 
 {    // TODO: Update with real values
     APPS_1_INDEX            = 5,
@@ -45,3 +47,4 @@ enum SensorIndexesADC1
 
 void ADC_Init();
 void threadADC(void *pvParameters);
+void Full_ADC_DMA_Init();

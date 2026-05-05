@@ -20,26 +20,26 @@
 #include "wiring.h"
 #include "QuadEncoder.h"
 
-#define NUM_CHANNELS        8       // Number of active channels
-#define NUM_SCANS           32      // Scan rows per buffer half
-#define NUM_CHANNELS_CH0    4       // Chain/DMA 0 channel count
-#define NUM_CHANNELS_CH1    4       // Chain/DMA 1 channel count
-#define SAMPLE_RATE_HZ      1000    // 1kHz (adjust as needed)
+constexpr uint8_t NUM_CHANNELS              = 8;       // Number of active channels
+constexpr uint8_t NUM_SCANS_PER_CHANNEL     = 1;      // Scan each sensor channel per buffer half
+constexpr uint8_t NUM_CHANNELS_IN_CH0       = 4;       // Chain/DMA 0 channel count
+constexpr uint8_t NUM_CHANNELS_IN_CH1       = 4;       // Chain/DMA 1 channel count
+constexpr uint32_t SAMPLE_RATE_HZ           = 1000;    // 1kHz (adjust as needed)
+constexpr uint8_t WORDS_PER_SCAN            = 12;      // Number of words we read per scan
 
 #define ADC_HW_TRIGGER_0    ( 1U << 0 )
 #define ADC_HW_TRIGGER_1    ( 1U << 1 )
-
-#define DMAMUX_SOURCE_ADC_ETC_TRIG0 40
-#define DMAMUX_SOURCE_ADC_ETC_TRIG1 41
 
 constexpr uint32_t PIT_CLOCK_FREQ_HZ        = 50'000'000;
 constexpr uint32_t PIT0_SAMPLE_PERIOD_HZ    = 1'000;
 constexpr uint32_t PIT1_SAMPLE_PERIOD_HZ    = 1'000;
 constexpr uint32_t PHASE_OFFSET_US          = 50;
 
+constexpr uint8_t BYTE_OFFSET_PER_TRANSFER  = 4;       // each ADC_ETC result register is 4 bytes
+constexpr uint8_t BITS_READ_PER_TRANSACTION = 2;       // Not actually 2 bits, 0b0010 -> 32 bits
 
 // ============================================================
-//  Sensor → Analog Pin → ADC1 Channel mapping
+//  Sensor → Analog Pin → ADC1 Channel mapping (10.1.1 Rev3)
 //  Chain 0: first 4 sensors  (Trigger 0, slots 0-3)
 //  Chain 1: last  4 sensors  (Trigger 1, slots 0-3)
 //
@@ -54,8 +54,38 @@ constexpr uint32_t PHASE_OFFSET_US          = 50;
 //  BSE1                  |  A3   | GPIO_AD_B1_06    |  11
 //  BSE2                  |  A2   | GPIO_AD_B1_07    |  12
 // ============================================================
-static const uint8_t adc1_ch_c0[ NUM_CHANNELS_CH0 ] = { 14, 13, 0, 15 };
-static const uint8_t adc1_ch_c1[ NUM_CHANNELS_CH1 ] = { 5, 6, 11, 12 };
+static const uint8_t adc1_ch_c0[ NUM_CHANNELS_IN_CH0 ] = { 14, 13, 0, 15 };
+static const uint8_t adc1_ch_c1[ NUM_CHANNELS_IN_CH1 ] = { 5, 6, 11, 12 };
+
+constexpr uint8_t LINEAR_POT_1      = 0;
+constexpr uint8_t LINEAR_POT_2      = 1;
+constexpr uint8_t LINEAR_POT_3      = 2;
+constexpr uint8_t LINEAR_POT_4      = 3;
+constexpr uint8_t APPS_1            = 4;
+constexpr uint8_t APPS_2            = 5;
+constexpr uint8_t BSE_1             = 6;
+constexpr uint8_t BSE_2             = 7;
+
+DMAChannel dma;
+
+// ============================================================
+// One DMA minor-loop copies this whole struct. (67.5.1.12 Rev2)
+// Starts at: ADC_ETC_TRIG0_RESULT_1_0
+// Ends at:   ADC_ETC_TRIG1_RESULT_3_2
+// ============================================================
+struct AdcEtcRawFrame
+{
+    volatile uint32_t result[ WORDS_PER_SCAN ];
+};
+
+__attribute__( ( section(".noinit.$RAM2"), aligned( 32 ) ) )
+volatile uint16_t adc_dma_buffer[ 2 ][ NUM_CHANNELS * NUM_SCANS_PER_CHANNEL ];
+
+volatile uint8_t active_buffer = 0;
+volatile uint8_t ready_buffer = 0xFF;
+volatile bool adc_dma_buffer_ready = false;
+
+extern TaskHandle_t workerTaskHandler;
 
 
 uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {
@@ -74,20 +104,6 @@ uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 static TickType_t lastWakeTime;
 
 
-DMAChannel dma0;
-DMAChannel dma1;
-
-__attribute__((section(".noinit.$RAM2"), aligned(32)))
-volatile uint16_t adc_buf_ch0[ 2 ][ NUM_SCANS * NUM_CHANNELS_CH0 ]; // LP1-4
-
-__attribute__((section(".noinit.$RAM2"), aligned(32)))
-volatile uint16_t adc_buf_ch1[ 2 ][ NUM_SCANS * NUM_CHANNELS_CH1 ]; // APPS1, APPS2, BSE1, BSE2
-
-volatile uint8_t active_buffer = 0;
-
-extern TaskHandle_t workerTaskHandler;
-
-
 // Initialize clock gating
 static void clocks_init()
 {
@@ -104,11 +120,9 @@ static void clocks_init()
     CCM_CCGR5 |= CCM_CCGR5_DMA( CCM_CCGR_ON );
 }
 
-// Initialize ADC
-ADC *adc = new ADC();
-
 void ADC_Init()
 {
+    ADC * adc = new ADC();
 
     // ADC 0
     adc->adc0->setAveraging( 0 ); // TODO - turned off averaging for now, change back later?
@@ -159,12 +173,12 @@ static void ADC_ETC_init()
     ADC_ETC_CTRL = ADC_ETC_CTRL_TRIG_ENABLE( ( 1U << 0 ) | ( 1U << 1) ) |
                    ADC_ETC_CTRL_PRE_DIVIDER( 0 ); // Controls how much the ADC_ETC clock is divided (default 0)
 
-    // Enable DMA request generation for TRIG0 and TRIG1
-    ADC_ETC_DMA_CTRL = ( 1U << 0 ) | ( 1U << 1 );
+    // Enable DMA request generation ONLY WHEN TRIG1 FINISHES since it's the last chain
+    ADC_ETC_DMA_CTRL = ( 1U << 1 );
 
-    ADC_ETC_TRIG0_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH0 - 1 ) | // 4 conversions
+    ADC_ETC_TRIG0_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_IN_CH0 - 1 ) | // 4 conversions
                          ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 7 );
-    ADC_ETC_TRIG1_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_CH1 - 1 ) | // 4 conversions
+    ADC_ETC_TRIG1_CTRL = ADC_ETC_TRIG_CTRL_TRIG_CHAIN( NUM_CHANNELS_IN_CH1 - 1 ) | // 4 conversions
                          ADC_ETC_TRIG_CTRL_TRIG_PRIORITY( 7 );
 
     // -----------------------------
@@ -250,42 +264,90 @@ static void PIT_init()
     IMXRT_PIT_CHANNELS[ 1 ].TCTRL = PIT_TCTRL_TEN;
 }
 
-void DMA_ISR()
-{
-    dma0.clearInterrupt();
-    active_buffer ^= 1;
-
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    vTaskNotifyGiveFromISR(workerTaskHandler, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
 static void DMA_init()
 {
-    // Setup DMA 0 (Chain 0: Sensors 0-3)
-    dma0.sourceBuffer((uint32_t*)&ADC_ETC_TRIG0_RESULT_1_0, 8);
-    dma0.destinationBuffer((uint16_t*)&adc_buf_ch0[0][0], NUM_SCANS * NUM_CHANNELS_CH0 * 2);
-    dma0.triggerAtHardwareEvent(DMAMUX_SOURCE_ADC_ETC_TRIG0);
-    dma0.TCD->NBYTES_MLNO = 8;
-    dma0.TCD->DOFF = 2;
-    dma0.TCD->DLASTSGA = -((int32_t)NUM_SCANS * NUM_CHANNELS_CH0 * 2);
+    active_buffer = 0;
+    ready_buffer = 0xFF;
+    adc_dma_buffer_ready = false;
 
-    // DMA 1 (Chain 1: APPS1, APPS2, BSE1, BSE2) -> flat buffer, no stride needed
-    dma1.sourceBuffer((uint32_t*)&ADC_ETC_TRIG1_RESULT_1_0, 8);
-    dma1.destinationBuffer((uint16_t*)&adc_buf_ch1[0][0], NUM_SCANS * NUM_CHANNELS_CH1 * 2);
-    dma1.triggerAtHardwareEvent(DMAMUX_SOURCE_ADC_ETC_TRIG1);
-    dma1.TCD->NBYTES_MLNO = 8;
-    dma1.TCD->DOFF = 2;
-    dma1.TCD->DLASTSGA = -((int32_t)NUM_SCANS * NUM_CHANNELS_CH1 * 2);
+    // Delete any old CPU cache
+    arm_dcache_delete( ( void * ) adc_dma_buffer[ 0 ], sizeof( adc_dma_buffer[ 0 ]) );
+    arm_dcache_delete( ( void * ) adc_dma_buffer[ 1 ], sizeof( adc_dma_buffer[ 1 ]) );
 
-    dma0.interruptAtCompletion();
-    dma0.attachInterrupt(DMA_ISR);
+    dma.disable();
+    dma.clearComplete();
+    dma.clearInterrupt();
 
-    dma0.enable();
-    dma1.enable();
+    // ------------------------------------------------------------
+    // Source: ADC_ETC result register window
+    // ------------------------------------------------------------
+
+    dma.TCD->SADDR = ( volatile const void * ) &ADC_ETC_TRIG0_RESULT_1_0; // Where to start (source)
+    dma.TCD->ATTR_SRC = BITS_READ_PER_TRANSACTION; // How many bits the DMA reads in one transaction
+    dma.TCD->SOFF = BYTE_OFFSET_PER_TRANSFER; // How many bytes to advance the SADDR after read
+    
+    dma.TCD->NBYTES = sizeof( AdcEtcRawFrame );
+
+    dma.TCD->SLAST = -( int32_t )sizeof( AdcEtcRawFrame );
+
+    // ------------------------------------------------------------
+    // Destination: active ping-pong buffer
+    // ------------------------------------------------------------
+
+    dma.TCD->DADDR = ( volatile void * ) &adc_dma_buffer[ active_buffer ][ 0 ];
+    dma.TCD->ATTR_DST = BITS_READ_PER_TRANSACTION;
+    dma.TCD->DOFF = BYTE_OFFSET_PER_TRANSFER;
+
+    dma.TCD->DLASTSGA = -( int32_t )sizeof( adc_dma_buffer[ active_buffer ] );
+
+    // Current iteration counter, decrements every minor loop completion
+    dma.TCD->CITER = NUM_SCANS_PER_CHANNEL;
+    // THe value CITER gets reset to
+    dma.TCD->BITER = NUM_SCANS_PER_CHANNEL;
+    
+    // Clear all status flags
+    dma.TCD->CSR = 0;
+
+    dma.interruptAtCompletion();
+    dma.disableOnCompletion();
+    dma.attachInterrupt( DMA_ISR );
+
+    dma.triggerAtHardwareEvent( DMAMUX_SOURCE_ADC_ETC );
+
+    dma.enable();
 }
 
-void Full_Hardware_Init()
+void DMA_ISR()
+{
+    dma.clearInterrupt();
+
+    ready_buffer = active_buffer;
+    adc_dma_buffer_ready = true;
+
+    // DMA wrote to RAM -> Delete CPU cache for this buffer so the CPU will read new data
+    arm_dcache_delete( ( void * ) adc_dma_buffer[ ready_buffer ],
+                         sizeof( adc_dma_buffer [ ready_buffer ] ) );
+
+    // Swap to next destination buffer
+    active_buffer ^= 1;
+    arm_dcache_delete( ( void * ) adc_dma_buffer[ active_buffer ], 
+                         sizeof( adc_dma_buffer[ active_buffer ] ) );
+    dma.TCD->DADDR = ( volatile void * ) &adc_dma_buffer[ active_buffer ][ 0 ];
+
+    // Reset everything
+    dma.TCD->CITER = dma.TCD->BITER;
+    dma.clearComplete();
+    dma.enable();
+
+    // Wake the ADC decoder task
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR( adcDecoderTaskHandle, &xHigherPriorityTaskWoken );
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+
+    asm volatile( "dsb" );
+}
+
+void Full_ADC_DMA_Init()
 {
     clocks_init();
     ADC_Init();
@@ -295,34 +357,30 @@ void Full_Hardware_Init()
     PIT_init();
 }
 
-void threadADC(void *pvParameters) {
+void threadADC( void *pvParameters ) 
+{
 #if DEBUG_FLAG
     Serial.print("Beginning adc thread");
 #endif
-    Full_Hardware_Init();
 
-    while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY)) {
-        uint8_t finished_buffer = active_buffer ^ 1;
-
-        arm_dcache_delete((void*)adc_buf_ch0[finished_buffer], sizeof(adc_buf_ch0[finished_buffer]));
-        arm_dcache_delete((void*)adc_buf_ch1[finished_buffer], sizeof(adc_buf_ch1[finished_buffer]));
-
-        uint32_t last = (NUM_SCANS - 1) * NUM_CHANNELS_CH0;
+    while ( true )
+    {
+        ulTaskNotifyTake( pdTRUE, portMAX_DELAY );
 
         // Chain 0: linear pots
-        uint16_t lp1 = adc_buf_ch0[finished_buffer][last + 0];
-        uint16_t lp2 = adc_buf_ch0[finished_buffer][last + 1];
-        uint16_t lp3 = adc_buf_ch0[finished_buffer][last + 2];
-        uint16_t lp4 = adc_buf_ch0[finished_buffer][last + 3];
+        uint16_t lp1 = adc_dma_buffer[ ready_buffer ][ LINEAR_POT_1 ];
+        uint16_t lp2 = adc_dma_buffer[ ready_buffer ][ LINEAR_POT_2 ];
+        uint16_t lp3 = adc_dma_buffer[ ready_buffer ][ LINEAR_POT_3 ];
+        uint16_t lp4 = adc_dma_buffer[ ready_buffer ][ LINEAR_POT_4 ];
 
         // Chain 1: APPS + BSE
-        uint16_t apps1 = adc_buf_ch1[finished_buffer][last + 0];
-        uint16_t apps2 = adc_buf_ch1[finished_buffer][last + 1];
-        uint16_t bse1  = adc_buf_ch1[finished_buffer][last + 2];
-        uint16_t bse2  = adc_buf_ch1[finished_buffer][last + 3];
+        uint16_t apps1 = adc_dma_buffer[ ready_buffer ][ APPS_1 ];
+        uint16_t apps2 = adc_dma_buffer[ ready_buffer ][ APPS_2 ];
+        uint16_t bse1  = adc_dma_buffer[ ready_buffer ][ BSE_1 ];
+        uint16_t bse2  = adc_dma_buffer[ ready_buffer ][ BSE_2 ];
 
-        ShockTravelUpdateData(lp1, lp2, lp3, lp4);
-        APPS_UpdateData(apps1, apps2);
-        BSE_UpdateData(bse1, bse2);
+        ShockTravelUpdateData( lp1, lp2, lp3, lp4 );
+        APPS_UpdateData( apps1, apps2 );
+        BSE_UpdateData( bse1, bse2 );
     }
 }

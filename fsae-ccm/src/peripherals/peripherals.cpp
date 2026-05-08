@@ -5,6 +5,5 @@
 #include "peripherals/gpio.h"
 
 void Peripherals_Init() {
-    ADC_Init();
     CAN_Init();
 }

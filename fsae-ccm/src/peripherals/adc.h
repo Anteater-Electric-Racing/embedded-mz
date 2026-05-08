@@ -47,6 +47,5 @@ enum SensorIndexesADC1
     SUSP_TRAV_LINPOT42
 };
 
-void ADC_Init();
 void threadADC(void *pvParameters);
 void Full_ADC_DMA_Init();

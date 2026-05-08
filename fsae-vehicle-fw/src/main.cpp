@@ -432,6 +432,26 @@ void threadMain(void *pvParameters) {
             enableStandby); // Update motor with the current torque demand
 
 #endif
+#if ADC_INTERRUPT_FLAG
+        Serial.print( "APPS_1: " );
+        Serial.print( APPS_GetAPPSReading1() );
+        Serial.print( " | APPS_2: " );
+        Serial.println( APPS_GetAPPSReading2() );
+
+        Serial.print( "BSE_Front: " );
+        Serial.print( BSE_GetBSEReading()->bseFront_Reading );
+        Serial.print( " | BSE_Rear: " );
+        Serial.println( BSE_GetBSEReading()->bseRear_Reading );
+
+        Serial.print( "Lin_Pot_1: " );
+        Serial.println( Linpot_GetData()->LinPot1Voltage );
+        Serial.print( " Lin_Pot_2: " );
+        Serial.println( Linpot_GetData()->LinPot2Voltage );
+        Serial.print( "Lin_Pot_3: " );
+        Serial.println( Linpot_GetData()->LinPot3Voltage );
+        Serial.print( " Lin_Pot_4: " );
+        Serial.println( Linpot_GetData()->LinPot2Voltage );
+#endif
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(100)); // Delay for 100ms
     }
 }

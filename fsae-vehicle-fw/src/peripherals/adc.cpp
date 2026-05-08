@@ -11,7 +11,6 @@
 #include "vehicle/telemetry.h"
 #include "vehicle/thermal.h"
 #include <ADC.h>
-#include <arduino_freertos.h>
 #include <chrono>
 #include <stdint.h>
 
@@ -19,6 +18,8 @@
 #include "DMAChannel.h"
 #include "wiring.h"
 #include "QuadEncoder.h"
+
+static void DMA_ISR();
 
 constexpr uint8_t NUM_CHANNELS              = 8;       // Number of active channels
 constexpr uint8_t NUM_SCANS_PER_CHANNEL     = 1;      // Scan each sensor channel per buffer half
@@ -85,8 +86,6 @@ volatile uint8_t active_buffer = 0;
 volatile uint8_t ready_buffer = 0xFF;
 volatile bool adc_dma_buffer_ready = false;
 
-extern TaskHandle_t workerTaskHandler;
-
 
 uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {
     A0, A1, A2, A3, A4, A5, A6, A7, A8, A9 //, A16
@@ -100,8 +99,6 @@ uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {
     A3, A2, A1, A0}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21,
                      // 24, 25, 19, 18, 14, 15, 17};
 uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
-
-static TickType_t lastWakeTime;
 
 
 // Initialize clock gating
@@ -120,7 +117,7 @@ static void clocks_init()
     CCM_CCGR5 |= CCM_CCGR5_DMA( CCM_CCGR_ON );
 }
 
-void ADC_Init()
+static void ADC_Init()
 {
     ADC * adc = new ADC();
 
@@ -317,7 +314,7 @@ static void DMA_init()
     dma.enable();
 }
 
-void DMA_ISR()
+static void DMA_ISR()
 {
     dma.clearInterrupt();
 

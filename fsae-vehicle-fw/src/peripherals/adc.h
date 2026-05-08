@@ -1,6 +1,9 @@
 #pragma once
 
 #include <ADC.h>
+#include <Arduino.h>
+#include <arduino_freertos.h>
+
 #define SENSOR_PIN_AMT_ADC0 11
 #define SENSOR_PIN_AMT_ADC1 11
 
@@ -13,7 +16,6 @@ extern uint16_t adc1Index;
 extern uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 extern ADC *adc;
-
 TaskHandle_t adcDecoderTaskHandle;
 
 enum SensorIndexesADC0 

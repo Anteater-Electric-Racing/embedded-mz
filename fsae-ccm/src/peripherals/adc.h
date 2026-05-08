@@ -16,7 +16,7 @@ extern uint16_t adc1Index;
 extern uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 extern ADC *adc;
-TaskHandle_t adcDecoderTaskHandle;
+extern TaskHandle_t adcDecoderTaskHandle;
 
 enum SensorIndexesADC0 
 {    // TODO: Update with real values

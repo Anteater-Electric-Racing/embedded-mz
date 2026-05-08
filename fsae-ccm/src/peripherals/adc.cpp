@@ -40,6 +40,8 @@ constexpr uint32_t PHASE_OFFSET_US          = 50;
 constexpr uint8_t BYTE_OFFSET_PER_TRANSFER  = 4;       // each ADC_ETC result register is 4 bytes
 constexpr uint8_t BITS_READ_PER_TRANSACTION = 2;       // Not actually 2 bits, 0b0010 -> 32 bits
 
+TaskHandle_t adcDecoderTaskHandle = nullptr;
+
 // ============================================================
 //  Sensor → Analog Pin → ADC1 Channel mapping (10.1.1 Rev3)
 //  Chain 0: first 4 sensors  (Trigger 0, slots 0-3)
@@ -339,8 +341,11 @@ static void DMA_ISR()
 
     // Wake the ADC decoder task
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    vTaskNotifyGiveFromISR( adcDecoderTaskHandle, &xHigherPriorityTaskWoken );
-    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    if ( adcDecoderTaskHandle != nullptr )
+    {
+        vTaskNotifyGiveFromISR( adcDecoderTaskHandle, &xHigherPriorityTaskWoken );
+        portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    }
 
     asm volatile( "dsb" );
 }

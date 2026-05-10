@@ -6,15 +6,10 @@ use tracing::{error, info};
 use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::{Mutex, OnceCell};
 use tokio::time::Duration;
-use tokio::sync::mpsc::Sender;
-
-use taos::taos_query::common::{SchemalessPrecision, SchemalessProtocol, SmlDataBuilder};
-use taos::{AsyncQueryable, AsyncTBuilder, TaosBuilder};
-
 use questdb::{
     Result,
     ingress::{
-        //Sender,
+        Sender,
         SenderBuilder,
         TimestampNanos}};
 
@@ -34,26 +29,24 @@ pub trait Reading: Serialize {
     fn topic() -> &'static str;
 }
 
-static TDENGINE: OnceCell<Sender<String>> = OnceCell::const_new();
+//static TDENGINE: OnceCell<Sender<String>> = OnceCell::const_new();
 static MQTT_CLIENT: OnceCell<AsyncClient> = OnceCell::const_new();
+static QUESTDB: OnceCell<Sender> = OnceCell::const_new();
 
-async fn get_questdb_sender(){
-    let mut sender = SenderBuilder::from_conf(QUESTDB_URL).expect("Sender should have been made").build().expect("and built");
+async fn get_questdb_sender() -> &'static Sender{
+    let (sender) = Sender::from_conf(QUESTDB_URL);
 
-    let (tx, rx) = tokio::sync::mpsc::channel(100_000);
-    let rx = Arc::new(Mutex::new(rx));
-
-    tokio::spawn(async move {
-        let mut buffer: Vec<String> = Vec::new();
-        while rx.lock().await.recv_many(&mut buffer, 5000).await > 0 {
-            let mut qdb_buffer: questdb::ingress::Buffer = sender.new_buffer();
-            qdb_buffer
-                .table("test").expect("lol")
-                .column_str("data dump",buffer).expect("lol") //This is also probably wrong. It looks like buffer is a really long 1d array of data, so we probably need to split it up into columns properly first. IDK
-                .at(TimestampNanos::now());
+    QUESTDB.get_or_init(|| async {
+        loop {
+            match Sender::from_conf(QUESTDB_URL) {
+                Ok(t) => return t,
+                Err(e) => {
+                    error!(%e, "Failed to connect to QuestDB, retrying in {RECONNECT_DELAY:?}");
+                    tokio::time::sleep(RECONNECT_DELAY).await;
+                }
+            }
         }
-        
-    });
+    }).await
     
     /*let data = SmlDataBuilder::default()
         .protocol(SchemalessProtocol::Line)
@@ -66,7 +59,7 @@ async fn get_questdb_sender(){
 
     //return sender;
 }
-
+/* 
 
 async fn connect_with_retry(builder: &TaosBuilder) -> taos::Taos {
     loop {
@@ -142,7 +135,7 @@ async fn get_tdengine_sender() -> &'static Sender<String> {
             tx
         })
         .await
-}
+}*/
 
 async fn get_mqtt_client() -> &'static AsyncClient {
     MQTT_CLIENT
@@ -230,10 +223,10 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
 
     if let Some(obj) = value.as_object_mut() {
         obj.insert("ts".to_string(), serde_json::json!(timestamp_ms));
-    }
+    }// inserts time
 
-    let json = value.to_string();
-    let topic = T::topic();
+    let json = value.to_string(); //data as string
+    let topic = T::topic(); //name of struct basically
 
     match get_mqtt_client()
         .await
@@ -245,8 +238,8 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
         }
         Err(e) => error!(%e, "MQTT publish error"),
     }
-
-    match get_tdengine_sender().await.try_send(
+    
+    /*match get_tdengine_sender().await.try_send(
         match to_line_protocol_from_value(topic, &value, timestamp_ms) {
             Some(line) => line,
             None => {
@@ -260,5 +253,5 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
             tracing::warn!("TDengine channel full — dropping message");
         }
         Err(e) => error!(%e, "Failed to send to TDengine channel"),
-    }
+    }*/
 }

@@ -64,21 +64,19 @@ enum PosssibleFields {
 } */
 
  
-fn data_to_buffer(sender: Sender, table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
+fn data_to_buffer(sender: &Sender, table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
     let mut buf = sender.new_buffer();
     buf.table(table_name);
 
-    let as_map : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
-    for (_key, _value) in as_map.into_iter(){
-        println!("{_key}");
-    }
-        
+    let as_map : Map<String, PosssibleFields> = serde_json::from_value(value.clone()).unwrap();
+    let as_map2 : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
+
     for (key, value) in as_map.into_iter(){
         if let PosssibleFields::Float(f) = value {
             buf.column_f64(key.as_str(), f.into());
         }
     }
-    if let PosssibleFields::Int(i) = as_map.get("ts").expect("msg"){
+    if let PosssibleFields::Int(i) = as_map2.get("ts").expect("msg"){
         buf.at(TimestampMicros::new((*i).into()));
     }
     buf
@@ -269,8 +267,9 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
 
     
 
-    let _s =  get_questdb_sender().await;
-
+    let sender: &Sender =  get_questdb_sender().await;
+    let mut buf = data_to_buffer(sender, topic, value);
+    sender.flush(&mut buf);
     
     /*match get_tdengine_sender().await.try_send(
         match to_line_protocol_from_value(topic, &value, timestamp_ms) {

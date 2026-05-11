@@ -13,6 +13,7 @@
 //! Production code relies on `can0`, while tests can run against vcan0
 //! using the virtual CAN network setup in the GitHub Actions workflow (test.yml).
 
+use structmap::{ToMap, value::Value};
 use crate::send::{now_ms, send_message, Reading};
 use deku::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -171,8 +172,7 @@ pub enum MCUWarningLevel {
 #[derive(
     Serialize, Deserialize, Default, Debug, Clone, PartialEq, DekuRead, DekuWrite, DekuSize,
 )]
-#[deku(endian = "little")]
-pub struct TelemetryData {
+#[deku(endian = "little")]pub struct TelemetryData {
     pub apps_travel: f32,
 
     pub bse_front: f32,
@@ -283,6 +283,13 @@ async fn read_can_hardware() {
     }
 }
 
+impl TelemetryData {
+    fn mutate_test_val(&mut self) -> TelemetryData{
+        self.imd_status=now_ms() as u32;
+        self.clone()
+    }
+}
+
 /// Generates synthetic telemetry (debug builds only).
 async fn read_can_synthetic() {
     use std::time::Instant;
@@ -293,7 +300,7 @@ async fn read_can_synthetic() {
     let mut interval = tokio::time::interval(Duration::from_millis(1));
     loop {
         interval.tick().await;
-        send_message(TelemetryData::default(), now_ms()).await;
+        send_message(TelemetryData::default().mutate_test_val(), now_ms()).await;
         count += 1;
 
         let elapsed = last.elapsed();

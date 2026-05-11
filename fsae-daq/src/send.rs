@@ -1,9 +1,10 @@
-use std::sync::Arc;
-
+use std::any::TypeId;
+use config::Map;
+use rumqttc::tokio_rustls::rustls::crypto::cipher::InboundOpaqueMessage;
+use serde::{Serialize, Deserialize};
 use rumqttc::{AsyncClient, ClientError, MqttOptions, QoS};
-use serde::Serialize;
+use serde_json::map::Values;
 use tracing::{error, info};
-use tokio::sync::mpsc::error::TrySendError;
 use tokio::sync::{Mutex, OnceCell};
 use tokio::time::Duration;
 use questdb::{
@@ -11,7 +12,7 @@ use questdb::{
     ingress::{
         Sender,
         SenderBuilder,
-        TimestampNanos}};
+        TimestampMicros}};
 
 pub const TAOS_URL: &str = "taos+ws://localhost:6041/fsae";
 pub const MQTT_ID: &str = "fsae";
@@ -34,7 +35,6 @@ static MQTT_CLIENT: OnceCell<AsyncClient> = OnceCell::const_new();
 static QUESTDB: OnceCell<Sender> = OnceCell::const_new();
 
 async fn get_questdb_sender() -> &'static Sender{
-    let (sender) = Sender::from_conf(QUESTDB_URL);
 
     QUESTDB.get_or_init(|| async {
         loop {
@@ -47,18 +47,43 @@ async fn get_questdb_sender() -> &'static Sender{
             }
         }
     }).await
-    
-    /*let data = SmlDataBuilder::default()
-        .protocol(SchemalessProtocol::Line)
-        .precision(SchemalessPrecision::Millisecond)
-        .data(std::mem::take(&mut buffer))
-        .req_id(id)
-        .build()
-        .unwrap_or_else(|e| panic!("Failed to build SML data: {e}"));
-    id = id.wrapping_add(1);*/
-
-    //return sender;
 }
+
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(untagged)]
+enum PosssibleFields {
+    StrField(String),
+    Int(i32),
+    Float(f32),
+    Bool(bool),
+}
+
+/*fn mapify(a: impl Serialize) -> HashMap<String, StringOrI32OrF32> {
+    let val = serde_json::to_value(a).unwrap();
+    serde_json::from_value(val).unwrap()
+} */
+
+ 
+fn data_to_buffer(sender: Sender, table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
+    let mut buf = sender.new_buffer();
+    buf.table(table_name);
+
+    let as_map : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
+    for (_key, _value) in as_map.into_iter(){
+        println!("{_key}");
+    }
+        
+    for (key, value) in as_map.into_iter(){
+        if let PosssibleFields::Float(f) = value {
+            buf.column_f64(key.as_str(), f.into());
+        }
+    }
+    if let PosssibleFields::Int(i) = as_map.get("ts").expect("msg"){
+        buf.at(TimestampMicros::new((*i).into()));
+    }
+    buf
+}
+
 /* 
 
 async fn connect_with_retry(builder: &TaosBuilder) -> taos::Taos {
@@ -225,8 +250,11 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
         obj.insert("ts".to_string(), serde_json::json!(timestamp_ms));
     }// inserts time
 
+    
+
     let json = value.to_string(); //data as string
     let topic = T::topic(); //name of struct basically
+    
 
     match get_mqtt_client()
         .await
@@ -238,6 +266,11 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
         }
         Err(e) => error!(%e, "MQTT publish error"),
     }
+
+    
+
+    let _s =  get_questdb_sender().await;
+
     
     /*match get_tdengine_sender().await.try_send(
         match to_line_protocol_from_value(topic, &value, timestamp_ms) {

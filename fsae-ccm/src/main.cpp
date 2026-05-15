@@ -33,6 +33,8 @@ void threadMain(void *pvParameters);
 
 void setup() { // runs once on bootup
 
+    Serial.begin(9600);
+
     ADC_Init();
     Bus_Init();
     CAN_Init();
@@ -47,8 +49,6 @@ void setup() { // runs once on bootup
     thermal_Init();
     Bypass_Init();
     WDT_Init();
-
-    Serial.begin(9600);
 
     xTaskCreate(threadADC, "threadADC", THREAD_ADC_STACK_SIZE, NULL,
                 THREAD_ADC_PRIORITY, NULL);
@@ -81,7 +81,7 @@ void threadMain(void *pvParameters) {
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
 
-        // Bypass_TSSI();
+        Bypass_TSSI();
 
         // if (BSE_GetBSEReading()->bseFront_Reading > BRAKE_LIGHT_THRESHOLD &&
         //     BSE_GetBSEReading()->bseRear_Reading > BRAKE_LIGHT_THRESHOLD) {

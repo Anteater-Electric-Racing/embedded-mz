@@ -350,7 +350,7 @@ static void DMA_ISR()
     asm volatile( "dsb" );
 }
 
-void Full_ADC_DMA_Init()
+void ADC_DMA_Init()
 {
     clocks_init();
     ADC_Init();

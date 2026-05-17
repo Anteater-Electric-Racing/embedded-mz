@@ -46,9 +46,11 @@ void setup() { // runs once on bootup
     thermal_Init();
     Bypass_Init();
     WDT_Init();
-    Full_ADC_DMA_Init();
+    ADC_DMA_Init();
 
     Serial.begin(9600);
+
+    Serial.print( "Setup complete." );
 
     xTaskCreate(threadADC, "threadADC", THREAD_ADC_STACK_SIZE, NULL,
                 THREAD_ADC_PRIORITY, &adcDecoderTaskHandle);

@@ -48,4 +48,4 @@ enum SensorIndexesADC1
 };
 
 void threadADC(void *pvParameters);
-void Full_ADC_DMA_Init();
+void ADC_DMA_Init();

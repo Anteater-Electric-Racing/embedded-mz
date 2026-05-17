@@ -1,4 +1,5 @@
 use std::any::TypeId;
+use std::fmt::Debug;
 use config::Map;
 use rumqttc::tokio_rustls::rustls::crypto::cipher::InboundOpaqueMessage;
 use serde::{Serialize, Deserialize};
@@ -18,7 +19,7 @@ pub const TAOS_URL: &str = "taos+ws://localhost:6041/fsae";
 pub const MQTT_ID: &str = "fsae";
 pub const MQTT_HOST: &str = "127.0.0.1";
 pub const MQTT_PORT: u16 = 1883;
-pub const QUESTDB_URL: &str = "http::addr=host.docker.internal:9000"; //this is probably (defintly) the wrong link but it does let me connect
+pub const QUESTDB_URL: &str = "http::addr=localhost:9000;"; //this is probably (defintly) the wrong link but it does let me connect on my home computer
 
 
 const CREATE_DB: &str =
@@ -34,26 +35,38 @@ pub trait Reading: Serialize {
 static MQTT_CLIENT: OnceCell<AsyncClient> = OnceCell::const_new();
 static QUESTDB: OnceCell<Sender> = OnceCell::const_new();
 
-async fn get_questdb_sender() -> &'static Sender{
+struct Sending_data { //TODO: rename
+    pub buffer : questdb::ingress::Buffer
+}
 
-    QUESTDB.get_or_init(|| async {
-        loop {
-            match Sender::from_conf(QUESTDB_URL) {
-                Ok(t) => return t,
-                Err(e) => {
-                    error!(%e, "Failed to connect to QuestDB, retrying in {RECONNECT_DELAY:?}");
-                    tokio::time::sleep(RECONNECT_DELAY).await;
-                }
+impl Sending_data {
+    async fn send_questdb(&mut self){
+        /*info!("{}", match self.buffer.check_can_flush() {
+            Ok(_val) => "ok",
+            Err(_val) => "err"
+        });*/
+        let mut sender: Sender =  get_questdb_sender().await;
+        let _ = sender.flush(&mut self.buffer);
+    }
+}
+
+async fn get_questdb_sender() -> Sender{
+    loop {
+        match Sender::from_conf(QUESTDB_URL) {
+            Ok(t) => return t,
+            Err(e) => {
+                error!(%e, "Failed to connect to QuestDB, retrying in {RECONNECT_DELAY:?}");
+                tokio::time::sleep(RECONNECT_DELAY).await;
             }
         }
-    }).await
+    }
 }
 
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 enum PosssibleFields {
     StrField(String),
-    Int(i32),
+    Int(i64),
     Float(f32),
     Bool(bool),
 }
@@ -64,101 +77,25 @@ enum PosssibleFields {
 } */
 
  
-fn data_to_buffer(sender: &Sender, table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
-    let mut buf = sender.new_buffer();
-    buf.table(table_name);
-
+async fn data_to_buffer(table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
+    let mut buf = Sender::from_conf("http::addr=localhost:9000;").expect("lol").new_buffer(); 
+    let _ = buf.table("telemetry");
     let as_map : Map<String, PosssibleFields> = serde_json::from_value(value.clone()).unwrap();
     let as_map2 : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
 
     for (key, value) in as_map.into_iter(){
         if let PosssibleFields::Float(f) = value {
-            buf.column_f64(key.as_str(), f.into());
+            let _ = buf.column_f64(key.as_str(), f.into());
         }
     }
+
+    let _ = buf.column_str("col_name", "value");
     if let PosssibleFields::Int(i) = as_map2.get("ts").expect("msg"){
-        buf.at(TimestampMicros::new((*i).into()));
+        let _ = buf.at(TimestampMicros::new((*i).into()));
     }
     buf
+
 }
-
-/* 
-
-async fn connect_with_retry(builder: &TaosBuilder) -> taos::Taos {
-    loop {
-        match builder.build().await {
-            Ok(t) => return t,
-            Err(e) => {
-                error!(%e, "Failed to connect to TDengine, retrying in {RECONNECT_DELAY:?}");
-                tokio::time::sleep(RECONNECT_DELAY).await;
-            }
-        }
-    }
-}
-
-
-async fn get_tdengine_sender() -> &'static Sender<String> {
-    TDENGINE
-        .get_or_init(|| async {
-            let (tx, rx) = tokio::sync::mpsc::channel(100_000);
-            let rx = Arc::new(Mutex::new(rx));
-
-            let builder = Arc::new(
-                TaosBuilder::from_dsn(TAOS_URL).unwrap_or_else(|e| panic!("Invalid DSN: {e}")),
-            );
-
-            {
-                let taos = connect_with_retry(&builder).await;
-                if let Err(e) = taos.exec(CREATE_DB).await {
-                    error!(%e, "Failed to create database");
-                }
-            }
-
-            for _ in 0..1 {
-                let rx = rx.clone();
-                let builder = builder.clone();
-                tokio::spawn(async move {
-                    let mut buffer: Vec<String> = Vec::new();
-                    let mut id: u64 = 0;
-                    let mut consecutive_failures: u32 = 0;
-                    let mut taos = connect_with_retry(&builder).await;
-
-                    while rx.lock().await.recv_many(&mut buffer, 5000).await > 0 {
-                        let data = SmlDataBuilder::default()
-                            .protocol(SchemalessProtocol::Line)
-                            .precision(SchemalessPrecision::Millisecond)
-                            .data(std::mem::take(&mut buffer))
-                            .req_id(id)
-                            .build()
-                            .unwrap_or_else(|e| panic!("Failed to build SML data: {e}"));
-                        id = id.wrapping_add(1);
-
-                        match taos.put(&data).await {
-                            Ok(_) => {
-                                info!(consecutive_failures, "Suceeded!");
-                                consecutive_failures = 0;
-                            }
-                            Err(e) => {
-                                consecutive_failures += 1;
-                                error!(%e, consecutive_failures, "Failed to insert into TDengine");
-
-                                if consecutive_failures >= MAX_CONSECUTIVE_FAILURES {
-                                    error!(
-                                        "Hit {MAX_CONSECUTIVE_FAILURES} consecutive failures — reconnecting"
-                                    );
-                                    taos = connect_with_retry(&builder).await;
-                                    consecutive_failures = 0;
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            tx
-        })
-        .await
-}*/
 
 async fn get_mqtt_client() -> &'static AsyncClient {
     MQTT_CLIENT
@@ -266,24 +203,8 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
     }
 
     
+    let buf = data_to_buffer( topic, value).await;
+    let mut data = Sending_data {buffer : buf};
+    data.send_questdb().await;
 
-    let sender: &Sender =  get_questdb_sender().await;
-    let mut buf = data_to_buffer(sender, topic, value);
-    sender.flush(&mut buf);
-    
-    /*match get_tdengine_sender().await.try_send(
-        match to_line_protocol_from_value(topic, &value, timestamp_ms) {
-            Some(line) => line,
-            None => {
-                error!("Failed to convert to line protocol");
-                return;
-            }
-        },
-    ) {
-        Ok(()) => {}
-        Err(TrySendError::Full(_)) => {
-            tracing::warn!("TDengine channel full — dropping message");
-        }
-        Err(e) => error!(%e, "Failed to send to TDengine channel"),
-    }*/
 }

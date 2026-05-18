@@ -5,6 +5,7 @@ use rumqttc::tokio_rustls::rustls::crypto::cipher::InboundOpaqueMessage;
 use serde::{Serialize, Deserialize};
 use rumqttc::{AsyncClient, ClientError, MqttOptions, QoS};
 use serde_json::map::Values;
+use tracing::field::display;
 use tracing::{error, info};
 use tokio::sync::{Mutex, OnceCell};
 use tokio::time::Duration;
@@ -14,6 +15,7 @@ use questdb::{
         Sender,
         SenderBuilder,
         TimestampMicros}};
+use crate::can::MCUWarningLevel;
 
 pub const TAOS_URL: &str = "taos+ws://localhost:6041/fsae";
 pub const MQTT_ID: &str = "fsae";
@@ -65,10 +67,10 @@ async fn get_questdb_sender() -> Sender{
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 enum PosssibleFields {
-    StrField(String),
     Int(i64),
     Float(f32),
     Bool(bool),
+    MCUWarningLevel(MCUWarningLevel)
 }
 
 /*fn mapify(a: impl Serialize) -> HashMap<String, StringOrI32OrF32> {
@@ -84,9 +86,18 @@ async fn data_to_buffer(table_name: &str, value: serde_json::Value) -> questdb::
     let as_map2 : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
 
     for (key, value) in as_map.into_iter(){
-        if let PosssibleFields::Float(f) = value {
+        if let PosssibleFields::Int(f) = value {
+            let _ = buf.column_i64(key.as_str(), f);
+        }
+        else if let PosssibleFields::Float(f) = value {
             let _ = buf.column_f64(key.as_str(), f.into());
         }
+        else if let PosssibleFields::Bool(f) = value {
+            let _ = buf.column_bool(key.as_str(), f);
+        }
+        /*else if let PosssibleFields::MCUWarningLevel(f) = value {
+            let _ = buf.column_str(key.as_str(), f.into());
+        }*/
     }
 
     let _ = buf.column_str("col_name", "value");
@@ -180,6 +191,7 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
             return;
         }
     };
+    //info!("{}", value);
 
     if let Some(obj) = value.as_object_mut() {
         obj.insert("ts".to_string(), serde_json::json!(timestamp_ms));

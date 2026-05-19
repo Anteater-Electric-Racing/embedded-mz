@@ -8,6 +8,12 @@
 constexpr float TEMP_START = 70.0f; // Temperature at which Derating Starts
 constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
                                     // than this returns max derating factor
+constexpr float SLIP_RATIO = 0.10f; 
+
+//placeholder values, need to tune
+constexpr float TC_KP = 0.5f;
+constexpr float TC_KI = 0.01f;
+constexpr float TC_KD = 0.0f;
 
 #include "vehicle/vcu.h"
 #include "peripherals/can.h"
@@ -15,7 +21,7 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "peripherals/wdt.h"
 
 #include "utils/utils.h"
-
+#include "devices/thermal.h"
 #include <arduino_freertos.h>
 
 #include "vehicle/comms/bus.h"
@@ -106,7 +112,7 @@ void threadVCU(void *pvParameters) {
                 DTI_SendEnableCommand(true);
 
                 float targetTorque = VCU_TorqueMap(pedalAccel);
-
+               
                 float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
                 float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
                 float inverterFactor =
@@ -149,6 +155,16 @@ float VCU_Derate(float temperature) {
     return factor;
 }
 
+float VCU_GetSlip(){
+    //get speeds of front wheels
+    float speed1 = WSS_GetRPM1();
+    float speed2 = WSS_GetRPM2();
+    float motor_speed = // need to find this
+    float undrivenWheelSpeedAvg = (speed1+speed2)/2;
+    float slip = (motor_speed - undrivenWheelSpeedAvg) /(undrivenWheelSpeedAvg+0.01); //guard for division by 0
+    return slip;
+}
+
 // TODO switch to LUT for all applicable strategies
 float VCU_TorqueMap(float pedal) {
 
@@ -164,7 +180,14 @@ float VCU_TorqueMap(float pedal) {
             break;
         }
     case TRACTION_CTRL: {
-        /* TC implementation */
+        float requested_torque = pedal*CAPPED_MOTOR_TORQUE;
+        float wheelSlip = VCU_GetSlip();
+        //pid function from thermal.h
+        static PIDState tractionControlState = {0,0,0,xTaskGetTickCount()};
+        float output = computePID(&tractionControlState,SLIP_RATIO,wheelSlip,TC_KP,TC_KI,TC_KD);
+        //cuts requested torque NOTE: Should not increase requested_torque
+        target = requested_torque - (requested_torque*output);
+
     } break;
     case LAUNCH_CTRL: {
         /* LC implemnetation */

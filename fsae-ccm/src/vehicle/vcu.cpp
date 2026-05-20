@@ -48,6 +48,7 @@ template <typename T> T constrain(T val, T minVal, T maxVal) {
 static VehicleState vehicleState;
 static DriveState driveState;
 static TickType_t xLastWakeTime;
+static PIDState tractionControlState = {0, 0, 0, xTaskGetTickCount()};
 
 static bool enableRegen = false;
 
@@ -186,7 +187,7 @@ float VCU_TorqueMap(float pedal) {
         float requested_torque = pedal * CAPPED_MOTOR_TORQUE;
         float wheelSlip = VCU_GetSlip();
         // pid function from thermal.h
-        static PIDState tractionControlState = {0, 0, 0, xTaskGetTickCount()};
+
         float output = computePID(&tractionControlState, SLIP_RATIO, wheelSlip,
                                   TC_KP, TC_KI, TC_KD);
         // cuts requested torque NOTE: Should not increase requested_torque

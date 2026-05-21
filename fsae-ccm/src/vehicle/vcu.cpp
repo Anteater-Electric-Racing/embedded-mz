@@ -28,6 +28,7 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
+#include "utils/PID.h"
 #include <arduino_freertos.h>
 
 template <typename T> T constrain(T val, T minVal, T maxVal) {
@@ -41,6 +42,11 @@ template <typename T> T constrain(T val, T minVal, T maxVal) {
 static VehicleState vehicleState;
 static DriveState driveState;
 static TickType_t xLastWakeTime;
+
+static PID slipPID;
+static float slipTarget  = 0.07f;
+static float wheelRadius = 0.5f;
+static float minTorque   = 0.0f;
 
 static bool enableRegen = false;
 
@@ -57,6 +63,8 @@ static float k = 0.0f, x0 = 0.0f, low_limit = 0.0f, high_limit = 0.0f;
 void VCU_Init() {
     vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
     enableRegen = false;
+
+    pidConfig(&slipPID, INTEGRAL_MAX, INTEGRAL_MIN);
 
     driveState.controlMode = TORQUE;
     driveState.driveStrategy = OPEN_LOOP;
@@ -167,8 +175,21 @@ float VCU_TorqueMap(float pedal) {
         /* TC implementation */
     } break;
     case LAUNCH_CTRL: {
-        /* LC implemnetation */
-    } break;
+        float wheelSpeedFL= 0; //placeholder values for now
+        float wheelSpeedFR= 0;
+        float motorSpeed = DTI_GetDTIData()->eRPM * rpmConversion;
+        float controlledSpeed = motorSpeed * wheelRadius;
+        float realTorque = Telemetry_GetData()->motorTorque/CAPPED_MOTOR_TORQUE;
+        float freeSpeed = std::min(wheelSpeedFL * wheelRadius, wheelSpeedFR * wheelRadius);
+        if(freeSpeed == 0.0f) // Free roaming wheels (front two) and take the lower speed of these for safety precaution
+        {
+            freeSpeed = 0.001f; // To avoid division by zero
+        }
+        float slipRatio = (controlledSpeed - freeSpeed) / freeSpeed;
+        float correction = computePID(&slipPID, slipTarget, slipRatio, KP, KI, KD);
+        target = realTorque + correction; // Reduce torque based on slip ratio correction
+        break;
+    } 
     default: {
         break;
     }

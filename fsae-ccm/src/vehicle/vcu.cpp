@@ -45,7 +45,6 @@ static TickType_t xLastWakeTime;
 
 static PID slipPID;
 static float slipTarget  = 0.07f;
-static float wheelRadius = 0.5f;
 static float minTorque   = 0.0f;
 
 static bool enableRegen = false;
@@ -64,8 +63,6 @@ void VCU_Init() {
     vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
     enableRegen = false;
 
-    pidConfig(&slipPID, INTEGRAL_MAX, INTEGRAL_MIN);
-
     driveState.controlMode = TORQUE;
     driveState.driveStrategy = OPEN_LOOP;
     DTI_LinkControlMode(&driveState.controlMode);
@@ -75,6 +72,9 @@ void VCU_Init() {
 
     low_limit = 1.0f / (1.0f + expf(-k * (0.0f - x0)));
     high_limit = 1.0f / (1.0f + expf(-k * (1.0f - x0)));
+
+    
+    pidConfig(&slipPID, INTEGRAL_MAX, INTEGRAL_MIN); //launch control PID
 }
 
 void threadVCU(void *pvParameters) {
@@ -112,6 +112,18 @@ void threadVCU(void *pvParameters) {
                 vehicleState = STATE_IDLE;
             } else {
                 DTI_SendEnableCommand(true);
+
+                if (BSE_BrakesPressed() && DTI_GetDTIData()->eRPM == 0.0f && pedalAccel > 0.95f) {
+                    //driveState.driveStrategy = LAUNCH_CTRL; uncomment when tuned and ready to test
+                    pidReset(&slipPID);
+                }
+
+                if (driveState.driveStrategy == LAUNCH_CTRL) {
+                    if (APPS_GetAPPSReading() < 0.05f || !DTI_GetDTIData()->driveEnabled) {
+                        driveState.driveStrategy = OPEN_LOOP;
+                        pidReset(&slipPID);
+                    }
+                }
 
                 float targetTorque = VCU_TorqueMap(pedalAccel);
 
@@ -187,7 +199,15 @@ float VCU_TorqueMap(float pedal) {
         }
         float slipRatio = (controlledSpeed - freeSpeed) / freeSpeed;
         float correction = computePID(&slipPID, slipTarget, slipRatio, KP, KI, KD);
-        target = realTorque + correction; // Reduce torque based on slip ratio correction
+        target = (realTorque + correction) * CAPPED_MOTOR_TORQUE; // Reduce torque based on slip ratio correction
+        if(target > CAPPED_MOTOR_TORQUE)
+        {
+            target = CAPPED_MOTOR_TORQUE;
+        }
+        else if(target < minTorque)
+        {
+            target = minTorque;
+        }
         break;
     } 
     default: {

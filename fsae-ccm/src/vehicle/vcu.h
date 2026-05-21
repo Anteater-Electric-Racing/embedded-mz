@@ -15,6 +15,14 @@ typedef enum {
     STATE_FAULT
 } VehicleState;
 
+constexpr float KP = 50.0f; // PLEASE TUNE THESE VALUES
+constexpr float KI = 5.0f;
+constexpr float KD = 0.0f;
+constexpr float rpmConversion = 0.3f;
+constexpr float wheelRadius = 0.5f;
+constexpr float INTEGRAL_MAX = 20.0f;
+constexpr float INTEGRAL_MIN = -20.0f;
+
 typedef enum { OPEN_LOOP, TRACTION_CTRL, LAUNCH_CTRL } DriveStrategy;
 typedef struct {
     DriveStrategy driveStrategy;

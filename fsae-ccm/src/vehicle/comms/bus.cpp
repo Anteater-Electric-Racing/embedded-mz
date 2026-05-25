@@ -115,9 +115,8 @@ void threadBus(void *pvParameters) {
         } else {
             Faults_ClearFault(FAULT_CAN);
         }
-        // TODO ADD SHIFT  >> by 8 here will ONLY work for DTI.. maybe not.
-        // distinguish case for all in same loop??
-        switch ((rx_id >> 8)) {
+        // Normalize DTI frames that carry the node ID in the low byte.
+        switch (((rx_id & 0xFF) == DTI_NODE_ID) ? (rx_id >> 8) : rx_id) {
         case PKT_1_ID: {
             PKT_DTI1 dti1 = {0};
             memcpy(&dti1, &rx_data, sizeof(dti1));

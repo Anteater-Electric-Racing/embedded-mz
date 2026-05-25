@@ -35,7 +35,7 @@ pub trait Reading: Serialize {
 
 //static TDENGINE: OnceCell<Sender<String>> = OnceCell::const_new();
 static MQTT_CLIENT: OnceCell<AsyncClient> = OnceCell::const_new();
-static QUESTDB: OnceCell<Sender> = OnceCell::const_new();
+static QUESTDB_BUFFER: OnceCell<questdb::ingress::Buffer> = OnceCell::const_new();
 
 struct Sending_data { //TODO: rename
     pub buffer : questdb::ingress::Buffer
@@ -69,17 +69,10 @@ async fn get_questdb_sender() -> Sender{
 enum PosssibleFields {
     Int(i64),
     Float(f32),
-    Bool(bool),
-    MCUWarningLevel(MCUWarningLevel)
+    Bool(bool)
 }
 
-/*fn mapify(a: impl Serialize) -> HashMap<String, StringOrI32OrF32> {
-    let val = serde_json::to_value(a).unwrap();
-    serde_json::from_value(val).unwrap()
-} */
-
- 
-async fn data_to_buffer(table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
+async fn data_into_buffer(table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
     let mut buf = Sender::from_conf("http::addr=localhost:9000;").expect("lol").new_buffer(); 
     let _ = buf.table("telemetry");
     let as_map : Map<String, PosssibleFields> = serde_json::from_value(value.clone()).unwrap();
@@ -95,17 +88,20 @@ async fn data_to_buffer(table_name: &str, value: serde_json::Value) -> questdb::
         else if let PosssibleFields::Bool(f) = value {
             let _ = buf.column_bool(key.as_str(), f);
         }
-        /*else if let PosssibleFields::MCUWarningLevel(f) = value {
-            let _ = buf.column_str(key.as_str(), f.into());
-        }*/
     }
 
     let _ = buf.column_str("col_name", "value");
     if let PosssibleFields::Int(i) = as_map2.get("ts").expect("msg"){
-        let _ = buf.at(TimestampMicros::new((*i).into()));
+        let _ = buf.at(TimestampMicros::new((*i)*1000));
     }
     buf
 
+}
+
+async fn get_questdb_buffer() -> &'static questdb::ingress::Buffer{
+    QUESTDB_BUFFER.get_or_init( || async {
+        Sender::from_conf("http::addr=localhost:9000;").expect("lol").new_buffer()
+    }).await
 }
 
 async fn get_mqtt_client() -> &'static AsyncClient {
@@ -124,56 +120,6 @@ async fn get_mqtt_client() -> &'static AsyncClient {
             client
         })
         .await
-}
-
-#[inline]
-fn push_field(buf: &mut String, k: &str, v: &serde_json::Value) {
-    buf.push_str(k);
-    buf.push('=');
-    match v {
-        serde_json::Value::Bool(b) => {
-            buf.push_str(if *b { "true" } else { "false" });
-        }
-        serde_json::Value::Number(n) => {
-            if let Some(f) = n.as_f64() {
-                buf.push_str(ryu::Buffer::new().format(f));
-                buf.push_str("f32");
-            } else if let Some(i) = n.as_i64() {
-                buf.push_str(itoa::Buffer::new().format(i));
-                buf.push_str("i32");
-            }
-        }
-        other => {
-            buf.push('"');
-            buf.push_str(&other.to_string());
-            buf.push('"');
-        }
-    }
-}
-
-fn to_line_protocol_from_value(
-    measurement: &str,
-    map: &serde_json::Value,
-    timestamp_ms: u64,
-) -> Option<String> {
-    let obj = map.as_object()?;
-    let mut buf = String::with_capacity(measurement.len() + 1 + obj.len() * 30 + 20);
-    buf.push_str(measurement);
-    buf.push(' ');
-
-    let mut iter = obj.iter();
-    if let Some((k, v)) = iter.next() {
-        push_field(&mut buf, k, v);
-    }
-    for (k, v) in iter {
-        buf.push(',');
-        push_field(&mut buf, k, v);
-    }
-
-    buf.push(' ');
-    buf.push_str(itoa::Buffer::new().format(timestamp_ms));
-
-    Some(buf)
 }
 
 pub fn now_ms() -> u64 {
@@ -213,10 +159,17 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
         }
         Err(e) => error!(%e, "MQTT publish error"),
     }
-
     
-    let buf = data_to_buffer( topic, value).await;
-    let mut data = Sending_data {buffer : buf};
-    data.send_questdb().await;
+    
+    async fn send_to_questdb(topic : &str, value : serde_json::Value) {
+        let buf = data_to_buffer( topic, value).await;
+        let mut data = Sending_data {buffer : buf};
+        data.send_questdb().await;
+    }
+
+    tokio::spawn(send_to_questdb(topic, value));
+    //let buf = data_to_buffer( topic, value).await;
+    //let mut data = Sending_data {buffer : buf};
+    //data.send_questdb().await;
 
 }

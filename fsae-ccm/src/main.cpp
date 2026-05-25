@@ -46,11 +46,11 @@ void setup() { // runs once on bootup
     VCU_Init();
     GPIO_Init();
     PCC_Init();
-    thermal_Init();
+    // thermal_Init();
     Bypass_Init();
-    GPIO_Init();
-    WSS_Init();
-    WDT_Init();
+    // GPIO_Init();
+    // WSS_Init();
+    // WDT_Init();
 
     Serial.begin(9600);
 
@@ -63,10 +63,11 @@ void setup() { // runs once on bootup
     xTaskCreate(threadTelemetry, "threadTelemetry",
                 THREAD_CAN_TELEMETRY_STACK_SIZE, NULL,
                 THREAD_CAN_TELEMETRY_PRIORITY, NULL);
+
     xTaskCreate(threadMain, "threadMain", THREAD_MAIN_STACK_SIZE, NULL,
                 THREAD_MAIN_PRIORITY, NULL);
-    xTaskCreate(threadWDT, "threadWDT", THREAD_WDT_STACK_SIZE, NULL,
-                THREAD_WDT_PRIORITY, NULL);
+    // xTaskCreate(threadWDT, "threadWDT", THREAD_WDT_STACK_SIZE, NULL,
+    //             THREAD_WDT_PRIORITY, NULL);
     vTaskStartScheduler();
 }
 
@@ -85,7 +86,7 @@ void threadMain(void *pvParameters) {
     int toggle = 0;
 #endif
     while (true) {
-        WSS_Update();
+        // WSS_Update();
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
 
         /*============LOW PRIORITY GPIO UPDATES============*/

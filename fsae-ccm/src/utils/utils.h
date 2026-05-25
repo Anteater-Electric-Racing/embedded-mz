@@ -28,6 +28,8 @@ operation)
     TODO Fixes:
     BIG MZ Change - INTERUPT BASED CAN Testing:
 */
+constexpr int fault_address = 0;
+
 #define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0

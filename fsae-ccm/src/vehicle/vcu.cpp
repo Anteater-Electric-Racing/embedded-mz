@@ -43,6 +43,7 @@ static DriveState driveState;
 static TickType_t xLastWakeTime;
 
 static bool enableRegen = false;
+static float debugPedalDemand = 0.0f;
 
 // Define 3 Presets (Steepness k, Midpoint x0)
 // Map 0: Rain (High precision, late power)
@@ -75,7 +76,12 @@ void threadVCU(void *pvParameters) {
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
         Faults_HandleFaults();
-        WSS_Update();
+        // WSS_Update();
+
+#if HIMAC_FLAG
+        pedalAccel = debugPedalDemand;
+#endif
+
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
@@ -99,33 +105,37 @@ void threadVCU(void *pvParameters) {
             }
             // motorData.desiredTorque = 0.0F;
             break;
-        case STATE_DRIVING:
-            if (RTM_ButtonState() == false) {
-                vehicleState = STATE_IDLE;
+        case STATE_DRIVING: {
+            // if (!HIMAC_FLAG || RTM_ButtonState() == false) {
+            //     vehicleState = STATE_IDLE;
+            // } else {
+            DTI_SendEnableCommand(true);
+
+            float targetTorque = 0.0f;
+            if (HIMAC_FLAG) {
+                targetTorque = VCU_TorqueMap(debugPedalDemand);
             } else {
-                DTI_SendEnableCommand(true);
-
-                float targetTorque = VCU_TorqueMap(pedalAccel);
-
-                float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
-                float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
-                float inverterFactor =
-                    VCU_Derate(DTI_GetDTIData()->controllerTemp);
-
-                // Get the Smallest Factor
-                float smallestFactor =
-                    min(batteryFactor, min(motorFactor, inverterFactor));
-
-                DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
-                DTI_SetACLimits(150.0 * smallestFactor, -20.0);
-
-                DTI_SendAccelCommand(targetTorque * smallestFactor);
-                if (enableRegen && BSE_BrakesPressed()) {
-                    DTI_SendBrakeCommand(pedalBrake);
-                }
+                targetTorque = VCU_TorqueMap(pedalAccel);
             }
+            float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
+            float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
+            float inverterFactor = VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
-            break;
+            // Get the Smallest Factor
+            float smallestFactor =
+                min(batteryFactor, min(motorFactor, inverterFactor));
+
+            DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
+            DTI_SetACLimits(150.0 * smallestFactor, -20.0);
+
+            DTI_SendAccelCommand(targetTorque * smallestFactor);
+
+            // Serial.println(targetTorque * smallestFactor);
+            if (enableRegen && BSE_BrakesPressed()) {
+                DTI_SendBrakeCommand(pedalBrake);
+            }
+        } break;
+
         case STATE_FAULT:
             // DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {
@@ -177,11 +187,14 @@ float VCU_TorqueMap(float pedal) {
 }
 void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
 
-void VCU_ForceIdleState() {
-    vehicleState = STATE_FAULT;
-    RTM_ButtonReset();
-}
+void VCU_SetState(VehicleState state) { vehicleState = state; }
+
+void VCU_ForceIdleState() { RTM_ButtonReset(); }
 
 void VCU_ClearFaultState() { vehicleState = STATE_DRIVING; }
+
+void VCU_SetDebugPedalDemand(float pedalDemand) {
+    debugPedalDemand = constrain(pedalDemand, 0.0f, 1.0f);
+}
 
 VehicleState VCU_GetState() { return vehicleState; }

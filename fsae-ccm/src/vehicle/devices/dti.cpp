@@ -3,6 +3,7 @@
 
 #include "dti.h"
 #include "peripherals/can.h"
+#include <cmath>
 
 // #include "tc.h"
 // #include "lc.h"
@@ -21,12 +22,12 @@ void DTI_SetACLimits(float max, float min) {
     acMax.id = ((PKT_SetMaxCurrentAC_ID));
     acMax.dlc = 2;
     acMax.is_bitfield = false;
-    acMax.data.half[0] = (int16_t)(max * 10);
+    acMax.data.half[0] = (int16_t)roundf(max * 10);
 
     acMin.id = ((PKT_SetMaxBrakeCurrentAC_ID));
     acMin.dlc = 2;
     acMin.is_bitfield = false;
-    acMin.data.half[0] = (int16_t)(min * 10);
+    acMin.data.half[0] = (int16_t)roundf(min * 10);
 
     CAN_Send(&acMax);
     CAN_Send(&acMin);
@@ -39,12 +40,12 @@ void DTI_SetDCLimits(float max, float min) {
     dcMax.id = ((PKT_SetMaxCurrentDC_ID));
     dcMax.dlc = 2;
     dcMax.is_bitfield = false;
-    dcMax.data.half[0] = (int16_t)(max * 10);
+    dcMax.data.half[0] = (int16_t)roundf(max * 10);
 
     dcMin.id = ((PKT_SetMaxBrakeCurrentDC_ID));
     dcMin.dlc = 2;
     dcMin.is_bitfield = false;
-    dcMin.data.half[0] = (int16_t)(min * 10);
+    dcMin.data.half[0] = (int16_t)roundf(min * 10);
 
     CAN_Send(&dcMax);
     CAN_Send(&dcMin);
@@ -68,6 +69,7 @@ void DTI_SendEnableCommand(bool enable) {
 /**
  * Adjusts CAN_IDs only, not data values themselves. Sends over CANbus
  * @param value should be appropriately scaled for control mode
+ * Torque expects percenate, Speed expects RPM unit
  *  */
 void DTI_SendAccelCommand(float value) {
     if (internalMode == nullptr)
@@ -80,17 +82,17 @@ void DTI_SendAccelCommand(float value) {
     case TORQUE: {
         throttleMsg.id = ((PKT_SetRelativeCurrent_ID));
         throttleMsg.dlc = 2;
-        throttleMsg.data.half[0] = (int16_t)(value * 10);
+        throttleMsg.data.half[0] = (int16_t)roundf(value * 10);
     } break;
     case SPEED: {
         throttleMsg.id = ((PKT_SetERPM_ID));
         throttleMsg.dlc = 4;
-        throttleMsg.data.word[0] = (int16_t)(value * 10);
+        throttleMsg.data.word[0] = (int16_t)roundf(value * 10);
     } break;
     default: {
         throttleMsg.id = ((PKT_SetRelativeCurrent_ID));
         throttleMsg.dlc = 2;
-        throttleMsg.data.half[0] = (int16_t)(value * 10);
+        throttleMsg.data.half[0] = (int16_t)roundf(value * 10);
     } break;
     }
 
@@ -106,6 +108,6 @@ void DTI_SendBrakeCommand(float value) {
     brakeMsg.id = ((PKT_SetBrakeCurrent_ID));
     brakeMsg.dlc = 2;
     brakeMsg.is_bitfield = false;
-    brakeMsg.data.half[0] = (int16_t)(value * 10);
+    brakeMsg.data.half[0] = (int16_t)roundf(value * 10);
     CAN_Send(&brakeMsg);
 }

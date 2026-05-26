@@ -18,6 +18,7 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 
 #include <arduino_freertos.h>
 
+#include "utils/PID.h"
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
 #include "vehicle/comms/telemetry.h"
@@ -28,7 +29,6 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
-#include "utils/PID.h"
 #include <arduino_freertos.h>
 
 template <typename T> T constrain(T val, T minVal, T maxVal) {
@@ -44,8 +44,8 @@ static DriveState driveState;
 static TickType_t xLastWakeTime;
 
 static PID slipPID;
-static float slipTarget  = 0.07f;
-static float minTorque   = 0.0f;
+static float slipTarget = 0.07f;
+static float minTorque = 0.0f;
 
 static bool enableRegen = false;
 
@@ -73,8 +73,7 @@ void VCU_Init() {
     low_limit = 1.0f / (1.0f + expf(-k * (0.0f - x0)));
     high_limit = 1.0f / (1.0f + expf(-k * (1.0f - x0)));
 
-    
-    pidConfig(&slipPID, INTEGRAL_MAX, INTEGRAL_MIN); //launch control PID
+    pidConfig(&slipPID, INTEGRAL_MAX, INTEGRAL_MIN); // launch control PID
 }
 
 void threadVCU(void *pvParameters) {
@@ -113,13 +112,16 @@ void threadVCU(void *pvParameters) {
             } else {
                 DTI_SendEnableCommand(true);
 
-                if (BSE_BrakesPressed() && DTI_GetDTIData()->eRPM == 0.0f && pedalAccel > 0.95f) {
-                    //driveState.driveStrategy = LAUNCH_CTRL; uncomment when tuned and ready to test
+                if (BSE_BrakesPressed() && DTI_GetDTIData()->eRPM == 0.0f &&
+                    pedalAccel > 0.95f) {
+                    // driveState.driveStrategy = LAUNCH_CTRL; uncomment when
+                    // tuned and ready to test
                     pidReset(&slipPID);
                 }
 
                 if (driveState.driveStrategy == LAUNCH_CTRL) {
-                    if (APPS_GetAPPSReading() < 0.05f || !DTI_GetDTIData()->driveEnabled) {
+                    if (APPS_GetAPPSReading() < 0.05f ||
+                        !DTI_GetDTIData()->driveEnabled) {
                         driveState.driveStrategy = OPEN_LOOP;
                         pidReset(&slipPID);
                     }
@@ -187,29 +189,32 @@ float VCU_TorqueMap(float pedal) {
         /* TC implementation */
     } break;
     case LAUNCH_CTRL: {
-        float wheelSpeedFL= 0; //placeholder values for now
-        float wheelSpeedFR= 0;
+        float wheelSpeedFL = 0; // placeholder values for now
+        float wheelSpeedFR = 0;
         float motorSpeed = DTI_GetDTIData()->eRPM * rpmConversion;
         float controlledSpeed = motorSpeed * wheelRadius;
-        float realTorque = Telemetry_GetData()->motorTorque/CAPPED_MOTOR_TORQUE;
-        float freeSpeed = std::min(wheelSpeedFL * wheelRadius, wheelSpeedFR * wheelRadius);
-        if(freeSpeed == 0.0f) // Free roaming wheels (front two) and take the lower speed of these for safety precaution
+        float realTorque =
+            Telemetry_GetData()->motorTorque / CAPPED_MOTOR_TORQUE;
+        float freeSpeed =
+            std::min(wheelSpeedFL * wheelRadius, wheelSpeedFR * wheelRadius);
+        if (freeSpeed == 0.0f) // Free roaming wheels (front two) and take the
+                               // lower speed of these for safety precaution
         {
             freeSpeed = 0.001f; // To avoid division by zero
         }
         float slipRatio = (controlledSpeed - freeSpeed) / freeSpeed;
-        float correction = computePID(&slipPID, slipTarget, slipRatio, KP, KI, KD);
-        target = (realTorque + correction) * CAPPED_MOTOR_TORQUE; // Reduce torque based on slip ratio correction
-        if(target > CAPPED_MOTOR_TORQUE)
-        {
+        float correction =
+            computePID(&slipPID, slipTarget, slipRatio, KP, KI, KD);
+        target =
+            (realTorque + correction) *
+            CAPPED_MOTOR_TORQUE; // Reduce torque based on slip ratio correction
+        if (target > CAPPED_MOTOR_TORQUE) {
             target = CAPPED_MOTOR_TORQUE;
-        }
-        else if(target < minTorque)
-        {
+        } else if (target < minTorque) {
             target = minTorque;
         }
         break;
-    } 
+    }
     default: {
         break;
     }

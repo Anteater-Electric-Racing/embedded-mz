@@ -11,6 +11,9 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 constexpr float SLIP_RATIO = 0.10f;
 constexpr float POLE_PAIRS = 10.0f;
 constexpr float GEAR_RATIO = 3.0f;
+constexpr float MIN_SPEED =
+    5.0f; // if wheel speed avg less than this return slip_ratio
+constexpr float MAX_SPEED_DIFF = 35.0f;
 // placeholder values, need to tune
 constexpr float TC_KP = 0.5f;
 constexpr float TC_KI = 0.01f;
@@ -161,11 +164,19 @@ float VCU_GetSlip() {
     // get speeds of front wheels
     float speed1 = WSS_GetRPM1();
     float speed2 = WSS_GetRPM2();
-    float motor_speed =
-        (DTI_GetDTIData()->eRPM / POLE_PAIRS) / GEAR_RATIO; // need to find this
-    float undrivenWheelSpeedAvg = (speed1 + speed2) / 2;
-    float slip = (motor_speed - undrivenWheelSpeedAvg) /
-                 (undrivenWheelSpeedAvg + 0.01); // guard for division by 0
+    float undrivenWheelSpeedAvg = 0.0f;
+    float motor_speed = (DTI_GetDTIData()->eRPM / POLE_PAIRS) / GEAR_RATIO;
+
+    if (fabs(speed1 - speed2) > MAX_SPEED_DIFF) {
+        undrivenWheelSpeedAvg = min(speed1, speed2);
+    } else {
+        undrivenWheelSpeedAvg = (speed1 + speed2) / 2;
+    }
+
+    if (undrivenWheelSpeedAvg < MIN_SPEED) {
+        return SLIP_RATIO;
+    }
+    float slip = (motor_speed - undrivenWheelSpeedAvg) / undrivenWheelSpeedAvg;
     return slip;
 }
 

@@ -52,28 +52,28 @@ void Bypass_TSSI() {
     if (startup) {
         if (feedbackStatus == HIGH) {
             // IMD and BMS stabilized, exit startup mode
-            digitalWrite(TSSI_BYPASS_PIN, LOW);
+            digitalWrite(TSSI_BYPASS_PIN, HIGH);
             startup = false;
         } else if (feedbackStatus == LOW) {
             // Fault during startup
             if (is_fault == LOW) {
                 // Was in fault state before - don't bypass
-                digitalWrite(TSSI_BYPASS_PIN, LOW);
+                digitalWrite(TSSI_BYPASS_PIN, HIGH);
             } else {
                 // Was healthy before - bypass this startup fault
-                digitalWrite(TSSI_BYPASS_PIN, HIGH);
+                digitalWrite(TSSI_BYPASS_PIN, LOW);
             }
         }
     } else {
         // Normal operation
         if (feedbackStatus == LOW) {
             // Fault detected
-            digitalWrite(TSSI_BYPASS_PIN, LOW);
+            digitalWrite(TSSI_BYPASS_PIN, HIGH);
         } else {
             // No fault - delay and debounce before turning off bypass
             vTaskDelay(pdMS_TO_TICKS(100));
             if (feedbackStatus == HIGH) {
-                digitalWrite(TSSI_BYPASS_PIN, LOW);
+                digitalWrite(TSSI_BYPASS_PIN, HIGH);
             }
         }
     }

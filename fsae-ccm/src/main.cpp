@@ -87,6 +87,22 @@ void threadMain(void *pvParameters) {
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
 
+#if APPS_DEBUG
+        Serial.print("APPS1 %: ");
+        Serial.print(APPS_GetAPPSReading1());
+        Serial.print(" | ");
+        Serial.print("APPS2 %: ");
+        Serial.print(APPS_GetAPPSReading2());
+        Serial.print(" | ");
+        Serial.print("Diff: ");
+        Serial.print(abs(APPS_GetAPPSReading1() - APPS_GetAPPSReading2()));
+        Serial.print(" | ");
+        Serial.print("Fault bitmap: ");
+        Serial.println(Faults_GetFaults(), arduino::BIN);
+        Serial.print("\r");
+
+#endif
+
 #if WSS_FLAG
         Serial.print("W1 RPM: ");
         Serial.print(WSS_GetRPM1());
@@ -103,7 +119,7 @@ void threadMain(void *pvParameters) {
 
         // Bypass_TSSI();
         // thermal_regulate(); //still need to tune parameters
-        Bypass_TSSI();
+        //        Bypass_TSSI();
 
         // if (BSE_GetBSEReading()->bseFront_Reading > BRAKE_LIGHT_THRESHOLD &&
         //     BSE_GetBSEReading()->bseRear_Reading > BRAKE_LIGHT_THRESHOLD) {

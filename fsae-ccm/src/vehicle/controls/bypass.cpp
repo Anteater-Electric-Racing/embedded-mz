@@ -27,11 +27,16 @@ void Bypass_Init() {
 }
 
 /**
- * Logic:
- * Feedback LOW (faults need to be bypassed) & IMD Status Low ->
- * Bypass ON (High) Feedback HIGH (faults are clear) -> Bypass OFF (Low) after
- * delay
+ * Logic (signal polarity):
+ * - Feedback LOW  => NO FAULT
+ * - Feedback HIGH => FAULT (needs bypass)
  *
+ * Behavior:
+ * - On startup: if no fault (LOW) -> ensure bypass OFF and exit startup.
+ *   If fault (HIGH) during startup and previous latched state was healthy,
+ *   allow a startup bypass; otherwise keep bypass OFF.
+ * - Normal: enable bypass when feedback==HIGH; when feedback==LOW debounce
+ *   and then disable bypass.
  */
 
 void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
@@ -42,38 +47,43 @@ void Bypass_TSSI() {
     Serial.print("in startup? : ");
     Serial.print(startup ? "TRUE" : "FALSE");
     Serial.print(" | feedbackStatus = ");
-    Serial.print(feedbackStatus ? "NO FAULT" : "FAULT");
+    Serial.print(feedbackStatus == LOW ? "NO FAULT" : "FAULT");
     Serial.print(" | ");
     Serial.print("latched fault from prev ON = ");
-    Serial.print(is_fault ? "NO FAULT ---- BYPASSING"
-                          : "FAULT ---- DON'T BYPASS");
+    Serial.print(is_fault == LOW ? "NO FAULT ---- BYPASSING"
+                                : "FAULT ---- DON'T BYPASS");
     Serial.print("\r");
 
+    // I get feedback as FAULT always on startup
+    //issue is that no fault feedback happens until I click the latchboard
+
     if (startup) {
-        if (feedbackStatus == HIGH) {
-            // IMD and BMS stabilized, exit startup mode
-            digitalWrite(TSSI_BYPASS_PIN, HIGH);
+        if (feedbackStatus == LOW) {
+            // No fault: ensure bypass OFF and exit startup
+            digitalWrite(TSSI_BYPASS_PIN, LOW);
             startup = false;
-        } else if (feedbackStatus == LOW) {
+        } else {
             // Fault during startup
+            // If we were healthy before (is_fault == LOW) allow a startup bypass,
+            // otherwise keep bypass OFF.
             if (is_fault == LOW) {
-                // Was in fault state before - don't bypass
-                digitalWrite(TSSI_BYPASS_PIN, HIGH);
+                digitalWrite(TSSI_BYPASS_PIN, HIGH); // bypass this startup fault
             } else {
-                // Was healthy before - bypass this startup fault
-                digitalWrite(TSSI_BYPASS_PIN, LOW);
+                digitalWrite(TSSI_BYPASS_PIN, LOW); // don't bypass
             }
         }
     } else {
         // Normal operation
-        if (feedbackStatus == LOW) {
-            // Fault detected
+        if (feedbackStatus == HIGH) {
+            // Fault detected -> enable bypass
             digitalWrite(TSSI_BYPASS_PIN, HIGH);
         } else {
-            // No fault - delay and debounce before turning off bypass
+            // No fault - debounce before turning OFF bypass
             vTaskDelay(pdMS_TO_TICKS(100));
-            if (feedbackStatus == HIGH) {
-                digitalWrite(TSSI_BYPASS_PIN, HIGH);
+            // re-read the feedback after debounce
+            feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
+            if (feedbackStatus == LOW) {
+                digitalWrite(TSSI_BYPASS_PIN, LOW); // turn OFF bypass
             }
         }
     }
@@ -83,18 +93,17 @@ void Bypass_TSSI() {
 
 // TO FIX
 void Bypass_TSSI_Full() {
-    bool feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
+    bool fb = digitalRead(TSSI_FEEDBACK_PIN);
     bool imdStatus = (IMD_GetInfo()->status == 0x200) ? LOW : HIGH;
 
-    if (feedbackStatus == LOW && imdStatus == LOW) {
-        // Feedback is LOW, turn bypass ON immediately
+    if (fb == HIGH && imdStatus == LOW) {
+        // Fault present and IMD clear -> enable bypass
         digitalWrite(TSSI_BYPASS_PIN, HIGH);
-    } else {
-        // Feedback is HIGH, wait a bit then turn OFF
+    } else if (fb == LOW) {
+        // No fault: debounce then disable bypass
         vTaskDelay(pdMS_TO_TICKS(100));
-
-        // Double check if feedback is still HIGH before switching off
-        if (feedbackStatus == HIGH) {
+        fb = digitalRead(TSSI_FEEDBACK_PIN);
+        if (fb == LOW) {
             digitalWrite(TSSI_BYPASS_PIN, LOW);
         }
     }

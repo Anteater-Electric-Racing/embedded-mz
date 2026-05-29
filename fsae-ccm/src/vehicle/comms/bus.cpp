@@ -111,7 +111,7 @@ void threadBus(void *pvParameters) {
         canAgeMs = (can_last_run_tick - canLatestHealthyStateTime) *
                    portTICK_PERIOD_MS;
         if (canAgeMs > CAN_FAULT_TIME_THRESHOLD_MS) { // 100 ms
-            Faults_SetFault(FAULT_CAN);
+            // Faults_SetFault(FAULT_CAN);
         } else {
             Faults_ClearFault(FAULT_CAN);
         }

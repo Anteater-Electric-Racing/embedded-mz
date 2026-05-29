@@ -114,10 +114,10 @@ void APPS_UpdateData(uint16_t rawReading1,
     }
 
     // INVERTED TRANSFER FUNCTION
-    if (appsData.appsReading2_Voltage > APPS_5V_MIN) {
-        appsData.appsReading2_Voltage = APPS_5V_MIN;
-    } else if (appsData.appsReading2_Voltage < APPS_5V_MAX) {
-        appsData.appsReading2_Voltage = APPS_5V_MAX;
+    if (appsData.appsReading2_Voltage > APPS_3V3_INV_MIN) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_MIN;
+    } else if (appsData.appsReading2_Voltage < APPS_3V3_INV_MAX) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_MAX;
     }
 
     // Serial.print("APPS1 RAW Voltage: ");

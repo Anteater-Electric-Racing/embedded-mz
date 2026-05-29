@@ -28,10 +28,10 @@ Results
 - Calibration and Spin (4/30/2026)
     - FAIL Open Loop Testing
     - DONE Encoder FOC
-    - TBD Encoder Nonlinearity
-    - TBD Closed Loop Testing
+    - DONE Encoder Nonlinearity
+    - DONE Closed Loop Testing
     - DONE Manual Mode
-    - TBD Run via CAN2 Mode
+    - DONE Run via CAN2 Mode
 
 
 Calibration 2nd Round: 5/1/2026

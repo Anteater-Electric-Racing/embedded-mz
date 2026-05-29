@@ -29,7 +29,7 @@ void Bypass_Init() {
 /**
  * Logic:
  * Feedback LOW (faults need to be bypassed) & IMD Status Low ->
- * Bypass ON (High) Feedback HIGH (faults are clear) -> Bypass OFF (Low) after
+ * Bypass ON (LOW) Feedback HIGH (faults are clear) -> Bypass OFF (HIGH) after
  * delay
  *
  */
@@ -49,31 +49,34 @@ void Bypass_TSSI() {
                           : "FAULT ---- DON'T BYPASS");
     Serial.print("\r");
 
+    // I get feedback as FAULT always on startup
+    // issue is that no fault feedback happens until I click the latchboard
+
     if (startup) {
         if (feedbackStatus == HIGH) {
             // IMD and BMS stabilized, exit startup mode
-            digitalWrite(TSSI_BYPASS_PIN, LOW);
+            digitalWrite(TSSI_BYPASS_PIN, HIGH);
             startup = false;
         } else if (feedbackStatus == LOW) {
             // Fault during startup
             if (is_fault == LOW) {
                 // Was in fault state before - don't bypass
-                digitalWrite(TSSI_BYPASS_PIN, LOW);
+                digitalWrite(TSSI_BYPASS_PIN, HIGH);
             } else {
                 // Was healthy before - bypass this startup fault
-                digitalWrite(TSSI_BYPASS_PIN, HIGH);
+                digitalWrite(TSSI_BYPASS_PIN, LOW);
             }
         }
     } else {
         // Normal operation
         if (feedbackStatus == LOW) {
             // Fault detected
-            digitalWrite(TSSI_BYPASS_PIN, LOW);
+            digitalWrite(TSSI_BYPASS_PIN, HIGH);
         } else {
             // No fault - delay and debounce before turning off bypass
             vTaskDelay(pdMS_TO_TICKS(100));
             if (feedbackStatus == HIGH) {
-                digitalWrite(TSSI_BYPASS_PIN, LOW);
+                digitalWrite(TSSI_BYPASS_PIN, HIGH);
             }
         }
     }
@@ -81,7 +84,14 @@ void Bypass_TSSI() {
     Bypass_UpdateState();
 }
 
-// TO FIX
+// TO FIX same logic as eariler
+/**
+ * need a bool called actualFault, if its any error except in startup mode (for
+ * IMD, BMS), actual fault should be true
+ * QuestionL what faults should be detected as a part of this for BMS?
+ * Any fault at ALL?
+ *
+ */
 void Bypass_TSSI_Full() {
     bool feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
     bool imdStatus = (IMD_GetInfo()->status == 0x200) ? LOW : HIGH;

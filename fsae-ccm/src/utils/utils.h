@@ -91,24 +91,20 @@ constexpr int fault_address = 0;
 #define APPS_3V3_MIN 0.1F  //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
 #define APPS_3V3_MAX 0.57F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
-#define APPS_5V_MIN 3.55F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
-#define APPS_5V_MAX 3.00F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
-
-/*     ANOOP TESTING FOR 20% HERE     */
-
-// APPS 0-20% -> 0-100% scaling
+#define APPS_3V3_INV_MIN 3.55F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
+#define APPS_3V3_INV_MAX 3.00F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
 // ADC values corresponding to physical 20% pedal)
 #define APPS1_20PCT_ADC 784.0F // OLD
 #define APPS2_20PCT_ADC 1150.0F
 
-/**KZ Driving MAX (30%)) */
+/**MZ Driving MAX (30%)) */
 #define APPS1_FULL_PCT_ADC 500.0F
 #define APPS2_FULL_PCT_ADC 2434.0F
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
-/**KZ Driving MIN (1+2) */
+/**MZ Driving MIN (1+2) */
 #define APPS1_REST_ADC 165.0F
 #define APPS2_REST_ADC 2798.0F
 

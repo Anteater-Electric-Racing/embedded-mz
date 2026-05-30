@@ -26,7 +26,7 @@ constexpr float PUMP2_PROPORTIONAL_GAIN =
 constexpr float PUMP2_INTEGRAL_GAIN = 0.01;
 constexpr float PUMP2_DERIVATIVE_GAIN = 0.1;
 
-constexpr float FAN_PROPORIONAL_GAIN = 1.0; // tuning paramaters for fan PID
+constexpr float FAN_PROPORIONAL_GAIN = 2.0; // tuning paramaters for fan PID
 constexpr float FAN_INTEGRAL_GAIN = 0.01;
 constexpr float FAN_DERIVATIVE_GAIN = 0.1;
 

@@ -42,7 +42,7 @@
 // #define VOLTAGE_DIVIDER_R1 0
 // #define VOLTAGE_DIVIDER_R2 1
 #define VOLTAGE_DIVIDER_R1 510000 * 5
-#define VOLTAGE_DIVIDER_R2 39000
+#define VOLTAGE_DIVIDER_R2 33000
 #define VOLTAGE_DIVIDER_RATIO                                                  \
     ((VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2)
 

@@ -88,7 +88,7 @@ void Bypass_TSSI() {
 /**
  * need a bool called actualFault, if its any error except in startup mode (for
  * IMD, BMS), actual fault should be true
- * QuestionL what faults should be detected as a part of this for BMS?
+ * Question: what faults should be detected as a part of this for BMS?
  * Any fault at ALL?
  *
  */

@@ -36,7 +36,7 @@ constexpr int fault_address = 0;
 #define WSS_FLAG 0
 #define BMS_FLAG 0 // TO REMOVE
 #define IMD_FLAG 0
-#define APPS_DEBUG 1
+#define APPS_DEBUG 0
 
 #define ACTIVE_MAP 1
 
@@ -66,7 +66,7 @@ constexpr int fault_address = 0;
 #define rtm_PIN 36
 #define BRAKE_LIGHT_PIN 9
 
-#define LOGIC_LEVEL_V 3.19F
+#define LOGIC_LEVEL_V 3.3F
 #define TIME_STEP 0.001F // 1ms time step
 
 #define ADC_AVERAGING 1
@@ -83,7 +83,7 @@ constexpr int fault_address = 0;
 #define APPS_FAULT_PERCENT_MAX .9
 
 #define APPS1_VOLTAGE_LEVEL 0.5
-#define APPS2_VOLTAGE_LEVEL 4.0
+#define APPS2_VOLTAGE_LEVEL 3.5
 
 #define APPS_RANGE_MIN_PERCENT .15
 #define APPS_RANGE_MAX_PERCENT .85
@@ -92,21 +92,21 @@ constexpr int fault_address = 0;
 #define APPS_3V3_MAX 0.57F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
 #define APPS_3V3_INV_MIN 3.55F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
-#define APPS_3V3_INV_MAX 3.00F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
+#define APPS_3V3_INV_MAX 2.5F  //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
 // ADC values corresponding to physical 20% pedal)
 #define APPS1_20PCT_ADC 784.0F // OLD
 #define APPS2_20PCT_ADC 1150.0F
 
 /**MZ Driving MAX (30%)) */
-#define APPS1_FULL_PCT_ADC 500.0F
-#define APPS2_FULL_PCT_ADC 2434.0F
+#define APPS1_FULL_PCT_ADC 445.08F
+#define APPS2_FULL_PCT_ADC 2454.0F
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
 /**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 165.0F
-#define APPS2_REST_ADC 2798.0F
+#define APPS1_REST_ADC 82.00F
+#define APPS2_REST_ADC 2850.82F
 
 // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
@@ -122,9 +122,8 @@ constexpr int fault_address = 0;
 #define APPS_3V3_FAULT_MIN (APPS1_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MIN)
 #define APPS_3V3_FAULT_MAX (APPS1_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MAX)
 
-#define APPS_3V3_INV_FAULT_MIN (APPS2_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MIN)
+#define APPS_3V3_INV_FAULT_MIN (2.7 + (2.7 * 0.1))
 #define APPS_3V3_INV_FAULT_MAX (APPS2_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MAX)
-
 #define APPS_FAULT_TIME_THRESHOLD_MS 100
 
 #define APPS_IMPLAUSABILITY_THRESHOLD 0.1             // 10%

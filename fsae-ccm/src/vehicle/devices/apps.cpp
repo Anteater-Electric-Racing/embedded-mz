@@ -36,7 +36,7 @@ void APPS_Init() {
     appsData.apps1RawReading = 0;
     appsData.apps2RawReading = 0;
 
-    appsAlpha = COMPUTE_ALPHA(60.0F); // 60 hz
+    appsAlpha = COMPUTE_ALPHA(60.0F);
 }
 
 void APPS_UpdateData(uint16_t rawReading1,
@@ -73,11 +73,11 @@ void APPS_UpdateData(uint16_t rawReading1,
     //     rawReading2 = APPS2_FULL_PCT_ADC;
     // }
 
-    // if (appsData.appsReading2_Percentage < 0.0F) {
-    //     appsData.appsReading2_Percentage = 0.0F;
-    // } else if (appsData.appsReading2_Percentage > 1.0F) {
-    //     appsData.appsReading2_Percentage = 1.0F;
-    // }
+    if (appsData.appsReading2_Percentage < 0.0F) {
+        appsData.appsReading2_Percentage = 0.0F;
+    } else if (appsData.appsReading2_Percentage > 1.0F) {
+        appsData.appsReading2_Percentage = 1.0F;
+    }
 
     // after LOWPASS_FILTER
     appsData.appsReading1_Percentage =
@@ -102,22 +102,21 @@ void APPS_UpdateData(uint16_t rawReading1,
         ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading);
 
     /*========================== RAW VOLTAGE ==========================*/
-    // Serial.print("APPS1 RAW Voltage: ");
-    // Serial.println(appsData.appsReading1_Voltage);
-    // Serial.print("APPS2 RAW Voltage: ");
-    // Serial.println(appsData.appsReading2_Voltage);
+    Serial.print("APPS1 RAW Voltage: ");
+    Serial.println(appsData.appsReading1_Voltage);
+    Serial.print("APPS2 RAW Voltage: ");
+    Serial.println(appsData.appsReading2_Voltage);
 
-    if (appsData.appsReading1_Voltage < APPS_3V3_MIN) {
-        appsData.appsReading1_Voltage = APPS_3V3_MIN;
-    } else if (appsData.appsReading1_Voltage > APPS_3V3_MAX) {
-        appsData.appsReading1_Voltage = APPS_3V3_MAX;
+    if (appsData.appsReading1_Voltage < APPS_3V3_FAULT_MIN) {
+        appsData.appsReading1_Voltage = APPS_3V3_FAULT_MIN;
+    } else if (appsData.appsReading1_Voltage > APPS_3V3_FAULT_MAX) {
+        appsData.appsReading1_Voltage = APPS_3V3_FAULT_MAX;
     }
 
-    // INVERTED TRANSFER FUNCTION
-    if (appsData.appsReading2_Voltage > APPS_3V3_INV_MIN) {
-        appsData.appsReading2_Voltage = APPS_3V3_INV_MIN;
-    } else if (appsData.appsReading2_Voltage < APPS_3V3_INV_MAX) {
-        appsData.appsReading2_Voltage = APPS_3V3_INV_MAX;
+    if (appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MIN) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_FAULT_MIN;
+    } else if (appsData.appsReading2_Voltage > APPS_3V3_INV_FAULT_MAX) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_FAULT_MAX;
     }
 
     // Serial.print("APPS1 RAW Voltage: ");
@@ -192,9 +191,9 @@ static void checkAndHandleAPPSFault() {
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
-            // #if DEBUG_FLAG
-            // Serial.println("Setting APPS fault elapsed");
-            // #endif
+#if DEBUG_FLAG
+            Serial.println("Setting APPS fault");
+#endif
             Faults_SetFault(FAULT_APPS);
             return;
         }
@@ -230,7 +229,7 @@ static void checkAndHandlePlausibilityFault() {
 
     if (APPS_GetAPPSReading() > APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD &&
         (BSEReading > APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD)) {
-        Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
+        // Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
     } else {
         if (APPS_GetAPPSReading() < APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD) {
             Faults_ClearFault(FAULT_APPS_BRAKE_PLAUSIBILITY);

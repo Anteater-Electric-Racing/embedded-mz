@@ -437,6 +437,10 @@ bool checkSafeTemperature() {
     tempData.T1Temp = (int16_t)(T1Temp);
     tempData.T2Temp = (int16_t)(T2Temp);
 
+    // Print test temp values
+    Serial.print("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
+                 ", T1Temp: " + (String)T1Temp + ", T2Temp" + (String)T2Temp);
+
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {
         tempData.isSafeTemperature = 1;

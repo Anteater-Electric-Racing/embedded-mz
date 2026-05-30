@@ -16,13 +16,16 @@
 
 #define TIME_HYSTERESIS_MS 20U
 
-constexpr double THERMISTOR1_PIN = 7;
-constexpr double THERMISTOR2_PIN = 8;
+constexpr double THERMISTOR1_PIN = 21;
+constexpr double THERMISTOR2_PIN = 20;
 constexpr double THERMISTOR_T0_C = 25;
 constexpr double THERMISTOR_R0 = 10000;
 constexpr double THERMISTOR_BETA = 3880;
 constexpr double THERMISTOR_DIVIDER_RESISTOR = 6800;
 constexpr int TEENSY_ADC_RESOLUTION_BITS = 12;
+
+constexpr double DEBUG_FREQ_TS_PIN = 15;
+constexpr double DEBUG_FREQ_ACC_PIN = 14;
 
 constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 69;
 
@@ -80,14 +83,21 @@ void prechargeTask(void *pvParameters) {
     const TickType_t xFrequency = pdMS_TO_TICKS(TIME_STEP_S * 1000);
     xLastWakeTime = xTaskGetTickCount();
 
+    state = STATE_PRECHARGE;
+
     while (true) {
+        double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
+        double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
+        Serial.println("FREQ_TS: " + (String)FREQ_TS +
+                       ", FREQ_ACC: " + (String)FREQ_ACC);
+
         // Check thermistor readings, discharge if exceeded
-        if (!checkSafeTemperature()) {
-            state = STATE_DISCHARGE;
-        } else {
-            // Update temperature CAN flag
-            tempData.isSafeTemperature = true;
-        }
+        // if (!checkSafeTemperature()) {
+        //     state = STATE_DISCHARGE;
+        // } else {
+        //     // Update temperature CAN flag
+        //     tempData.isSafeTemperature = true;
+        // }
 
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
@@ -218,6 +228,8 @@ void updateVoltage(int pin) {
 void standby() {
     // Disable AIR, Disable Precharge
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+
+    // Serial.println("ACC: " + (String) pcData.accVoltage);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
@@ -408,7 +420,7 @@ double temperatureFromADC(double adc) {
         adc = (1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0;
     }
     if (adc <= 0) {
-        adc = 1.0;
+        adc = 9999.0;
     }
 
     // Temperature in Celsius in terms of ADC value for thermistor
@@ -438,8 +450,9 @@ bool checkSafeTemperature() {
     tempData.T2Temp = (int16_t)(T2Temp);
 
     // Print test temp values
-    Serial.print("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
-                 ", T1Temp: " + (String)T1Temp + ", T2Temp" + (String)T2Temp);
+    //  Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
+    //              ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
+    //              (String)T2Temp);
 
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {

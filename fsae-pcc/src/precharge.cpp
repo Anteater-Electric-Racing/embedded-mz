@@ -60,7 +60,7 @@ void prechargeInit() {
     pcData.tsAlpha =
         COMPUTE_ALPHA(100.0F); // 100Hz cutoff frequency for lowpass filter
     pcData.accAlpha =
-        COMPUTE_ALPHA(100.0F); // 1Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(100.0F); // 100Hz cutoff frequency for lowpass filter
     pcData.accVoltage = 0.0F;  // Initialize filtered tractive system frequency
     pcData.tsVoltage = 0.0F;   // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage

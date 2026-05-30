@@ -107,16 +107,16 @@ void APPS_UpdateData(uint16_t rawReading1,
     // Serial.print("APPS2 RAW Voltage: ");
     // Serial.println(appsData.appsReading2_Voltage);
 
-    if (appsData.appsReading1_Voltage < APPS_3V3_INV_MIN) {
-        appsData.appsReading1_Voltage = APPS_3V3_INV_MIN;
-    } else if (appsData.appsReading1_Voltage > APPS_3V3_INV_MAX) {
-        appsData.appsReading1_Voltage = APPS_3V3_INV_MAX;
+    if (appsData.appsReading2_Voltage < APPS_3V3_INV_MIN) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_MIN;
+    } else if (appsData.appsReading2_Voltage > APPS_3V3_INV_MAX) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_MAX;
     }
 
-    if (appsData.appsReading2_Voltage < APPS_3V3_MIN) {
-        appsData.appsReading2_Voltage = APPS_3V3_MIN;
-    } else if (appsData.appsReading2_Voltage > APPS_3V3_MAX) {
-        appsData.appsReading2_Voltage = APPS_3V3_MAX;
+    if (appsData.appsReading1_Voltage < APPS_3V3_MIN) {
+        appsData.appsReading1_Voltage = APPS_3V3_MIN;
+    } else if (appsData.appsReading1_Voltage > APPS_3V3_MAX) {
+        appsData.appsReading1_Voltage = APPS_3V3_MAX;
     }
 
     // Serial.print("APPS1 RAW Voltage: ");
@@ -181,10 +181,10 @@ static void checkAndHandleAPPSFault() {
     // Serial.println(appsData.appsReading2_Percentage);
     // #endif
 
-    if (appsData.appsReading1_Voltage < APPS_3V3_INV_FAULT_MIN ||
-        appsData.appsReading1_Voltage > APPS_3V3_INV_FAULT_MAX ||
-        appsData.appsReading2_Voltage < APPS_3V3_FAULT_MIN ||
-        appsData.appsReading2_Voltage > APPS_3V3_FAULT_MAX) {
+    if (appsData.appsReading1_Voltage < APPS_3V3_FAULT_MIN ||
+        appsData.appsReading1_Voltage > APPS_3V3_FAULT_MAX ||
+        appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MIN ||
+        appsData.appsReading2_Voltage > APPS_3V3_INV_FAULT_MAX) {
 
         TickType_t now = xTaskGetTickCount();
         TickType_t elapsedTicks = now - appsLatestHealthyStateTime;

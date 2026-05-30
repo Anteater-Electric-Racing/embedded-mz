@@ -36,15 +36,15 @@ void APPS_Init() {
     appsData.apps1RawReading = 0;
     appsData.apps2RawReading = 0;
 
-    appsAlpha = COMPUTE_ALPHA(100.0F);
+    appsAlpha = COMPUTE_ALPHA(60.0F);
 }
 
 void APPS_UpdateData(uint16_t rawReading1,
                      uint16_t rawReading2) { // changed uint16 from 32
-    /*Serial.print("Raw APPS1: ");
-    Serial.println(rawReading1);
-    Serial.print("Raw APPS2: ");
-    Serial.println(rawReading2);*/
+    // Serial.print("Raw APPS1: ");
+    // Serial.println(rawReading1);
+    // Serial.print("Raw APPS2: ");
+    // Serial.println(rawReading2);
 
     /*========================== REMOVE: RAW CLAMP ==========================*/
     // if (rawReading1 > APPS1_20PCT_ADC)
@@ -102,10 +102,10 @@ void APPS_UpdateData(uint16_t rawReading1,
         ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading);
 
     /*========================== RAW VOLTAGE ==========================*/
-    // Serial.print("APPS1 RAW Voltage: ");
-    // Serial.println(appsData.appsReading1_Voltage);
-    // Serial.print("APPS2 RAW Voltage: ");
-    // Serial.println(appsData.appsReading2_Voltage);
+    Serial.print("APPS1 RAW Voltage: ");
+    Serial.println(appsData.appsReading1_Voltage);
+    Serial.print("APPS2 RAW Voltage: ");
+    Serial.println(appsData.appsReading2_Voltage);
 
     if (appsData.appsReading1_Voltage < APPS_3V3_FAULT_MIN) {
         appsData.appsReading1_Voltage = APPS_3V3_FAULT_MIN;
@@ -203,7 +203,7 @@ static void checkAndHandleAPPSFault() {
     }
 
     if (difference > APPS_IMPLAUSABILITY_THRESHOLD) {
-        // Faults_SetFault(FAULT_APPS);
+        Faults_SetFault(FAULT_APPS);
         return;
     } else {
 #if DEBUG_FLAG

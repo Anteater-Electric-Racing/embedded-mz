@@ -22,7 +22,7 @@ constexpr double THERMISTOR_T0_C = 25;
 constexpr double THERMISTOR_R0 = 10000;
 constexpr double THERMISTOR_BETA = 3880;
 constexpr double THERMISTOR_DIVIDER_RESISTOR = 6800;
-constexpr int TEENSY_ADC_RESOLUTION_BITS = 12;
+constexpr int TEENSY_ADC_RESOLUTION_BITS = 10;
 
 constexpr double DEBUG_FREQ_TS_PIN = 15;
 constexpr double DEBUG_FREQ_ACC_PIN = 14;

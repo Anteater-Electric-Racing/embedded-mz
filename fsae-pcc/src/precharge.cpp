@@ -88,16 +88,18 @@ void prechargeTask(void *pvParameters) {
     while (true) {
         double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
         double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
-        Serial.println("FREQ_TS: " + (String)FREQ_TS +
-                       ", FREQ_ACC: " + (String)FREQ_ACC);
+
+        // Test to check for frequency channels
+        // Serial.println("FREQ_TS: " + (String)FREQ_TS +
+        //                ", FREQ_ACC: " + (String)FREQ_ACC);
 
         // Check thermistor readings, discharge if exceeded
-        // if (!checkSafeTemperature()) {
-        //     state = STATE_DISCHARGE;
-        // } else {
-        //     // Update temperature CAN flag
-        //     tempData.isSafeTemperature = true;
-        // }
+        if (!checkSafeTemperature()) {
+            state = STATE_DISCHARGE;
+        } else {
+            // Update temperature CAN flag
+            tempData.isSafeTemperature = true;
+        }
 
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
@@ -420,7 +422,7 @@ double temperatureFromADC(double adc) {
         adc = (1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0;
     }
     if (adc <= 0) {
-        adc = 9999.0;
+        adc = 1.0;
     }
 
     // Temperature in Celsius in terms of ADC value for thermistor
@@ -440,11 +442,21 @@ bool checkSafeTemperature() {
     // Read thermistor values, calculate current temperature and return boolean
     // (Thermistor pins: A8, A9 (22, 23)) Thermistor power voltage: (3.3 V)
 
-    double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
-    double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
+    // double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
+    // double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
 
-    double T1Temp = temperatureFromADC(T1ADC);
-    double T2Temp = temperatureFromADC(T2ADC);
+    // TEST VALUES (DUMMY ADC VALUES)
+
+    // double T1ADC_DUMMY = 609.0; // 25 C
+    // double T2ADC_DUMMY = 609.0; // 25 C
+
+    double T1ADC_DUMMY = 134.0; // 100 C
+    double T2ADC_DUMMY = 134.0; // 100 C
+
+    // =========
+
+    double T1Temp = temperatureFromADC(T1ADC_DUMMY);
+    double T2Temp = temperatureFromADC(T2ADC_DUMMY);
 
     tempData.T1Temp = (int16_t)(T1Temp);
     tempData.T2Temp = (int16_t)(T2Temp);

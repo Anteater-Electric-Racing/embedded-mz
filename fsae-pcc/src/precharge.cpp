@@ -89,7 +89,7 @@ void prechargeTask(void *pvParameters) {
         double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
         double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
 
-        // Test to check for frequency channels
+        // Test to check for frequency channels agreement
         // Serial.println("FREQ_TS: " + (String)FREQ_TS +
         //                ", FREQ_ACC: " + (String)FREQ_ACC);
 
@@ -447,11 +447,11 @@ bool checkSafeTemperature() {
 
     // TEST VALUES (DUMMY ADC VALUES)
 
-    // double T1ADC_DUMMY = 609.0; // 25 C
-    // double T2ADC_DUMMY = 609.0; // 25 C
+    double T1ADC_DUMMY = 609.0; // 25 C
+    double T2ADC_DUMMY = 609.0; // 25 C
 
-    double T1ADC_DUMMY = 134.0; // 100 C
-    double T2ADC_DUMMY = 134.0; // 100 C
+    // double T1ADC_DUMMY = 134.0; // 100 C
+    // double T2ADC_DUMMY = 134.0; // 100 C
 
     // =========
 
@@ -462,9 +462,9 @@ bool checkSafeTemperature() {
     tempData.T2Temp = (int16_t)(T2Temp);
 
     // Print test temp values
-    //  Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
-    //              ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
-    //              (String)T2Temp);
+     Serial.println("T1ADC: " + (String)T1ADC_DUMMY + ", T2ADC: " + (String)T2ADC_DUMMY +
+                 ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
+                 (String)T2Temp);
 
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {

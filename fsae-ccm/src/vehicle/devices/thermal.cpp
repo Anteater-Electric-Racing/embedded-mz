@@ -12,18 +12,19 @@ void thermal_forceOff() {
 void thermal_Init() {
     pinMode(PUMP1_PIN, OUTPUT);
     pinMode(PUMP2_PIN, OUTPUT);
-    analogWriteFrequency(PUMP1_PIN,
-                         ANALOG_WRITE_FREQUENCY);   // 25 kHz for Koolance
-    analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
+    // analogWriteFrequency(PUMP1_PIN,
+    //                      ANALOG_WRITE_FREQUENCY);   // 25 kHz for Koolance
+    // analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
 
-    analogWriteFrequency(PUMP2_PIN,
-                         ANALOG_WRITE_FREQUENCY);   // 25 kHz for Koolance
-    analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
+    // analogWriteFrequency(PUMP2_PIN,
+    //                      ANALOG_WRITE_FREQUENCY);   // 25 kHz for Koolance
+    // analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
 
     pinMode(FAN_PIN, OUTPUT);
     analogWriteFrequency(FAN_PIN,
                          FAN_WRITE_FREQ);           // 25 kHz for Koolance
     analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
+    analogWrite(FAN_PIN, 0);
 
     // thermal_forceOff();
 }
@@ -61,10 +62,9 @@ void thermal_regulate() {
                                             PUMP2_PROPORTIONAL_GAIN,
                                             PUMP2_INTEGRAL_GAIN,
                                             PUMP2_DERIVATIVE_GAIN)); */
-        analogWrite(FAN_PIN, DUTY_CYCLE_MAX * pidOutput); 
+       // analogWrite(FAN_PIN, DUTY_CYCLE_MAX * pidOutput); 
 
-    Serial.println(temp);
-    Serial.println(pidOutput);
+    Serial.println("temp:" + String(temp) + " fan output: " + String(pidOutput));
     temp -= pidOutput;
     if(temp <= 50){
         temp = 80;

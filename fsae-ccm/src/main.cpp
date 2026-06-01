@@ -192,6 +192,7 @@ void threadMain(void *pvParameters) {
 
         Serial.print("\r");
 #endif
+thermal_regulate();
 #if HIMAC_FLAG
 
         /*

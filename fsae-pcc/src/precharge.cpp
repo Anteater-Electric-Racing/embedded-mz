@@ -84,6 +84,8 @@ void prechargeTask(void *pvParameters) {
     const TickType_t xFrequency = pdMS_TO_TICKS(TIME_STEP_S * 1000);
     xLastWakeTime = xTaskGetTickCount();
 
+    // state = STATE_PRECHARGE;
+
     while (true) {
         // double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
         // double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);

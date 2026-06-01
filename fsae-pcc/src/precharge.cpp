@@ -84,11 +84,9 @@ void prechargeTask(void *pvParameters) {
     const TickType_t xFrequency = pdMS_TO_TICKS(TIME_STEP_S * 1000);
     xLastWakeTime = xTaskGetTickCount();
 
-    state = STATE_PRECHARGE;
-
     while (true) {
-        double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
-        double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
+        // double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
+        // double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
 
         // Test to check for frequency channels agreement
         // Serial.println("FREQ_TS: " + (String)FREQ_TS +
@@ -424,7 +422,8 @@ double temperatureFromADC(double adc) {
         adc = (1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0;
     }
     if (adc <= 0) {
-        adc = 1.0;
+        // Return high ADC hence temperature value if voltage at thermistors is 0
+        adc = 9999.0;
     }
 
     // Temperature in Celsius in terms of ADC value for thermistor
@@ -433,9 +432,7 @@ double temperatureFromADC(double adc) {
          (THERMISTOR_R0 *
           ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
            1.0));
-    //double rTherm = THERMISTOR_DIVIDER_RESISTOR * (adc / (1023.0 - adc));
-    //double resistorRatio = rTherm / THERMISTOR_R0;
-
+  
     return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) -
               (1.0 / THERMISTOR_BETA) * std::log(resistorRatio)) - 273.15;
 

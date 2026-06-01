@@ -15,11 +15,12 @@
 #define PRECHARGE_PRIORITY 8
 
 #define TIME_HYSTERESIS_MS 20U
-
+//5.56 
+//6.37
 constexpr double THERMISTOR1_PIN = 21;
 constexpr double THERMISTOR2_PIN = 20;
-constexpr double THERMISTOR_T0_C = 25;
-constexpr double THERMISTOR_R0 = 10000;
+constexpr double THERMISTOR_T0_C = 26;
+constexpr double THERMISTOR_R0 = 5280;
 constexpr double THERMISTOR_BETA = 3880;
 constexpr double THERMISTOR_DIVIDER_RESISTOR = 6800;
 constexpr int TEENSY_ADC_RESOLUTION_BITS = 10;
@@ -96,6 +97,7 @@ void prechargeTask(void *pvParameters) {
         // Check thermistor readings, discharge if exceeded
         if (!checkSafeTemperature()) {
             state = STATE_DISCHARGE;
+
         } else {
             // Update temperature CAN flag
             tempData.isSafeTemperature = true;
@@ -426,15 +428,17 @@ double temperatureFromADC(double adc) {
     }
 
     // Temperature in Celsius in terms of ADC value for thermistor
-    double resistorRatio =
-        THERMISTOR_DIVIDER_RESISTOR /
-        (THERMISTOR_R0 *
-         ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
-          1.0));
+     double resistorRatio =
+         THERMISTOR_DIVIDER_RESISTOR /
+         (THERMISTOR_R0 *
+          ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
+           1.0));
+    //double rTherm = THERMISTOR_DIVIDER_RESISTOR * (adc / (1023.0 - adc));
+    //double resistorRatio = rTherm / THERMISTOR_R0;
 
-    return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) +
-                  (1.0 / THERMISTOR_BETA) * (std::log(resistorRatio))) -
-           273.15;
+    return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) -
+              (1.0 / THERMISTOR_BETA) * std::log(resistorRatio)) - 273.15;
+
 }
 
 // Check thermistor for temperature reading: (Threshold: 69 C)
@@ -442,30 +446,31 @@ bool checkSafeTemperature() {
     // Read thermistor values, calculate current temperature and return boolean
     // (Thermistor pins: A8, A9 (22, 23)) Thermistor power voltage: (3.3 V)
 
-    // double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
-    // double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
+    double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
+    double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
 
     // TEST VALUES (DUMMY ADC VALUES)
 
-    double T1ADC_DUMMY = 609.0; // 25 C
-    double T2ADC_DUMMY = 609.0; // 25 C
+    //double T1ADC_DUMMY = 609.0; // 25 C
+    //double T2ADC_DUMMY = 609.0; // 25 C
 
     // double T1ADC_DUMMY = 134.0; // 100 C
     // double T2ADC_DUMMY = 134.0; // 100 C
 
     // =========
 
-    double T1Temp = temperatureFromADC(T1ADC_DUMMY);
-    double T2Temp = temperatureFromADC(T2ADC_DUMMY);
+    double T1Temp = temperatureFromADC(T1ADC);
+    double T2Temp = temperatureFromADC(T2ADC);
 
     tempData.T1Temp = (int16_t)(T1Temp);
     tempData.T2Temp = (int16_t)(T2Temp);
 
-    // Print test temp values
-     Serial.println("T1ADC: " + (String)T1ADC_DUMMY + ", T2ADC: " + (String)T2ADC_DUMMY +
+    /* Print test temp values
+     Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
                  ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
                  (String)T2Temp);
-
+    */
+   
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {
         tempData.isSafeTemperature = 1;

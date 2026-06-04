@@ -86,6 +86,8 @@ void threadMain(void *pvParameters) {
 
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
+        Bypass_TSSI();
+        thermal_forceOn();
 
 #if APPS_DEBUG
         Serial.print("APPS1 %: ");
@@ -117,9 +119,7 @@ void threadMain(void *pvParameters) {
         Serial.print("\r");
 #endif
 
-        // Bypass_TSSI();
         // thermal_regulate(); //still need to tune parameters
-        //        Bypass_TSSI();
 
         // if (BSE_GetBSEReading()->bseFront_Reading > BRAKE_LIGHT_THRESHOLD &&
         //     BSE_GetBSEReading()->bseRear_Reading > BRAKE_LIGHT_THRESHOLD) {

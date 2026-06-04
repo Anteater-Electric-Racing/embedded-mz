@@ -28,7 +28,7 @@ constexpr int TEENSY_ADC_RESOLUTION_BITS = 10;
 constexpr double DEBUG_FREQ_TS_PIN = 15;
 constexpr double DEBUG_FREQ_ACC_PIN = 14;
 
-constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 69;
+constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 70;
 
 // States (Global Variables)
 PrechargeState state = STATE_STANDBY;

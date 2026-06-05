@@ -29,17 +29,33 @@ def parse_args():
     SUBSCRIPTION = subscribe.simple(TOPIC, hostname=HOST)
     #this function will also have to reintialize the subscriber but anyways
 
+def tests():
+    #very scuffed
+    parse_args()
+    print(mqtt_msg := ingest_mqtt())
+    print(type(mqtt_msg), " should be dict")
+    print(has_fault({"motor_fault": True}), " should be True (has_fault)")
+    print(has_fault({"motor_fault": False}), " should be False (has_fault)")
+
 def ingest_mqtt():
    payload = json.loads(SUBSCRIPTION.payload)
    return payload
 
+def has_fault(payload : dict):
+    for key, value in payload.items():
+        if "fault" in key and value == True:
+            return True
+    return False
 
 def main():
     parse_args()
     
+
+"""
     while True: 
         mqtt_msg = ingest_mqtt()
-        """if (has_warning(mqtt_msg)):
+    
+       if (has_warning(mqtt_msg)):
             warnings = extract_warnings(mqtt_msg)
             for warn in warning:
                 display(warn, RED, delay = 100)
@@ -54,4 +70,5 @@ def main():
 #sleep(1000)
 
 if __name__ == "__main__":
+    tests()
     main()

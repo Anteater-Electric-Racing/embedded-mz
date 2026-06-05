@@ -4,6 +4,7 @@ from luma.oled.device import ssd1351
 from time import sleep
 import paho.mqtt.subscribe as subscribe
 import json
+import itertools
 
 
 #Ingest data
@@ -34,18 +35,27 @@ def tests():
     parse_args()
     print(mqtt_msg := ingest_mqtt())
     print(type(mqtt_msg), " should be dict")
-    print(has_fault({"motor_fault": True}), " should be True (has_fault)")
-    print(has_fault({"motor_fault": False}), " should be False (has_fault)")
+    print(has_warning({"motor_fault": True}), " should be True (has_fault)")
+    print(has_warning({"motor_fault": False}), " should be False (has_fault)")
+    warnings = [w for w in get_warnings({"motor_fault" : True, "dc_main_wire_over_vault_fault": False})]
+    print(warnings, "should only have motor_fault")
 
 def ingest_mqtt():
    payload = json.loads(SUBSCRIPTION.payload)
    return payload
 
-def has_fault(payload : dict):
-    for key, value in payload.items():
-        if "fault" in key and value == True:
+def warning_criteria(entry):
+    #will be more sophisticated later to allow for multi level warnings
+    return "fault" in entry[0] and entry[1] == True
+
+def has_warning(payload : dict):
+    for item in payload.items():
+        if warning_criteria(item):
             return True
     return False
+
+def get_warnings(payload : dict):
+    yield from map(lambda x : x[0], filter(warning_criteria, payload.items()))
 
 def main():
     parse_args()
@@ -56,11 +66,10 @@ def main():
         mqtt_msg = ingest_mqtt()
     
        if (has_warning(mqtt_msg)):
-            warnings = extract_warnings(mqtt_msg)
-            for warn in warning:
-                display(warn, RED, delay = 100)
+            banner_display(get_warnings(mqtt_msg), RED, delay = 100)
         else:
-            selected_data = extract_column(mqtt_msg, GREEN) 
+            selected_data = extract_column(mqtt_msgi, SELECTED) 
+            display(SELECTED, selected_data, GREEN)
 """
 #serial = spi(device = 0, port = 0)
 

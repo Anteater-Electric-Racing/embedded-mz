@@ -32,6 +32,8 @@ def make_font(name, size):
     return ImageFont.truetype(font_path, size)
 
 WARNING_FONT = make_font("C&C Red Alert [INET].ttf", 24)
+SELECTED_FONT = make_font("C&C Red Alert [INET].ttf", 10)
+VALUE_FONT = make_font("C&C Red Alert [INET].ttf", 24)
 
 def parse_args():
     global subscription
@@ -57,6 +59,11 @@ def tests():
     print("Displaying warnings")
     scroll_display(warnings, font = WARNING_FONT, speed = 2)
     print(extract_column(ingress, "motor_speed"), " should be 10.0")
+    print("Displaying info")
+    i = 10.0
+    while i < 100:
+        display("motor_speed", i)
+        i+=1
 
 def ingest_mqtt():
    payload = json.loads(subscription.payload)
@@ -102,6 +109,15 @@ def scroll_display(warnings : list[str], speed= 1, fill = RED, font = None):
 def extract_column (msg, sel):
     return msg[sel]
 
+def display(sel, data, fill = GREEN):
+    data = str(data)
+    with canvas(device) as draw:
+        left, top, right, bottom = draw.textbbox((0,0), data, font = VALUE_FONT)
+        w, h = right - left, bottom -top 
+
+        draw.text((0,0), sel, font = SELECTED_FONT, fill = fill)
+        draw.text((device.width/2 - w/2, device.height/2 - h/2), data, font = VALUE_FONT, fill = fill)
+    sleep(0.025)
 
 def main():
     parse_args()

@@ -1,17 +1,16 @@
-DAY 1
-1. Start with TSSI bypass test
-2. THEN WDT
-3. THEN APPS CALIBRATION
-4. THEN ENSURE ALL CAN MESSAGES CODE
-5. THEN SPEAKER STATE MACHINE
-6. THEN ALL GPIOS OK
-7. MOTOR SPINS
-8. THERMAL PID WORKS --- if testing wants to be done revert to old thermal
-9. CHECK GPIOS all good
-10. CHECK WSS READINGS
------ END OF DAY 1 TEST----
+
+1. Start with TSSI bypass test - COMPLETE, see Bypass_Full()
+2. THEN APPS CALIBRATION  - COMPLETE (ish) - fix ADC_value to VOLTAGE function
+4. THEN ALL GPIOS OK
+7. CHECK WSS READINGS
+
+TODO:
+3. ALL CAN DATA OK - see CAN_DEBUG MACRO
+5. MOTOR SPINS
+6. THERMAL PID WORKS --- if testing wants to be done revert to old thermal
 
 
-DAY 2
-11. Walk through TC Control
-12. LAUNCH CONTROL LIKELY OVERSCOPED, remove.
+
+TBD:
+8. Walk through TC Control, simplify
+9. LAUNCH CONTROL LIKELY OVERSCOPED, remove.

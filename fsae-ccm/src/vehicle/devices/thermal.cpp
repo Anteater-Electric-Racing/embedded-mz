@@ -6,7 +6,7 @@
 void thermal_forceOff() {
     analogWrite(PUMP1_PIN, 0);
     analogWrite(PUMP2_PIN, 0);
-    analogWrite(FAN_PIN, 0);
+    analogWrite(FAN_PIN, 1);
 }
 
 void thermal_Init() {
@@ -31,13 +31,12 @@ void thermal_Init() {
 /*open loop  control */
 /**
  * faults to add: (temp out of bounds??)
- *
  */
 
 void thermal_forceOn() {
     analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
-    analogWrite(FAN_PIN, DUTY_CYCLE_MAX * 0.9);
+    analogWrite(FAN_PIN, DUTY_CYCLE_MAX * 0.1);
 }
 
 /* Recieves the temperature of both  */

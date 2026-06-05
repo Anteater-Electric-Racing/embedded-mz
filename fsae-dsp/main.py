@@ -1,10 +1,14 @@
 from luma.core.interface.serial import spi
 from luma.core.render import canvas
 from luma.oled.device import ssd1351
+from luma.core.virtual import viewport
 from time import sleep
 import paho.mqtt.subscribe as subscribe
+from PIL import ImageFont
+from pathlib import Path
 import json
 import itertools
+import functools
 
 
 #Ingest data
@@ -13,21 +17,30 @@ import itertools
 #   Extract_warning
 #Display
 
-RED = "RED"
-GREEN = "GREEN"
-SELECTED = "pack_current"
-TOPIC = "telemetry"
-HOST = "127.0.0.1"
-SUBSCRIPTION = ""
+RED = "blue" # red is blue and blue is red
+GREEN = "green"
+selected = "pack_current"
+topic = "telemetry"
+host = "127.0.0.1"
+subscription = ""
+serial = spi(device = 0, port = 0)
+
+device  = ssd1351(serial)
+
+def make_font(name, size):
+    font_path = str(Path(__file__).resolve().parent.joinpath('fonts', name))
+    return ImageFont.truetype(font_path, size)
+    
+WARNING_FONT = make_font("code2000.ttf", 24)
 
 def parse_args():
-    global SUBSCRIPTION
+    global subscription
     #planned flags:
     # -h help
     # --select what column
     # --warn [none/warn/fault] look for faults or faults + warns or ignore faults and wanrs 
     print("parse_args stub")
-    SUBSCRIPTION = subscribe.simple(TOPIC, hostname=HOST)
+    subscription = subscribe.simple(topic, hostname=host)
     #this function will also have to reintialize the subscriber but anyways
 
 def tests():
@@ -37,11 +50,14 @@ def tests():
     print(type(mqtt_msg), " should be dict")
     print(has_warning({"motor_fault": True}), " should be True (has_fault)")
     print(has_warning({"motor_fault": False}), " should be False (has_fault)")
-    warnings = [w for w in get_warnings({"motor_fault" : True, "dc_main_wire_over_vault_fault": False})]
-    print(warnings, "should only have motor_fault")
+    warnings = [w for w in get_warnings({"motor_fault" : True, "dc_main_wire_over_vault_fault": False, "motor_stall_fault": True})]
+    print(warnings, " should only have motor_fault, and motor_stall_fault")
+    print(generate_warnings_string(warnings), " should be motor_fault motor_stall_fault")
+    print("Displaying warnings")
+    scroll_display(warnings, font = WARNING_FONT, speed = 2)
 
 def ingest_mqtt():
-   payload = json.loads(SUBSCRIPTION.payload)
+   payload = json.loads(subscription.payload)
    return payload
 
 def warning_criteria(entry):
@@ -57,6 +73,30 @@ def has_warning(payload : dict):
 def get_warnings(payload : dict):
     yield from map(lambda x : x[0], filter(warning_criteria, payload.items()))
 
+#if this is spelled wrong, mb, I don't have autocorrect on
+def concatenate_strings(a : str, b : str):
+    return a + "  |  " + b
+
+def generate_warnings_string(warnings : list[str]):
+    return functools.reduce(concatenate_strings, warnings)
+
+def scroll_display(warnings : list[str], speed= 1, fill = RED, font = None):
+    message = generate_warnings_string(warnings)
+    x = device.width
+    with canvas(device) as draw:
+        left, top, right, bottom = draw.textbbox((x,0), message, font = font)
+        w, h = right - left, bottom -top 
+
+    virtual = viewport(device, width=w + x + x, height = max(h, device.height))
+    with canvas(virtual) as draw:
+        draw.text((x,device.height/2 - h/2), message, fill = fill, font = font)
+
+    i = 0
+    while i < w + x:
+        virtual.set_position((i,0))
+        i += speed
+        sleep(0.025)
+
 def main():
     parse_args()
     
@@ -66,10 +106,10 @@ def main():
         mqtt_msg = ingest_mqtt()
     
        if (has_warning(mqtt_msg)):
-            banner_display(get_warnings(mqtt_msg), RED, delay = 100)
+            scroll_display(get_warnings(mqtt_msg), RED)
         else:
-            selected_data = extract_column(mqtt_msgi, SELECTED) 
-            display(SELECTED, selected_data, GREEN)
+selected_data = extract_column(mqtt_msgi, selected) 
+            display(selected, selected_data, GREEN)
 """
 #serial = spi(device = 0, port = 0)
 

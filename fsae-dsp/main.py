@@ -19,7 +19,7 @@ import functools
 
 RED = "blue" # red is blue and blue is red
 GREEN = "green"
-selected = "pack_current"
+selected = "ts"
 topic = "telemetry"
 host = "127.0.0.1"
 subscription = ""
@@ -32,8 +32,8 @@ def make_font(name, size):
     return ImageFont.truetype(font_path, size)
 
 WARNING_FONT = make_font("C&C Red Alert [INET].ttf", 24)
-SELECTED_FONT = make_font("C&C Red Alert [INET].ttf", 10)
-VALUE_FONT = make_font("C&C Red Alert [INET].ttf", 24)
+SELECTED_FONT = make_font("C&C Red Alert [INET].ttf", 16)
+VALUE_FONT = make_font("C&C Red Alert [INET].ttf", 20)
 
 def parse_args():
     global subscription
@@ -42,7 +42,6 @@ def parse_args():
     # --select what column
     # --warn [none/warn/fault] look for faults or faults + warns or ignore faults and wanrs 
     print("parse_args stub")
-    subscription = subscribe.simple(topic, hostname=host)
     #this function will also have to reintialize the subscriber but anyways
 
 def tests():
@@ -66,6 +65,7 @@ def tests():
         i+=1
 
 def ingest_mqtt():
+   subscription = subscribe.simple(topic, hostname=host)
    payload = json.loads(subscription.payload)
    return payload
 
@@ -117,22 +117,20 @@ def display(sel, data, fill = GREEN):
 
         draw.text((0,0), sel, font = SELECTED_FONT, fill = fill)
         draw.text((device.width/2 - w/2, device.height/2 - h/2), data, font = VALUE_FONT, fill = fill)
-    sleep(0.025)
+    #sleep(0.025)
 
 def main():
     parse_args()
     
-
-"""
     while True: 
         mqtt_msg = ingest_mqtt()
     
-       if (has_warning(mqtt_msg)):
+        if (has_warning(mqtt_msg)):
             scroll_display(get_warnings(mqtt_msg), RED)
         else:
-selected_data = extract_column(mqtt_msgi, selected) 
+            selected_data = extract_column(mqtt_msg, selected) 
             display(selected, selected_data, GREEN)
-"""
+
 #serial = spi(device = 0, port = 0)
 
 #device  = ssd1351(serial)

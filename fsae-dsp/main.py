@@ -30,8 +30,8 @@ device  = ssd1351(serial)
 def make_font(name, size):
     font_path = str(Path(__file__).resolve().parent.joinpath('fonts', name))
     return ImageFont.truetype(font_path, size)
-    
-WARNING_FONT = make_font("code2000.ttf", 24)
+
+WARNING_FONT = make_font("C&C Red Alert [INET].ttf", 24)
 
 def parse_args():
     global subscription
@@ -50,11 +50,13 @@ def tests():
     print(type(mqtt_msg), " should be dict")
     print(has_warning({"motor_fault": True}), " should be True (has_fault)")
     print(has_warning({"motor_fault": False}), " should be False (has_fault)")
-    warnings = [w for w in get_warnings({"motor_fault" : True, "dc_main_wire_over_vault_fault": False, "motor_stall_fault": True})]
+    ingress = {"motor_fault" : True, "dc_main_wire_over_vault_fault": False, "motor_stall_fault": True, "motor_speed":10.0} 
+    warnings = [w for w in get_warnings(ingress)]
     print(warnings, " should only have motor_fault, and motor_stall_fault")
     print(generate_warnings_string(warnings), " should be motor_fault motor_stall_fault")
     print("Displaying warnings")
     scroll_display(warnings, font = WARNING_FONT, speed = 2)
+    print(extract_column(ingress, "motor_speed"), " should be 10.0")
 
 def ingest_mqtt():
    payload = json.loads(subscription.payload)
@@ -75,7 +77,7 @@ def get_warnings(payload : dict):
 
 #if this is spelled wrong, mb, I don't have autocorrect on
 def concatenate_strings(a : str, b : str):
-    return a + "  |  " + b
+    return a + "  %%  " + b
 
 def generate_warnings_string(warnings : list[str]):
     return functools.reduce(concatenate_strings, warnings)
@@ -96,6 +98,10 @@ def scroll_display(warnings : list[str], speed= 1, fill = RED, font = None):
         virtual.set_position((i,0))
         i += speed
         sleep(0.025)
+
+def extract_column (msg, sel):
+    return msg[sel]
+
 
 def main():
     parse_args()

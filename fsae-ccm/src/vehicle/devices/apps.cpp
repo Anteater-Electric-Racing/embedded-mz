@@ -41,6 +41,7 @@ void APPS_Init() {
 
 void APPS_UpdateData(uint16_t rawReading1,
                      uint16_t rawReading2) { // changed uint16 from 32
+
     // Serial.print("Raw APPS1: ");
     // Serial.println(rawReading1);
     // Serial.print("Raw APPS2: ");
@@ -99,7 +100,7 @@ void APPS_UpdateData(uint16_t rawReading1,
     appsData.appsReading1_Voltage =
         ADC_VALUE_TO_VOLTAGE(appsData.apps1RawReading);
     appsData.appsReading2_Voltage =
-        ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading) - APPS2_OFFSET;
+        ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading);
 
     /*========================== RAW VOLTAGE ==========================*/
     // Serial.print("APPS1 RAW Voltage: ");
@@ -107,16 +108,16 @@ void APPS_UpdateData(uint16_t rawReading1,
     // Serial.print("APPS2 RAW Voltage: ");
     // Serial.println(appsData.appsReading2_Voltage);
 
-    if (appsData.appsReading2_Voltage < APPS_3V3_INV_MIN) {
-        appsData.appsReading2_Voltage = APPS_3V3_INV_MIN;
-    } else if (appsData.appsReading2_Voltage > APPS_3V3_INV_MAX) {
-        appsData.appsReading2_Voltage = APPS_3V3_INV_MAX;
-    }
-
     if (appsData.appsReading1_Voltage < APPS_3V3_MIN) {
         appsData.appsReading1_Voltage = APPS_3V3_MIN;
     } else if (appsData.appsReading1_Voltage > APPS_3V3_MAX) {
         appsData.appsReading1_Voltage = APPS_3V3_MAX;
+    }
+
+    if (appsData.appsReading2_Voltage > APPS_3V3_INV_MIN) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_MIN;
+    } else if (appsData.appsReading2_Voltage < APPS_3V3_INV_MAX) {
+        appsData.appsReading2_Voltage = APPS_3V3_INV_MAX;
     }
 
     // Serial.print("APPS1 RAW Voltage: ");
@@ -126,7 +127,6 @@ void APPS_UpdateData(uint16_t rawReading1,
 
     /*========================== 20 PCT LINEAR MAP ==========================*/
     // Moved this upwards to before the clamping of percentage
-
     // Map voltage to percentage of throttle travel, limiting to 0-1 range
     // appsData.appsReading1_Percentage =
     //     LINEAR_MAP(appsData.apps1RawReading, 0.0F, (float)APPS1_20PCT_ADC,
@@ -167,12 +167,14 @@ float APPS_GetAPPSReading1() { return appsData.appsReading1_Percentage; }
 
 float APPS_GetAPPSReading2() { return appsData.appsReading2_Percentage; }
 
+void APPS_AutoCalibrate() {}
+
 static void checkAndHandleAPPSFault() {
     // Check for open/short circuit
     float difference = abs(appsData.appsReading1_Percentage -
                            appsData.appsReading2_Percentage);
 
-    // // #if DEBUG_FLAG
+    // #if DEBUG_FLAG
     // Serial.print("Difference is: ");
     // Serial.println(difference);
     // Serial.print("Percent APPS1: ");
@@ -189,10 +191,6 @@ static void checkAndHandleAPPSFault() {
         TickType_t now = xTaskGetTickCount();
         TickType_t elapsedTicks = now - appsLatestHealthyStateTime;
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
-
-        Serial.print("APPS 1");
-        Serial.println(appsData.appsReading1_Voltage);
-        Serial.println(appsData.appsReading2_Voltage);
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
             // #if DEBUG_FLAG

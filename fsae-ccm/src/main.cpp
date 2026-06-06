@@ -48,10 +48,10 @@ void setup() { // runs once on bootup
     VCU_Init();
     GPIO_Init();
     PCC_Init();
-    // thermal_Init();
+    thermal_Init();
     Bypass_Init();
-    // GPIO_Init();
-    // WSS_Init();
+    GPIO_Init();
+    WSS_Init();
     // WDT_Init();
 
     xTaskCreate(threadADC, "threadADC", THREAD_ADC_STACK_SIZE, NULL,
@@ -87,8 +87,14 @@ void threadMain(void *pvParameters) {
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();
-        thermal_forceOn();
+        thermal_forceOff();
+        RTM_ButtonUpdate(digitalRead(rtm_PIN));
 
+        // Serial.print(digitalRead(23));
+        // Serial.print(digitalRead(22));
+        // Serial.print(digitalRead(21));
+        // Serial.print(digitalRead(20));
+        // Serial.print("\r");
 #if APPS_DEBUG
         Serial.print("APPS1 %: ");
         Serial.print(APPS_GetAPPSReading1());
@@ -98,6 +104,22 @@ void threadMain(void *pvParameters) {
         Serial.print(" | ");
         Serial.print("Diff: ");
         Serial.print(abs(APPS_GetAPPSReading1() - APPS_GetAPPSReading2()));
+        Serial.print(" | ");
+        Serial.print("Fault bitmap: ");
+        Serial.println(Faults_GetFaults(), arduino::BIN);
+        Serial.print("\r");
+
+#endif
+
+#if BSE_DEBUG
+        Serial.print("BSE Reading 1 ");
+        Serial.print(BSE_GetBSEReading()->bseRear_Reading);
+        Serial.print(" | ");
+        Serial.print("BSE Reading 2 ");
+        Serial.print(BSE_GetBSEReading()->bseFront_Reading);
+        Serial.print(" | ");
+        Serial.print("BSE Avg ");
+        Serial.print(BSE_GetBSEAverage());
         Serial.print(" | ");
         Serial.print("Fault bitmap: ");
         Serial.println(Faults_GetFaults(), arduino::BIN);
@@ -115,18 +137,26 @@ void threadMain(void *pvParameters) {
         Serial.print(WSS_GetRPM2());
         Serial.print(" | W2 MPH: ");
         Serial.print(WSS_GetSpeed2_MPH());
+        Serial.print(" | ");
+        Serial.print("W3 RPM: ");
+        Serial.print(WSS_GetRPM3());
+        Serial.print(" | W3 MPH: ");
+        Serial.print(WSS_GetSpeed3_MPH());
 
-        Serial.print("\r");
+        Serial.print(" | W4 RPM: ");
+        Serial.print(WSS_GetRPM4());
+        Serial.print(" | W4 MPH: ");
+        Serial.print(WSS_GetSpeed4_MPH());
+        Serial.print("\n");
 #endif
 
         // thermal_regulate(); //still need to tune parameters
 
-        // if (BSE_GetBSEReading()->bseFront_Reading > BRAKE_LIGHT_THRESHOLD &&
-        //     BSE_GetBSEReading()->bseRear_Reading > BRAKE_LIGHT_THRESHOLD) {
-        //     digitalWrite(BRAKE_LIGHT_PIN, HIGH);
-        // } else {
-        //     digitalWrite(BRAKE_LIGHT_PIN, LOW);
-        // }
+        if (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD) {
+            digitalWrite(BRAKE_LIGHT_PIN, HIGH);
+        } else {
+            digitalWrite(BRAKE_LIGHT_PIN, LOW);
+        }
 
 #if IMD_FLAG
 
@@ -192,7 +222,7 @@ void threadMain(void *pvParameters) {
 
         Serial.print("\r");
 #endif
-thermal_regulate();
+        thermal_regulate();
 #if HIMAC_FLAG
 
         /*

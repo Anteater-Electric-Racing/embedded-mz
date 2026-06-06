@@ -76,7 +76,7 @@ void threadVCU(void *pvParameters) {
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
         Faults_HandleFaults();
-        // WSS_Update();
+        WSS_Update();
 
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
@@ -117,7 +117,7 @@ void threadVCU(void *pvParameters) {
             } else {
                 targetTorque = VCU_TorqueMap(pedalAccel);
             }
-            
+
             float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
             float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
             float inverterFactor = VCU_Derate(DTI_GetDTIData()->controllerTemp);

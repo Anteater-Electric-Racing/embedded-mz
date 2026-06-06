@@ -33,10 +33,11 @@ constexpr int fault_address = 0;
 #define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
-#define WSS_FLAG 0
+#define WSS_FLAG 1
 #define BMS_FLAG 0 // TO REMOVE
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
+#define BSE_DEBUG 0
 
 #define ACTIVE_MAP 1
 
@@ -63,7 +64,7 @@ constexpr int fault_address = 0;
 
 #define WHEEL_SPEED_1_PIN 2
 #define WHEEL_SPEED_2_PIN 3
-#define rtm_PIN 36
+#define rtm_PIN 35
 #define BRAKE_LIGHT_PIN 9
 
 #define LOGIC_LEVEL_V 3.3F
@@ -74,7 +75,7 @@ constexpr int fault_address = 0;
 #define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
 #define TICKTYPE_FREQUENCY 1
 
-#define ADC_VOLTAGE_DIVIDER 1.515151F
+#define ADC_VOLTAGE_DIVIDER 1.382F
 
 #define ADC_VALUE_TO_VOLTAGE(x)                                                \
     ((x) * (LOGIC_LEVEL_V * ADC_VOLTAGE_DIVIDER / ADC_MAX_VALUE))
@@ -94,7 +95,7 @@ constexpr int fault_address = 0;
 #define APPS_3V3_MIN 0.06F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
 #define APPS_3V3_MAX 0.72F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
-#define APPS_3V3_INV_MIN 3.15F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
+#define APPS_3V3_INV_MIN 3.5F  //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
 #define APPS_3V3_INV_MAX 2.40F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
 // ADC values corresponding to physical 20% pedal)
@@ -102,14 +103,19 @@ constexpr int fault_address = 0;
 // #define APPS2_20PCT_ADC 1150.0F
 
 /**MZ Driving MAX (30%)) */
-#define APPS1_FULL_PCT_ADC 445.08F
-#define APPS2_FULL_PCT_ADC 2454.0F
+// #define APPS1_FULL_PCT_ADC 445.08F
+// #define APPS2_FULL_PCT_ADC 2454.0F
+
+/*New values*/
+
+#define APPS1_FULL_PCT_ADC 198.00F
+#define APPS2_FULL_PCT_ADC 2720.0F
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
 /**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 82.00F
-#define APPS2_REST_ADC 2850.82F
+#define APPS1_REST_ADC 5.00F
+#define APPS2_REST_ADC 2940.82F
 
 // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
@@ -144,6 +150,7 @@ constexpr int fault_address = 0;
 
 // ALL in volts rn
 #define BRAKE_LIGHT_THRESHOLD 0.45F
+#define BRAKE_LIGHT_AVG_THRESHOLD 0.865F
 #define BSE_LOWER_THRESHOLD 0.25F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F

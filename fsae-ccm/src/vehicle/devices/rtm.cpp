@@ -12,10 +12,12 @@ static bool rtmState = false; // Latching state of RTM based on momentary button
 static uint32_t lastDebounceTime = 0;
 
 void RTM_ButtonUpdate(bool rtmButton) {
-    if (rtmButton == 1 && millis() - lastDebounceTime > BUTTON_DEBOUNCE_MS) {
-        rtmState = !rtmState; // Toggle the state
-        lastDebounceTime = millis();
-    }
+
+    rtmState = rtmButton;
+    // if (rtmButton == 1 && millis() - lastDebounceTime > BUTTON_DEBOUNCE_MS) {
+    //     rtmState = !rtmState; // Toggle the state
+    //     lastDebounceTime = millis();
+    // }
 }
 
 bool RTM_ButtonState() { return rtmState; }

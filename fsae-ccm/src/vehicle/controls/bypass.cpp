@@ -31,7 +31,6 @@ void Bypass_Init() {
  * Feedback LOW (faults need to be bypassed) & IMD Status Low ->
  * Bypass ON (LOW) Feedback HIGH (faults are clear) -> Bypass OFF (HIGH) after
  * delay
- *
  */
 
 void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
@@ -39,15 +38,15 @@ void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
 void Bypass_TSSI() {
     feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
 
-    Serial.print("in startup? : ");
-    Serial.print(startup ? "TRUE" : "FALSE");
-    Serial.print(" | feedbackStatus = ");
-    Serial.print(feedbackStatus ? "NO FAULT" : "FAULT");
-    Serial.print(" | ");
-    Serial.print("latched fault from prev ON = ");
-    Serial.print(is_fault ? "NO FAULT ---- BYPASSING"
-                          : "FAULT ---- DON'T BYPASS");
-    Serial.print("\r");
+    // Serial.print("in startup? : ");
+    // Serial.print(startup ? "TRUE" : "FALSE");
+    // Serial.print(" | feedbackStatus = ");
+    // Serial.print(feedbackStatus ? "NO FAULT" : "FAULT");
+    // Serial.print(" | ");
+    // Serial.print("latched fault from prev ON = ");
+    // Serial.print(is_fault ? "NO FAULT ---- BYPASSING"
+    //                       : "FAULT ---- DON'T BYPASS");
+    // Serial.print("\r");
 
     // I get feedback as FAULT always on startup
     // issue is that no fault feedback happens until I click the latchboard

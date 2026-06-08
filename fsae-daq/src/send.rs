@@ -1,11 +1,12 @@
 use std::any::TypeId;
 use std::fmt::Debug;
+use std::sync::LazyLock;
 use config::Map;
-use rumqttc::tokio_rustls::rustls::crypto::cipher::InboundOpaqueMessage;
 use serde::{Serialize, Deserialize};
 use rumqttc::{AsyncClient, ClientError, MqttOptions, QoS};
 use serde_json::map::Values;
 use tracing::field::display;
+use lazy_static::lazy_static;
 use tracing::{error, info};
 use tokio::sync::{Mutex, OnceCell};
 use tokio::time::Duration;
@@ -24,6 +25,7 @@ pub const MQTT_PORT: u16 = 1883;
 pub const QUESTDB_URL: &str = "http::addr=localhost:9000;"; //this is probably (defintly) the wrong link but it does let me connect on my home computer
 
 
+
 const CREATE_DB: &str =
     "CREATE DATABASE IF NOT EXISTS fsae WAL_LEVEL 2 WAL_FSYNC_PERIOD 0 STT_TRIGGER 1 KEEP 365d";
 const MAX_CONSECUTIVE_FAILURES: u32 = 10;
@@ -35,8 +37,11 @@ pub trait Reading: Serialize {
 
 //static TDENGINE: OnceCell<Sender<String>> = OnceCell::const_new();
 static MQTT_CLIENT: OnceCell<AsyncClient> = OnceCell::const_new();
-static QUESTDB_BUFFER: OnceCell<questdb::ingress::Buffer> = OnceCell::const_new();
 
+lazy_static! {
+    static ref Questdb_buffer : Mutex<questdb::ingress::Buffer> = 
+    Mutex::new(get_qdb_buffer());
+}
 struct Sending_data { //TODO: rename
     pub buffer : questdb::ingress::Buffer
 }
@@ -72,36 +77,31 @@ enum PosssibleFields {
     Bool(bool)
 }
 
-async fn data_into_buffer(table_name: &str, value: serde_json::Value) -> questdb::ingress::Buffer{
-    let mut buf = Sender::from_conf("http::addr=localhost:9000;").expect("lol").new_buffer(); 
-    let _ = buf.table("telemetry");
+pub fn get_qdb_buffer() -> questdb::ingress::Buffer{
+    Sender::from_conf("http::addr=localhost:9000;").expect("lol").new_buffer()
+}
+
+async fn data_into_buffer(table_name: &str, value: serde_json::Value, buffer : &mut questdb::ingress::Buffer){
+    let _ = buffer.table(table_name);
     let as_map : Map<String, PosssibleFields> = serde_json::from_value(value.clone()).unwrap();
     let as_map2 : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
 
     for (key, value) in as_map.into_iter(){
         if let PosssibleFields::Int(f) = value {
-            let _ = buf.column_i64(key.as_str(), f);
+            let _ = buffer.column_i64(key.as_str(), f);
         }
         else if let PosssibleFields::Float(f) = value {
-            let _ = buf.column_f64(key.as_str(), f.into());
+            let _ = buffer.column_f64(key.as_str(), f.into());
         }
         else if let PosssibleFields::Bool(f) = value {
-            let _ = buf.column_bool(key.as_str(), f);
+            let _ = buffer.column_bool(key.as_str(), f);
         }
     }
 
-    let _ = buf.column_str("col_name", "value");
+    let _ = buffer.column_str("col_name", "value");
     if let PosssibleFields::Int(i) = as_map2.get("ts").expect("msg"){
-        let _ = buf.at(TimestampMicros::new((*i)*1000));
+        let _ = buffer.at(TimestampMicros::new((*i)*1000));
     }
-    buf
-
-}
-
-async fn get_questdb_buffer() -> &'static questdb::ingress::Buffer{
-    QUESTDB_BUFFER.get_or_init( || async {
-        Sender::from_conf("http::addr=localhost:9000;").expect("lol").new_buffer()
-    }).await
 }
 
 async fn get_mqtt_client() -> &'static AsyncClient {
@@ -129,7 +129,7 @@ pub fn now_ms() -> u64 {
         .as_millis() as u64
 }
 
-pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms: u64) {
+pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms: u64, buffer : &mut questdb::ingress::Buffer) {
     let mut value: serde_json::Value = match serde_json::to_value(&message) {
         Ok(v) => v,
         Err(e) => {
@@ -161,13 +161,22 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
     }
     
     
-    async fn send_to_questdb(topic : &str, value : serde_json::Value) {
-        let buf = data_to_buffer( topic, value).await;
-        let mut data = Sending_data {buffer : buf};
-        data.send_questdb().await;
-    }
+    //async fn send_to_questdb(topic : &str, value : serde_json::Value) {
+    //    let buf = data_to_buffer( topic, value).await;
+    //    let mut data = Sending_data {buffer : buf};
+    //    data.send_questdb().await;
+    //}
 
-    tokio::spawn(send_to_questdb(topic, value));
+    //put into buffer
+    data_into_buffer(topic, value, buffer).await;
+    //check size
+    if buffer.row_count() > 1_000_000 {
+        //send to buffer if fast enough
+        let mut sender: Sender = get_questdb_sender().await;
+        let _ = sender.flush( buffer);
+        //info!("sent to qdb {}", buffer.row_count());
+    }
+    //tokio::spawn(send_to_questdb(topic, value));
     //let buf = data_to_buffer( topic, value).await;
     //let mut data = Sending_data {buffer : buf};
     //data.send_questdb().await;

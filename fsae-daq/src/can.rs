@@ -14,7 +14,7 @@
 //! using the virtual CAN network setup in the GitHub Actions workflow (test.yml).
 
 use structmap::{ToMap, value::Value};
-use crate::send::{now_ms, send_message, Reading};
+use crate::send::{now_ms, send_message, Reading, get_qdb_buffer};
 use deku::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -251,11 +251,14 @@ impl Reading for TelemetryData {
     }
 }
 
+//I'm very sorry but I honestly can't figure out how to properly have a global & mutable buffer (which rust kinda doesn't want to have (no shared mutable states)), so I;m doing some architectural ersosion and putting buffer here. 
+
 /// Reads ISO-TP packets from `can0` in a loop, parses each into
 /// [`TelemetryData`], and forwards via [`send_message`].
 ///
 /// Retries socket creation on failure; logs malformed packets.
 async fn read_can_hardware() {
+    let mut buffer : questdb::ingress::Buffer = get_qdb_buffer();
     loop {
         let socket = match IsoTpSocket::open(
             CAN_INTERFACE,
@@ -276,7 +279,7 @@ async fn read_can_hardware() {
                 Ok(((remaining, _), _)) if !remaining.is_empty() => {
                     warn!("Telemetry packet has {} trailing bytes", remaining.len(),);
                 }
-                Ok((_, data)) => send_message(data, ts).await,
+                Ok((_, data)) => send_message(data, ts, &mut buffer).await,
                 Err(e) => warn!(error = %e, "Malformed telemetry packet"),
             }
         }
@@ -292,6 +295,7 @@ impl TelemetryData {
 
 /// Generates synthetic telemetry (debug builds only).
 async fn read_can_synthetic() {
+    let mut buffer : questdb::ingress::Buffer = get_qdb_buffer();
     use std::time::Instant;
 
     let mut count: u64 = 0;
@@ -300,7 +304,7 @@ async fn read_can_synthetic() {
     let mut interval = tokio::time::interval(Duration::from_millis(1));
     loop {
         interval.tick().await;
-        send_message(TelemetryData::default().mutate_test_val(), now_ms()).await;
+        send_message(TelemetryData::default().mutate_test_val(), now_ms(), &mut buffer).await;
         count += 1;
 
         let elapsed = last.elapsed();
@@ -311,6 +315,7 @@ async fn read_can_synthetic() {
         }
     }
 }
+
 
 /// Entry point: dispatches to the hardware or synthetic reader depending
 /// on the build profile.

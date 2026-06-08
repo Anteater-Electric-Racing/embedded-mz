@@ -1118,6 +1118,7 @@ dependencies = [
  "config 0.15.19",
  "deku",
  "itoa",
+ "lazy_static",
  "questdb-rs",
  "reqwest",
  "rumqttc",
@@ -1126,6 +1127,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
+ "structmap",
  "taos",
  "tokio",
  "tokio-socketcan-isotp",
@@ -1657,13 +1659,6 @@ name = "ident_case"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b9e0384b61958566e926dc50660321d12159025e767c18e043daf26b70104c39"
-
-[[package]]
-name = "idkwimdoing"
-version = "0.1.0"
-dependencies = [
- "questdb-rs",
-]
 
 [[package]]
 name = "idna"
@@ -3610,6 +3605,26 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[package]]
+name = "structmap"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "660474c47ace6efc9626562196819bd307d981ab54da0d0a641b6f83b5680d89"
+dependencies = [
+ "structmap-derive",
+]
+
+[[package]]
+name = "structmap-derive"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0117ac597862ad619664a8c7b7e9addaadac3a06de5703f8b4724586b9e05986"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 1.0.109",
+]
 
 [[package]]
 name = "subtle"

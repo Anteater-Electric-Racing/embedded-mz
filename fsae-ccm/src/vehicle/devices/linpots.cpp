@@ -6,6 +6,8 @@
 #include <arduino_freertos.h>
 #include <cmath>
 
+// TODO CLEANUP
+
 template <typename T> T constrain(T val, T minVal, T maxVal) {
     if (val < minVal)
         return minVal;

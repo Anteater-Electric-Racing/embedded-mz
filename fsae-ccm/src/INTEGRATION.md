@@ -1,7 +1,7 @@
 
 1. Start with TSSI bypass test - COMPLETE, see Bypass_Full()
 2. Tune BS, THEN APPS CALIBRATION  - COMPLETE (ish) - fix ADC_value to VOLTAGE function
-4. THEN ALL GPIOS OK
+4. THEN ALL GPIOS OK OK
 7. CHECK WSS READINGS
 
 TODO:

@@ -228,7 +228,7 @@ typedef struct {
 
 // ============ Orion BMS, Isobender IMD ========================= //
 typedef struct __attribute__((packed)) {
-    int32_t packCurrent;  // Byte 0-1: Pack Current (0.1A/bit)
+    int16_t packCurrent;  // Byte 0-1: Pack Current (0.1A/bit)
     uint16_t packVoltage; // Byte 2-3: Pack Voltage (0.1V/bit)
     uint8_t packSOC;      // Byte 4: SOC (0.5%/bit)
     uint8_t relayState;   // Byte 5: Relay State Bitmask

@@ -33,11 +33,11 @@ constexpr int fault_address = 0;
 #define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
-#define WSS_FLAG 1
-#define BMS_FLAG 0 // TO REMOVE
+#define WSS_FLAG 0
+#define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
-#define BSE_DEBUG 0
+#define BSE_DEBUG 1
 
 #define ACTIVE_MAP 1
 
@@ -75,7 +75,7 @@ constexpr int fault_address = 0;
 #define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
 #define TICKTYPE_FREQUENCY 1
 
-#define ADC_VOLTAGE_DIVIDER 1.382F
+#define ADC_VOLTAGE_DIVIDER 1.85F
 
 #define ADC_VALUE_TO_VOLTAGE(x)                                                \
     ((x) * (LOGIC_LEVEL_V * ADC_VOLTAGE_DIVIDER / ADC_MAX_VALUE))
@@ -92,12 +92,18 @@ constexpr int fault_address = 0;
 #define APPS_RANGE_MIN_PERCENT .15F
 #define APPS_RANGE_MAX_PERCENT .85F
 
-#define APPS_3V3_MIN 0.06F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
-#define APPS_3V3_MAX 0.72F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
+// #define APPS_3V3_MIN 1.45  //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
+// #define APPS_3V3_MAX 2.00F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
-#define APPS_3V3_INV_MIN 3.5F  //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
-#define APPS_3V3_INV_MAX 2.40F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
+// #define APPS_3V3_INV_MIN 1.76F //(APPS2_VOLTAGE_LEVEL *
+// APPS_RANGE_MIN_PERCENT) #define APPS_3V3_INV_MAX 1.25F //(APPS2_VOLTAGE_LEVEL
+// * APPS_RANGE_MAX_PERCENT)
 
+#define APPS_3V3_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.05F
+#define APPS_3V3_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.05F
+
+#define APPS_3V3_INV_MIN ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC) + 0.05F
+#define APPS_3V3_INV_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.05F
 // ADC values corresponding to physical 20% pedal)
 // #define APPS1_20PCT_ADC 784.0F // OLD
 // #define APPS2_20PCT_ADC 1150.0F
@@ -108,14 +114,14 @@ constexpr int fault_address = 0;
 
 /*New values*/
 
-#define APPS1_FULL_PCT_ADC 198.00F
-#define APPS2_FULL_PCT_ADC 2720.0F
+#define APPS1_FULL_PCT_ADC 1060.00F
+#define APPS2_FULL_PCT_ADC 1100.00
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
 /**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 5.00F
-#define APPS2_REST_ADC 2940.82F
+#define APPS1_REST_ADC 766.0F
+#define APPS2_REST_ADC 1420.0F
 
 // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
@@ -128,11 +134,11 @@ constexpr int fault_address = 0;
 
 /*     END ANOOP TESTING FOR 20% HERE     */
 
-#define APPS_3V3_FAULT_MIN 0.0F
-#define APPS_3V3_FAULT_MAX 1.0F
+#define APPS_3V3_FAULT_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.15F
+#define APPS_3V3_FAULT_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.15F
 
-#define APPS_3V3_INV_FAULT_MIN 2.0F
-#define APPS_3V3_INV_FAULT_MAX 4.0F
+#define APPS_3V3_INV_FAULT_MIN ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC) + 0.15F
+#define APPS_3V3_INV_FAULT_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.15F
 #define APPS_FAULT_TIME_THRESHOLD_MS 100
 
 #define APPS_IMPLAUSABILITY_THRESHOLD 0.1             // 10%
@@ -141,27 +147,27 @@ constexpr int fault_address = 0;
     0.50 // TODO: change back to PSI200    // IN VOLTS
 #define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05 // 5%
 
-#define BSE_VOLTAGE_DIVIDER 2.0F // TODO: Update with real value: 1.515151F
-#define BSE_ADC_VALUE_TO_VOLTAGE(x)                                            \
-    (x * (LOGIC_LEVEL_V / ADC_MAX_VALUE)) *                                    \
-        BSE_VOLTAGE_DIVIDER // ADC value to voltage conversion
-
-#define BSE_VOLTAGE_TO_PSI(x) x // Voltage to PSI conversion
+#define BSE_MIN_PSI 0.0F
+#define BSE_MAX_PSI 1000.0F
+#define BSE_MIN_V 0.5F
+#define BSE_MAX_V 4.5F
+#define BSE_VOLTAGE_TO_PSI(x)                                                  \
+    (BSE_MAX_PSI / (BSE_MAX_V - BSE_MIN_V)) * (x - BSE_MIN_V)
 
 // ALL in volts rn
-#define BRAKE_LIGHT_THRESHOLD 0.45F
-#define BRAKE_LIGHT_AVG_THRESHOLD 0.865F
+#define BRAKE_LIGHT_THRESHOLD 4.0F // PSI
+#define BRAKE_LIGHT_AVG_THRESHOLD 119
 #define BSE_LOWER_THRESHOLD 0.25F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F
 
 #define BSE_FAULT_TIME_THRESHOLD_MS 100
 
-#define BSE_CUTOFF_HZ 100.0F
+#define BSE_CUTOFF_HZ 40.0F
 
 #define CAN_FAULT_TIME_THRESHOLD_MS 100
 
-#define MOTOR_MAX_TORQUE 260.0F // TODO: Update with real value //used to be 260
+#define MOTOR_MAX_TORQUE 220.0F // TODO: Update with real value //used to be 220
 #define CAPPED_MOTOR_TORQUE 80.0F
 #define MAX_TORQUE_STEP_UP_PCT 0F
 #define MAX_TORQUE_STEP_DOWN_PCT 1.0F

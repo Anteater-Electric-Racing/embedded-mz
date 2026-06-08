@@ -39,7 +39,7 @@ void thermal_Init() {
 void thermal_forceOn() {
     analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
-    analogWrite(FAN_PIN, DUTY_CYCLE_MAX * 0.1);
+    analogWrite(FAN_PIN, -DUTY_CYCLE_MAX * 0.1);
 }
 
 /* Recieves the temperature of both  */

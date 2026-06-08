@@ -47,12 +47,6 @@ void APPS_UpdateData(uint16_t rawReading1,
     // Serial.print("Raw APPS2: ");
     // Serial.println(rawReading2);
 
-    /*========================== REMOVE: RAW CLAMP ==========================*/
-    // if (rawReading1 > APPS1_20PCT_ADC)
-    //     rawReading1 = APPS1_20PCT_ADC;
-    // if (rawReading2 > APPS2_20PCT_ADC)
-    //     rawReading2 = APPS2_20PCT_ADC;
-
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
 
@@ -62,23 +56,11 @@ void APPS_UpdateData(uint16_t rawReading1,
     // Serial.print("Raw APPS2: ");
     // Serial.println(appsData.apps2RawReading);
 
-    // if (rawReading1 < APPS1_REST_ADC) {
-    //     rawReading1 = APPS1_REST_ADC;
-    // } else if (rawReading1 > APPS1_FULL_PCT_ADC) {
-    //     rawReading1 = APPS1_FULL_PCT_ADC;
+    // if (appsData.appsReading2_Percentage < 0.0F) {
+    //     appsData.appsReading2_Percentage = 0.0F;
+    // } else if (appsData.appsReading2_Percentage > 1.0F) {
+    //     appsData.appsReading2_Percentage = 1.0F;
     // }
-
-    // if (rawReading2 < APPS2_REST_ADC) {
-    //     rawReading2 = APPS2_REST_ADC;
-    // } else if (rawReading2 > APPS2_FULL_PCT_ADC) {
-    //     rawReading2 = APPS2_FULL_PCT_ADC;
-    // }
-
-    if (appsData.appsReading2_Percentage < 0.0F) {
-        appsData.appsReading2_Percentage = 0.0F;
-    } else if (appsData.appsReading2_Percentage > 1.0F) {
-        appsData.appsReading2_Percentage = 1.0F;
-    }
 
     // after LOWPASS_FILTER
     appsData.appsReading1_Percentage =
@@ -148,11 +130,6 @@ void APPS_UpdateData(uint16_t rawReading1,
         appsData.appsReading2_Percentage = 1.0F;
     }
 
-    // Serial.print("APPS1 raw Perc: ");
-    // Serial.println(appsData.appsReading1_Percentage);
-    // Serial.print("APPS2 raw Perc: ");
-    // Serial.println(appsData.appsReading2_Percentage);
-
     checkAndHandleAPPSFault();
     checkAndHandlePlausibilityFault();
 }
@@ -174,29 +151,20 @@ static void checkAndHandleAPPSFault() {
     float difference = abs(appsData.appsReading1_Percentage -
                            appsData.appsReading2_Percentage);
 
-    // #if DEBUG_FLAG
-    // Serial.print("Difference is: ");
-    // Serial.println(difference);
-    // Serial.print("Percent APPS1: ");
-    // Serial.println(appsData.appsReading1_Percentage);
-    // Serial.print("Percent APPS2: ");
-    // Serial.println(appsData.appsReading2_Percentage);
-    // #endif
-
     if (appsData.appsReading1_Voltage < APPS_3V3_FAULT_MIN ||
         appsData.appsReading1_Voltage > APPS_3V3_FAULT_MAX ||
-        appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MIN ||
-        appsData.appsReading2_Voltage > APPS_3V3_INV_FAULT_MAX) {
+        appsData.appsReading2_Voltage > APPS_3V3_INV_FAULT_MIN ||
+        appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MAX) {
 
         TickType_t now = xTaskGetTickCount();
         TickType_t elapsedTicks = now - appsLatestHealthyStateTime;
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
-            // #if DEBUG_FLAG
+#if DEBUG_FLAG
             Serial.println(elapsedMs);
             Serial.println("Setting APPS fault ELAPSED");
-            // #endif
+#endif
             Faults_SetFault(FAULT_APPS);
             return;
         }

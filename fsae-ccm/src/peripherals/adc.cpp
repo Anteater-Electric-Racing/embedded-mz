@@ -103,9 +103,9 @@ void threadADC(void *pvParameters) {
             uint16_t adcRead = adc->adc1->analogRead(currentPinADC1);
             adc1Reads[currentIndexADC1] = adcRead;
         }
-        ShockTravelUpdateData(
-            adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
-            adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
+        // ShockTravelUpdateData(
+        //     adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
+        //     adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
         APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
         BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
     }

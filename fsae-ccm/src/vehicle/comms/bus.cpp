@@ -267,16 +267,16 @@ void threadBus(void *pvParameters) {
         }
 
         case mOBMS1_ID: {
-            // > 8 bytes - FIX
-            // OBMS1 raw = {0};
-            // memcpy(&raw, &rx_data, sizeof(raw));
+            // now 8 bytes
+            OBMS1 raw = {0};
+            memcpy(&raw, &rx_data, sizeof(raw));
 
-            // taskENTER_CRITICAL();
-            // bmsData.packCurrent = raw.packCurrent * 0.1F;
-            // bmsData.packVoltage = raw.packVoltage * 0.1F;
-            // bmsData.soc = raw.packSOC * 0.5F;
-            // bmsData.relayState = raw.relayState;
-            // taskEXIT_CRITICAL();
+            taskENTER_CRITICAL();
+            bmsData.packCurrent = raw.packCurrent * 0.1F;
+            bmsData.packVoltage = raw.packVoltage * 0.1F;
+            bmsData.soc = raw.packSOC * 0.5F;
+            bmsData.relayState = raw.relayState;
+            taskEXIT_CRITICAL();
             break;
         }
 

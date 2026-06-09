@@ -37,7 +37,7 @@ constexpr int fault_address = 0;
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
-#define BSE_DEBUG 1
+#define BSE_DEBUG 0
 
 #define ACTIVE_MAP 1
 

@@ -83,11 +83,12 @@ void threadMain(void *pvParameters) {
     while (true) {
         // WSS_Update();
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
+        thermal_forceOn();
 
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();
-        thermal_forceOff();
+
         RTM_ButtonUpdate(digitalRead(rtm_PIN));
 
         // Serial.print(digitalRead(23));

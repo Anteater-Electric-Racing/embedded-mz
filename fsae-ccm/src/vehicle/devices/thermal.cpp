@@ -19,14 +19,14 @@ void thermal_Init() {
     analogWriteFrequency(PUMP2_PIN,
                          ANALOG_WRITE_FREQUENCY);   // 25 kHz for Koolance
     analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
-    analogWrite(PUMP1_PIN, 0);
-    analogWrite(PUMP2_PIN, 0);
+    // analogWrite(PUMP1_PIN, 0);
+    // analogWrite(PUMP2_PIN, 0);
 
     pinMode(FAN_PIN, OUTPUT);
     analogWriteFrequency(FAN_PIN,
                          FAN_WRITE_FREQ);           // 25 kHz for Koolance
     analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
-    analogWrite(FAN_PIN, 0);
+    // analogWrite(FAN_PIN, 0);
 
     // thermal_forceOff();
 }
@@ -39,7 +39,7 @@ void thermal_Init() {
 void thermal_forceOn() {
     analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
-    analogWrite(FAN_PIN, -DUTY_CYCLE_MAX * 0.1);
+    analogWrite(FAN_PIN, DUTY_CYCLE_MAX * 0.1);
 }
 
 /* Recieves the temperature of both  */

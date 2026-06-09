@@ -114,14 +114,14 @@ constexpr int fault_address = 0;
 
 /*New values*/
 
-#define APPS1_FULL_PCT_ADC 1060.00F
-#define APPS2_FULL_PCT_ADC 1100.00
+#define APPS1_FULL_PCT_ADC 747.21F
+#define APPS2_FULL_PCT_ADC 2265.21F
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
 /**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 766.0F
-#define APPS2_REST_ADC 1420.0F
+#define APPS1_REST_ADC 340.0F
+#define APPS2_REST_ADC 2563.57F
 
 // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))

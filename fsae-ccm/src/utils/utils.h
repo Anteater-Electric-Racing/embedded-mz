@@ -33,7 +33,7 @@ constexpr int fault_address = 0;
 #define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
-#define WSS_FLAG 0
+#define WSS_FLAG 1
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
@@ -114,14 +114,14 @@ constexpr int fault_address = 0;
 
 /*New values*/
 
-#define APPS1_FULL_PCT_ADC 747.21F
-#define APPS2_FULL_PCT_ADC 2265.21F
+#define APPS1_FULL_PCT_ADC 460.21F
+#define APPS2_FULL_PCT_ADC 2515.51F
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
 /**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 340.0F
-#define APPS2_REST_ADC 2563.57F
+#define APPS1_REST_ADC 40.0F
+#define APPS2_REST_ADC 2900.57F
 
 // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))

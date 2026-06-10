@@ -148,7 +148,7 @@ void threadMain(void *pvParameters) {
         Serial.print(WSS_GetRPM4());
         Serial.print(" | W4 MPH: ");
         Serial.print(WSS_GetSpeed4_MPH());
-        Serial.print("\n");
+        Serial.print("\r");
 #endif
 
         // thermal_regulate(); //still need to tune parameters

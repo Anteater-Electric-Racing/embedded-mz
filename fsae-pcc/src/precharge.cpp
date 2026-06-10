@@ -15,16 +15,20 @@
 #define PRECHARGE_PRIORITY 8
 
 #define TIME_HYSTERESIS_MS 20U
-
-constexpr double THERMISTOR1_PIN = 7;
-constexpr double THERMISTOR2_PIN = 8;
-constexpr double THERMISTOR_T0_C = 25;
-constexpr double THERMISTOR_R0 = 10000;
+//5.56 
+//6.37
+constexpr double THERMISTOR1_PIN = 21;
+constexpr double THERMISTOR2_PIN = 20;
+constexpr double THERMISTOR_T0_C = 26;
+constexpr double THERMISTOR_R0 = 5280;
 constexpr double THERMISTOR_BETA = 3880;
 constexpr double THERMISTOR_DIVIDER_RESISTOR = 6800;
-constexpr int TEENSY_ADC_RESOLUTION_BITS = 12;
+constexpr int TEENSY_ADC_RESOLUTION_BITS = 10;
 
-constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 69;
+constexpr double DEBUG_FREQ_TS_PIN = 15;
+constexpr double DEBUG_FREQ_ACC_PIN = 14;
+
+constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 70;
 
 // States (Global Variables)
 PrechargeState state = STATE_STANDBY;
@@ -80,10 +84,20 @@ void prechargeTask(void *pvParameters) {
     const TickType_t xFrequency = pdMS_TO_TICKS(TIME_STEP_S * 1000);
     xLastWakeTime = xTaskGetTickCount();
 
+    // state = STATE_PRECHARGE;
+
     while (true) {
+        // double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
+        // double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
+
+        // Test to check for frequency channels agreement
+        // Serial.println("FREQ_TS: " + (String)FREQ_TS +
+        //                ", FREQ_ACC: " + (String)FREQ_ACC);
+
         // Check thermistor readings, discharge if exceeded
         if (!checkSafeTemperature()) {
             state = STATE_DISCHARGE;
+
         } else {
             // Update temperature CAN flag
             tempData.isSafeTemperature = true;
@@ -218,6 +232,8 @@ void updateVoltage(int pin) {
 void standby() {
     // Disable AIR, Disable Precharge
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+
+    // Serial.println("ACC: " + (String) pcData.accVoltage);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
@@ -408,19 +424,20 @@ double temperatureFromADC(double adc) {
         adc = (1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0;
     }
     if (adc <= 0) {
-        adc = 1.0;
+        // Return high ADC hence temperature value if voltage at thermistors is 0
+        adc = 9999.0;
     }
 
     // Temperature in Celsius in terms of ADC value for thermistor
-    double resistorRatio =
-        THERMISTOR_DIVIDER_RESISTOR /
-        (THERMISTOR_R0 *
-         ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
-          1.0));
+     double resistorRatio =
+         THERMISTOR_DIVIDER_RESISTOR /
+         (THERMISTOR_R0 *
+          ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
+           1.0));
+  
+    return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) -
+              (1.0 / THERMISTOR_BETA) * std::log(resistorRatio)) - 273.15;
 
-    return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) +
-                  (1.0 / THERMISTOR_BETA) * (std::log(resistorRatio))) -
-           273.15;
 }
 
 // Check thermistor for temperature reading: (Threshold: 69 C)
@@ -431,16 +448,28 @@ bool checkSafeTemperature() {
     double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
     double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
 
+    // TEST VALUES (DUMMY ADC VALUES)
+
+    //double T1ADC_DUMMY = 609.0; // 25 C
+    //double T2ADC_DUMMY = 609.0; // 25 C
+
+    // double T1ADC_DUMMY = 134.0; // 100 C
+    // double T2ADC_DUMMY = 134.0; // 100 C
+
+    // =========
+
     double T1Temp = temperatureFromADC(T1ADC);
     double T2Temp = temperatureFromADC(T2ADC);
 
     tempData.T1Temp = (int16_t)(T1Temp);
     tempData.T2Temp = (int16_t)(T2Temp);
 
-    // Print test temp values
-    Serial.print("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
-                 ", T1Temp: " + (String)T1Temp + ", T2Temp" + (String)T2Temp);
-
+    /* Print test temp values
+     Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
+                 ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
+                 (String)T2Temp);
+    */
+   
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {
         tempData.isSafeTemperature = 1;

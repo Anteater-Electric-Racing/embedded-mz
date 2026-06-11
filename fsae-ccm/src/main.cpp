@@ -48,7 +48,7 @@ void setup() { // runs once on bootup
     VCU_Init();
     GPIO_Init();
     PCC_Init();
-    thermal_Init();
+    // thermal_Init();
     Bypass_Init();
     GPIO_Init();
     WSS_Init();
@@ -83,7 +83,7 @@ void threadMain(void *pvParameters) {
     while (true) {
         // WSS_Update();
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
-        thermal_forceOn();
+        // thermal_forceOn();
 
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
@@ -223,7 +223,7 @@ void threadMain(void *pvParameters) {
 
         Serial.print("\r");
 #endif
-        thermal_regulate();
+        // thermal_regulate();
 #if HIMAC_FLAG
 
         /*

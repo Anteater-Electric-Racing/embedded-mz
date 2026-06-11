@@ -82,12 +82,12 @@ void ADC_Init() {
 }
 
 uint16_t ADC_GetAPPS1Value(){
-    uint16_t adcRead = adc->adc1->analogRead(adc0Reads[APPS_1_INDEX]);
+    uint16_t adcRead = adc->adc1->analogRead(adc0Pins[APPS_1_INDEX]);
     return adcRead;
 }
 
 uint16_t ADC_GetAPPS2Value(){
-    uint16_t adcRead = adc->adc1->analogRead(adc0Reads[APPS_2_INDEX]);
+    uint16_t adcRead = adc->adc1->analogRead(adc1Pins[APPS_2_INDEX]);
     return adcRead;
 }
 

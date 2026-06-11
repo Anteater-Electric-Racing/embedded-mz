@@ -212,10 +212,10 @@ void APPS_Init() {
 void APPS_UpdateData(uint16_t rawReading1,
                      uint16_t rawReading2) { // changed uint16 from 32
 
-    // Serial.print("Raw APPS1: ");
-    // Serial.println(rawReading1);
-    // Serial.print("Raw APPS2: ");
-    // Serial.println(rawReading2);
+    Serial.print("Raw APPS1: ");
+    Serial.println(rawReading1);
+    Serial.print("Raw APPS2: ");
+    Serial.println(rawReading2);
 
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);

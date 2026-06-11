@@ -38,19 +38,19 @@ void setup() { // runs once on bootup
     Serial.begin(9600);
 
     ADC_Init();
+    Faults_Init();
     Bus_Init();
     CAN_Init();
     APPS_Init();
     Shock_Init();
     BSE_Init();
-    Faults_Init();
     Telemetry_Init();
     VCU_Init();
     GPIO_Init();
     PCC_Init();
     // thermal_Init();
     Bypass_Init();
-    GPIO_Init();
+    // GPIO_Init();
     WSS_Init();
     // WDT_Init();
 
@@ -85,7 +85,7 @@ void threadMain(void *pvParameters) {
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
         // thermal_forceOn();
 
-        /*============ LOW PRIORITY GPIO UPDATES ============*/
+        /*============ LOW PRIORITY GPI O UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();
 

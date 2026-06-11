@@ -25,8 +25,8 @@ static float fullAPPS1_ADC;
 static float fullAPPS2_ADC;
 static uint8_t apps1FullWritten;
 static uint8_t apps2FullWritten;
-static uint8_t apps1FullWrittenExpected = 67;
-static uint8_t apps2FullWrittenExpected = 42;
+static uint8_t apps1FullWrittenExpected = 77;
+static uint8_t apps2FullWrittenExpected = 32;
 
 static APPSData appsData;
 static float appsAlpha;
@@ -43,6 +43,7 @@ static void checkAndHandlePlausibilityFault();
 
 void APPS_Calibrate_Rest() {
 
+    delay(100);
     // collect 50 samples of apps adc
     uint8_t i = 0;
     uint32_t totalADC1 = 0;
@@ -59,6 +60,7 @@ void APPS_Calibrate_Rest() {
         LOWPASS_FILTER(rawReading2, processedReading2, appsAlpha);
         totalADC1 += processedReading1;
         totalADC2 += processedReading2;
+        delay(2);
     }
 
     // get average
@@ -117,7 +119,7 @@ void APPS_Calibrate_Rest() {
     Serial.print("APPS1 Original Full ADC : ");
     Serial.println(APPS1_FULL_PCT_ADC);
     Serial.print("APPS1 Comparison : ");
-    Serial.println((averageADC1 == APPS1_FULL_PCT_ADC));
+    Serial.println((fullAPPS1_ADC == APPS1_FULL_PCT_ADC));
 
     Serial.print("Resting APPS2 ADC: ");
     Serial.println(fullAPPS2_ADC);
@@ -152,6 +154,7 @@ void APPS_Calibrate_Full(){
         LOWPASS_FILTER(rawReading2, processedReading2, appsAlpha);
         totalADC1 += processedReading1;
         totalADC2 += processedReading2;
+        delay(2);
     }
 
     // get average
@@ -320,47 +323,34 @@ static void checkAndHandleAPPSFault() {
     // Check for open/short circuit
     float difference = abs(appsData.appsReading1_Percentage -
                            appsData.appsReading2_Percentage);
+    TickType_t now = xTaskGetTickCount();
 
-    if (appsData.appsReading1_Voltage < APPS_3V3_FAULT_MIN ||
-        appsData.appsReading1_Voltage > APPS_3V3_FAULT_MAX ||
-        appsData.appsReading2_Voltage > APPS_3V3_INV_FAULT_MIN ||
-        appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MAX) {
+    bool voltageFaultActive = (appsData.appsReading1_Voltage < APPS_3V3_FAULT_MIN ||
+                               appsData.appsReading1_Voltage > APPS_3V3_FAULT_MAX ||
+                               appsData.appsReading2_Voltage > APPS_3V3_INV_FAULT_MIN ||
+                               appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MAX);
 
-        TickType_t now = xTaskGetTickCount();
-        TickType_t elapsedTicks = now - appsLatestHealthyStateTimeAPPSRange;
-        TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
+    bool implausibilityActive = (difference > APPS_IMPLAUSABILITY_THRESHOLD);
 
-        if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
-#if DEBUG_FLAG
-            Serial.println(elapsedMs);
-            Serial.println("Setting APPS fault ELAPSED");
-#endif
+    if (voltageFaultActive) {
+        if ((now - appsLatestHealthyStateTimeAPPSRange) * portTICK_PERIOD_MS > APPS_FAULT_TIME_THRESHOLD_MS) {
+            Serial.println("Voltage Fault");
             Faults_SetFault(FAULT_APPS);
-            return;
         }
     } else {
-        appsLatestHealthyStateTimeAPPSRange = xTaskGetTickCount();
-        Faults_ClearFault(FAULT_APPS);
+        appsLatestHealthyStateTimeAPPSRange = now;
     }
 
-    if (difference > APPS_IMPLAUSABILITY_THRESHOLD) {
-        TickType_t now = xTaskGetTickCount();
-        TickType_t elapsedTicks = now - appsLatestHealthyStateTimeAPPSDifference;
-        TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
-
-        if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
-#if DEBUG_FLAG
-            Serial.println(elapsedMs);
-            Serial.println("Setting APPS fault ELAPSED");
-#endif
+    if (implausibilityActive) {
+        if ((now - appsLatestHealthyStateTimeAPPSDifference) * portTICK_PERIOD_MS > APPS_FAULT_TIME_THRESHOLD_MS) {
+            Serial.println("Voltage implausibility");
             Faults_SetFault(FAULT_APPS);
-            return;
         }
     } else {
-#if DEBUG_FLAG
-        Serial.println("Clearing fault in handle");
-#endif
-        appsLatestHealthyStateTimeAPPSDifference = xTaskGetTickCount();
+        appsLatestHealthyStateTimeAPPSDifference = now;
+    }
+
+    if (!voltageFaultActive && !implausibilityActive) {
         Faults_ClearFault(FAULT_APPS);
     }
 }

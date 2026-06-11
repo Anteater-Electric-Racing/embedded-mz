@@ -81,7 +81,6 @@ void threadVCU(void *pvParameters) {
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
 #endif
-
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
@@ -89,6 +88,7 @@ void threadVCU(void *pvParameters) {
             DTI_SetACLimits(150.0, -20.0);
             // Natalie added just now uh oh
             if (RTM_ButtonState()){
+                Serial.println("RTM Pressed in precharge state!");
                 APPS_Calibrate_Full();
                 RTM_ButtonReset();
             }
@@ -144,6 +144,7 @@ void threadVCU(void *pvParameters) {
 
         case STATE_FAULT:
             // DTI_SendEnableCommand(false);
+            Serial.println(Faults_GetFaults());
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
             }

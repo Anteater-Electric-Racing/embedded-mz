@@ -32,7 +32,7 @@ operation)
 constexpr int fault_address = 0;
 constexpr int apps1FullWritten_address = fault_address + sizeof(bool); // Bool is from the bypass class, update if that type changes
 constexpr int apps1Full_address = apps1FullWritten_address + sizeof(uint8_t);
-constexpr int apps2FullWritten_address = apps1Full_address + sizeof(uint16_t);
+constexpr int apps2FullWritten_address = apps1Full_address + sizeof(float);
 constexpr int apps2Full_address = apps2FullWritten_address + sizeof(uint8_t);
 
 

@@ -62,8 +62,8 @@ void APPS_Calibrate_Rest() {
     }
 
     // get average
-    uint16_t averageADC1 = totalADC1 / cycles;
-    uint16_t averageADC2 = totalADC2 / cycles;
+    uint16_t averageADC1 = (totalADC1 / cycles);
+    uint16_t averageADC2 = (totalADC2 / cycles);
 
     // compare average to expected value and update if within reasonable range
     if (abs(averageADC1 - APPS1_REST_ADC) < APPS_ADC_DIFF_BUFF){
@@ -159,10 +159,7 @@ void APPS_Calibrate_Full(){
     uint16_t averageADC2 = totalADC2 / cycles;
 
     // compare average to expected value and update if within reasonable range
-    if (
-        (averageADC1 - fullAPPS1_ADC) < APPS_ADC_DIFF_BUFF &&
-        (averageADC1 - fullAPPS1_ADC) > APPS_ADC_DIFF_BUFF
-        ){
+    if (abs(averageADC1 - fullAPPS1_ADC) < APPS_ADC_DIFF_BUFF){
         fullAPPS1_ADC = averageADC1;
         EEPROM.put(apps1Full_address, fullAPPS1_ADC);
     } else {
@@ -170,10 +167,7 @@ void APPS_Calibrate_Full(){
         Faults_SetFault(FAULT_APPS_CALIBRATION_RESTING);
     }
 
-    if (
-        (averageADC2 - fullAPPS2_ADC) < APPS_ADC_DIFF_BUFF &&
-        (averageADC2 - fullAPPS2_ADC) > APPS_ADC_DIFF_BUFF
-        ){
+    if (abs(averageADC2 - fullAPPS2_ADC) < APPS_ADC_DIFF_BUFF){
         fullAPPS2_ADC = averageADC2;
         EEPROM.put(apps2Full_address, fullAPPS2_ADC);
     } else {
@@ -211,6 +205,8 @@ void APPS_Init() {
     appsData.apps2RawReading = 0;
 
     appsAlpha = COMPUTE_ALPHA(40.0F);
+
+    APPS_Calibrate_Rest();
 }
 
 void APPS_UpdateData(uint16_t rawReading1,
@@ -224,11 +220,11 @@ void APPS_UpdateData(uint16_t rawReading1,
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
 
-    Serial.print("\n\n\n\n\n");
-    Serial.print("Raw APPS1: ");
-    Serial.println(appsData.apps1RawReading);
-    Serial.print("Raw APPS2: ");
-    Serial.println(appsData.apps2RawReading);
+    // Serial.print("\n\n\n\n\n");
+    // Serial.print("Raw APPS1: ");
+    // Serial.println(appsData.apps1RawReading);
+    // Serial.print("Raw APPS2: ");
+    // Serial.println(appsData.apps2RawReading);
 
     // if (appsData.appsReading2_Percentage < 0.0F) {
     //     appsData.appsReading2_Percentage = 0.0F;

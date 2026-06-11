@@ -1,6 +1,7 @@
 // Anteater Electric Racing, 2025
 
 #pragma once
+#include <cstdint>
 
 /*
 HIGH PRIORITY
@@ -8,7 +9,7 @@ HIGH PRIORITY
 testing docs
 --> tssi bypass (using IMDCAN readings + 3 sec delay to then trigger normal
 operation)
---> imd thershold increase
+--> imd threshold increase
 --> LookupTable for throttle curve
 
         TODO: better serial monitor (python script with pySerial)
@@ -29,6 +30,11 @@ operation)
     BIG MZ Change - INTERUPT BASED CAN Testing:
 */
 constexpr int fault_address = 0;
+constexpr int apps1FullWritten_address = fault_address + sizeof(bool); // Bool is from the bypass class, update if that type changes
+constexpr int apps1Full_address = apps1FullWritten_address + sizeof(uint8_t);
+constexpr int apps2FullWritten_address = apps1Full_address + sizeof(uint16_t);
+constexpr int apps2Full_address = apps2FullWritten_address + sizeof(uint8_t);
+
 
 #define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
@@ -38,6 +44,7 @@ constexpr int fault_address = 0;
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
 #define BSE_DEBUG 0
+#define APPS_CALIBRATION_DEBUG 1
 
 #define ACTIVE_MAP 1
 
@@ -102,6 +109,8 @@ constexpr int fault_address = 0;
 #define APPS_3V3_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.05F
 #define APPS_3V3_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.05F
 
+#define APPS_3V3_MIN_EXPECTED LOGIC_LEVEL_V * ADC_VOLTAGE_DIVIDER / ADC_MAX_VALUE
+
 #define APPS_3V3_INV_MIN ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC) + 0.05F
 #define APPS_3V3_INV_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.05F
 // ADC values corresponding to physical 20% pedal)
@@ -116,6 +125,8 @@ constexpr int fault_address = 0;
 
 #define APPS1_FULL_PCT_ADC 747.21F
 #define APPS2_FULL_PCT_ADC 2265.21F
+
+#define APPS_ADC_DIFF_BUFF 30
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)

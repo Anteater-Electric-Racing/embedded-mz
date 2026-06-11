@@ -81,6 +81,17 @@ void ADC_Init() {
 #endif
 }
 
+uint16_t ADC_GetAPPS1Value(){
+    uint16_t adcRead = adc->adc1->analogRead(adc0Reads[APPS_1_INDEX]);
+    return adcRead;
+}
+
+uint16_t ADC_GetAPPS2Value(){
+    uint16_t adcRead = adc->adc1->analogRead(adc0Reads[APPS_2_INDEX]);
+    return adcRead;
+}
+
+
 void threadADC(void *pvParameters) {
 #if DEBUG_FLAG
     Serial.print("Beginning adc thread");

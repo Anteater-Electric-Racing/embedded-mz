@@ -15,4 +15,6 @@ extern uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 extern ADC *adc;
 
 void ADC_Init();
+uint16_t ADC_GetAPPS1Value();
+uint16_t ADC_GetAPPS2Value();
 void threadADC(void *pvParameters);

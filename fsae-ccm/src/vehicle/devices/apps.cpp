@@ -6,6 +6,7 @@
 #include "vehicle/faults.h"
 #include <arduino_freertos.h>
 #include <cmath>
+#include <EEPROM.h>
 
 typedef struct {
     float appsReading1_Percentage; // Percentage of pedal travel (0 to 1)
@@ -18,13 +19,186 @@ typedef struct {
     float apps2RawReading;
 } APPSData;
 
+static float restingAPPS1_ADC;
+static float restingAPPS2_ADC;
+static float fullAPPS1_ADC;
+static float fullAPPS2_ADC;
+static uint8_t apps1FullWritten;
+static uint8_t apps2FullWritten;
+static uint8_t apps1FullWrittenExpected = 67;
+static uint8_t apps2FullWrittenExpected = 42;
+
 static APPSData appsData;
 static float appsAlpha;
-static TickType_t appsLatestHealthyStateTime =
+static TickType_t appsLatestHealthyStateTimeAPPSRange =
     0; // Set to 0 when fault not detected
+
+static TickType_t appsLatestHealthyStateTimeAPPSDifference =
+    0; // Set to 0 when fault not detected
+
 
 static void checkAndHandleAPPSFault();
 static void checkAndHandlePlausibilityFault();
+
+
+void APPS_Calibrate_Rest() {
+
+    // collect 50 samples of apps adc
+    uint8_t i = 0;
+    uint32_t totalADC1 = 0;
+    uint32_t totalADC2 = 0;
+    uint8_t cycles = 50;
+    uint16_t rawReading1;
+    uint16_t rawReading2;
+    uint16_t processedReading1 = ADC_GetAPPS1Value();
+    uint16_t processedReading2 = ADC_GetAPPS2Value();
+    for(; i < cycles; ++i){
+        rawReading1 = ADC_GetAPPS1Value();
+        rawReading2 = ADC_GetAPPS2Value();
+        LOWPASS_FILTER(rawReading1, processedReading1, appsAlpha);
+        LOWPASS_FILTER(rawReading2, processedReading2, appsAlpha);
+        totalADC1 += processedReading1;
+        totalADC2 += processedReading2;
+    }
+
+    // get average
+    uint16_t averageADC1 = totalADC1 / cycles;
+    uint16_t averageADC2 = totalADC2 / cycles;
+
+    // compare average to expected value and update if within reasonable range
+    if (abs(averageADC1 - APPS1_REST_ADC) < APPS_ADC_DIFF_BUFF){
+        restingAPPS1_ADC = averageADC1;
+    } else {
+        restingAPPS1_ADC = APPS1_REST_ADC;
+    }
+
+    if (abs(averageADC2 - APPS2_REST_ADC) < APPS_ADC_DIFF_BUFF){
+        // EEPROM.update(apps2Rest_address, averageADC2);
+        restingAPPS2_ADC = averageADC2;
+    } else {
+        restingAPPS2_ADC = APPS2_REST_ADC;
+    }
+
+#if APPS_CALIBRATION_DEBUG
+    Serial.print("Resting APPS1 ADC: ");
+    Serial.println(restingAPPS1_ADC);
+    Serial.print("APPS1 Average Resting ADC : ");
+    Serial.println(averageADC1);
+    Serial.print("APPS1 Resting Comparison : ");
+    Serial.println((averageADC1 == APPS1_REST_ADC));
+
+    Serial.print("Resting APPS2 ADC: ");
+    Serial.println(restingAPPS2_ADC);
+    Serial.print("APPS2 Average Resting ADC : ");
+    Serial.println(averageADC2);
+    Serial.print("APPS2 Resting Comparison : ");
+    Serial.println((averageADC2 == APPS2_REST_ADC));
+# endif
+
+    EEPROM.get(apps1FullWritten_address, apps1FullWritten);
+    EEPROM.get(apps2FullWritten_address, apps2FullWritten);
+
+    if (apps1FullWritten != apps1FullWrittenExpected){
+        EEPROM.put(apps1Full_address, APPS1_FULL_PCT_ADC);
+        EEPROM.put(apps1FullWritten_address, apps1FullWrittenExpected);
+    }
+
+    if (apps2FullWritten != apps2FullWrittenExpected){
+        EEPROM.put(apps2Full_address, APPS2_FULL_PCT_ADC);
+        EEPROM.put(apps2FullWritten_address, apps2FullWrittenExpected);
+    }
+
+    EEPROM.get(apps1Full_address, fullAPPS1_ADC);
+    EEPROM.get(apps2Full_address, fullAPPS2_ADC);
+
+#if APPS_CALIBRATION_DEBUG
+    Serial.print("Full APPS1 ADC: ");
+    Serial.println(fullAPPS1_ADC);
+    Serial.print("APPS1 Original Full ADC : ");
+    Serial.println(APPS1_FULL_PCT_ADC);
+    Serial.print("APPS1 Comparison : ");
+    Serial.println((averageADC1 == APPS1_FULL_PCT_ADC));
+
+    Serial.print("Resting APPS2 ADC: ");
+    Serial.println(fullAPPS2_ADC);
+    Serial.print("APPS2 Original ADC : ");
+    Serial.println(APPS2_FULL_PCT_ADC);
+    Serial.print("APPS2 Comparison : ");
+    Serial.println((fullAPPS2_ADC == APPS2_FULL_PCT_ADC));
+
+# endif
+
+}
+
+void APPS_Calibrate_Full(){
+    // if rtm button on
+    // read 50 samples & write to eeprom
+
+    // if never written to eeprom before write the defaul
+
+    uint8_t i = 0;
+    uint32_t totalADC1 = 0;
+    uint32_t totalADC2 = 0;
+    uint8_t cycles = 50;
+    uint16_t rawReading1;
+    uint16_t rawReading2;
+    uint16_t processedReading1 = ADC_GetAPPS1Value();
+    uint16_t processedReading2 = ADC_GetAPPS2Value();
+
+    for(; i < cycles; ++i){
+        rawReading1 = ADC_GetAPPS1Value();
+        rawReading2 = ADC_GetAPPS2Value();
+        LOWPASS_FILTER(rawReading1, processedReading1, appsAlpha);
+        LOWPASS_FILTER(rawReading2, processedReading2, appsAlpha);
+        totalADC1 += processedReading1;
+        totalADC2 += processedReading2;
+    }
+
+    // get average
+    uint16_t averageADC1 = totalADC1 / cycles;
+    uint16_t averageADC2 = totalADC2 / cycles;
+
+    // compare average to expected value and update if within reasonable range
+    if (
+        (averageADC1 - fullAPPS1_ADC) < APPS_ADC_DIFF_BUFF &&
+        (averageADC1 - fullAPPS1_ADC) > APPS_ADC_DIFF_BUFF
+        ){
+        fullAPPS1_ADC = averageADC1;
+        EEPROM.put(apps1Full_address, fullAPPS1_ADC);
+    } else {
+        fullAPPS1_ADC = fullAPPS2_ADC;
+        Faults_SetFault(FAULT_APPS_CALIBRATION_RESTING);
+    }
+
+    if (
+        (averageADC2 - fullAPPS2_ADC) < APPS_ADC_DIFF_BUFF &&
+        (averageADC2 - fullAPPS2_ADC) > APPS_ADC_DIFF_BUFF
+        ){
+        fullAPPS2_ADC = averageADC2;
+        EEPROM.put(apps2Full_address, fullAPPS2_ADC);
+    } else {
+        fullAPPS2_ADC = fullAPPS2_ADC;
+        Faults_SetFault(FAULT_APPS_CALIBRATION_RESTING);
+    }
+
+#if APPS_CALIBRATION_DEBUG
+    Serial.print("Full APPS1 ADC: ");
+    Serial.println(fullAPPS1_ADC);
+    Serial.print("APPS1 Average Full ADC : ");
+    Serial.println(averageADC1);
+    Serial.print("APPS1 Resting Comparison : ");
+    Serial.println((averageADC1 == APPS1_FULL_PCT_ADC));
+
+    Serial.print("Full APPS2 ADC: ");
+    Serial.println(fullAPPS2_ADC);
+    Serial.print("APPS2 Average Full ADC : ");
+    Serial.println(averageADC2);
+    Serial.print("APPS2 Full Comparison : ");
+    Serial.println((averageADC2 == APPS2_FULL_PCT_ADC));
+# endif
+
+
+}
 
 void APPS_Init() {
     appsData.appsReading1_Percentage = 0;
@@ -64,12 +238,12 @@ void APPS_UpdateData(uint16_t rawReading1,
 
     // after LOWPASS_FILTER
     appsData.appsReading1_Percentage =
-        LINEAR_MAP(appsData.apps1RawReading, (float)APPS1_REST_ADC,
-                   (float)APPS1_FULL_PCT_ADC, 0.0F, 1.0F);
+        LINEAR_MAP(appsData.apps1RawReading, (float)restingAPPS1_ADC,
+                   (float)fullAPPS1_ADC, 0.0F, 1.0F);
 
     appsData.appsReading2_Percentage =
-        LINEAR_MAP(appsData.apps2RawReading, (float)APPS2_REST_ADC,
-                   (float)APPS2_FULL_PCT_ADC, 0.0F, 1.0F);
+        LINEAR_MAP(appsData.apps2RawReading, (float)restingAPPS2_ADC,
+                   (float)fullAPPS2_ADC, 0.0F, 1.0F);
 
     /*========================== HELPER PCT CLAMP ==========================*/
     // clamp since LINEAR_MAP doesn't clamp
@@ -157,7 +331,7 @@ static void checkAndHandleAPPSFault() {
         appsData.appsReading2_Voltage < APPS_3V3_INV_FAULT_MAX) {
 
         TickType_t now = xTaskGetTickCount();
-        TickType_t elapsedTicks = now - appsLatestHealthyStateTime;
+        TickType_t elapsedTicks = now - appsLatestHealthyStateTimeAPPSRange;
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
@@ -169,17 +343,28 @@ static void checkAndHandleAPPSFault() {
             return;
         }
     } else {
-        appsLatestHealthyStateTime = xTaskGetTickCount();
+        appsLatestHealthyStateTimeAPPSRange = xTaskGetTickCount();
         Faults_ClearFault(FAULT_APPS);
     }
 
     if (difference > APPS_IMPLAUSABILITY_THRESHOLD) {
-        Faults_SetFault(FAULT_APPS);
-        return;
+        TickType_t now = xTaskGetTickCount();
+        TickType_t elapsedTicks = now - appsLatestHealthyStateTimeAPPSDifference;
+        TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
+
+        if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
+#if DEBUG_FLAG
+            Serial.println(elapsedMs);
+            Serial.println("Setting APPS fault ELAPSED");
+#endif
+            Faults_SetFault(FAULT_APPS);
+            return;
+        }
     } else {
 #if DEBUG_FLAG
         Serial.println("Clearing fault in handle");
 #endif
+        appsLatestHealthyStateTimeAPPSDifference = xTaskGetTickCount();
         Faults_ClearFault(FAULT_APPS);
     }
 }
@@ -200,7 +385,7 @@ static void checkAndHandlePlausibilityFault() {
 
     if (APPS_GetAPPSReading() > APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD &&
         (BSEReading > APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD)) {
-        // Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
+        Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
     } else {
         if (APPS_GetAPPSReading() < APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD) {
             Faults_ClearFault(FAULT_APPS_BRAKE_PLAUSIBILITY);

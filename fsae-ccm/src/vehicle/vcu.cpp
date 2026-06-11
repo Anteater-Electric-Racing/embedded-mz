@@ -87,6 +87,11 @@ void threadVCU(void *pvParameters) {
             DTI_SendEnableCommand(false);
             DTI_SetDCLimits(60.0, -2.0);
             DTI_SetACLimits(150.0, -20.0);
+            // Natalie added just now uh oh
+            if (RTM_ButtonState()){
+                APPS_Calibrate_Full();
+                RTM_ButtonReset();
+            }
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }

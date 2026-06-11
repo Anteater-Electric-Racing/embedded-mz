@@ -68,18 +68,20 @@ void APPS_Calibrate_Rest() {
     uint16_t averageADC2 = (totalADC2 / cycles);
 
     // compare average to expected value and update if within reasonable range
-    if (abs(averageADC1 - APPS1_REST_ADC) < APPS_ADC_DIFF_BUFF){
-        restingAPPS1_ADC = averageADC1;
-    } else {
-        restingAPPS1_ADC = APPS1_REST_ADC;
-    }
+    // if (abs(averageADC1 - APPS1_REST_ADC) < APPS_ADC_DIFF_BUFF){
+    Serial.println("Updated ADC1 Rest!");
+    restingAPPS1_ADC = averageADC1;
+    // } else {
+        // restingAPPS1_ADC = APPS1_REST_ADC;
+    // }
 
-    if (abs(averageADC2 - APPS2_REST_ADC) < APPS_ADC_DIFF_BUFF){
+    // if (abs(averageADC2 - APPS2_REST_ADC) < APPS_ADC_DIFF_BUFF){
         // EEPROM.update(apps2Rest_address, averageADC2);
-        restingAPPS2_ADC = averageADC2;
-    } else {
-        restingAPPS2_ADC = APPS2_REST_ADC;
-    }
+    restingAPPS2_ADC = averageADC2;
+    Serial.println("Updated ADC2 Rest!");
+    // } else {
+    //     restingAPPS2_ADC = APPS2_REST_ADC;
+    // }
 
 #if APPS_CALIBRATION_DEBUG
     Serial.print("Resting APPS1 ADC: ");
@@ -162,19 +164,31 @@ void APPS_Calibrate_Full(){
     uint16_t averageADC2 = totalADC2 / cycles;
 
     // compare average to expected value and update if within reasonable range
-    if (abs(averageADC1 - fullAPPS1_ADC) < APPS_ADC_DIFF_BUFF){
+    // if (abs(averageADC1 - fullAPPS1_ADC) < APPS_ADC_DIFF_BUFF){
+    if (abs(restingAPPS1_ADC - averageADC1) > APPS_ADC_RANGE_LOWER_THRESH &&
+        abs(restingAPPS1_ADC - averageADC1) < APPS_ADC_RANGE_UPPER_THRESH){
+        Serial.println("Updated ADC2 Full!");
         fullAPPS1_ADC = averageADC1;
         EEPROM.put(apps1Full_address, fullAPPS1_ADC);
     } else {
-        fullAPPS1_ADC = fullAPPS2_ADC;
-        Faults_SetFault(FAULT_APPS_CALIBRATION_RESTING);
+        uint16_t fullAPPS1_stored_val;
+        EEPROM.get(apps1Full_address, fullAPPS1_stored_val);
+        fullAPPS1_ADC = fullAPPS1_stored_val;
+        Serial.println("Using old full apps1 value");
+        // set fault bc you intentionally tried to recalibrate it and the range is off
+        Faults_SetFault(FAULT_APPS_CALIBRATION_RESTING); // todo maybe dont set fault here?
     }
 
-    if (abs(averageADC2 - fullAPPS2_ADC) < APPS_ADC_DIFF_BUFF){
+    if (abs(restingAPPS2_ADC - averageADC2) > APPS_ADC_RANGE_LOWER_THRESH &&
+        abs(restingAPPS2_ADC - averageADC2) < APPS_ADC_RANGE_UPPER_THRESH){
+        Serial.println("Updated ADC2 Full!");
         fullAPPS2_ADC = averageADC2;
         EEPROM.put(apps2Full_address, fullAPPS2_ADC);
     } else {
-        fullAPPS2_ADC = fullAPPS2_ADC;
+        uint16_t fullAPPS2_stored_val;
+        EEPROM.get(apps2Full_address, fullAPPS2_stored_val);
+        fullAPPS2_ADC = fullAPPS2_stored_val;
+        Serial.println("Using old full apps2 value");
         Faults_SetFault(FAULT_APPS_CALIBRATION_RESTING);
     }
 
@@ -215,10 +229,10 @@ void APPS_Init() {
 void APPS_UpdateData(uint16_t rawReading1,
                      uint16_t rawReading2) { // changed uint16 from 32
 
-    Serial.print("Raw APPS1: ");
-    Serial.println(rawReading1);
-    Serial.print("Raw APPS2: ");
-    Serial.println(rawReading2);
+    // Serial.print("Raw APPS1: ");
+    // Serial.println(rawReading1);
+    // Serial.print("Raw APPS2: ");
+    // Serial.println(rawReading2);
 
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);

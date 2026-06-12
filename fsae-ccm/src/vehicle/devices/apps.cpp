@@ -199,8 +199,8 @@ static void checkAndHandlePlausibilityFault() {
 #endif
 
     if (APPS_GetAPPSReading() > APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD &&
-        (BSEReading > APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD)) {
-        // Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
+        (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD)) {
+        Faults_SetFault(FAULT_APPS_BRAKE_PLAUSIBILITY);
     } else {
         if (APPS_GetAPPSReading() < APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD) {
             Faults_ClearFault(FAULT_APPS_BRAKE_PLAUSIBILITY);

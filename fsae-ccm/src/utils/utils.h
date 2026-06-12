@@ -38,6 +38,7 @@ constexpr int fault_address = 0;
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
 #define BSE_DEBUG 0
+#define PRECHARGE_DEBUG 1
 
 #define ACTIVE_MAP 1
 

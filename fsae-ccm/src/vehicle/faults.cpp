@@ -152,31 +152,31 @@ void Faults_HandleFaults() {
         return;
     }
     if (faultBitMap & FAULT_OVER_CURRENT_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_UNDER_VOLTAGE_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_OVER_TEMP_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_MASK) {
         VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_BSE_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_BPPS_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_BRAKE_PLAUSIBILITY_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_CAN_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
     if (faultBitMap & LOW_BATTERY_VOLTAGE_MASK) {
-        // VCU_SetFaultState();
+        VCU_SetFaultState();
     }
 }
 

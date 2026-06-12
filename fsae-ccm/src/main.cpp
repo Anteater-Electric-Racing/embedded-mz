@@ -184,6 +184,12 @@ void threadMain(void *pvParameters) {
         //  IMPLEMENT BETTER SERIAL PROCESSING(
         //      TEENSY does not support ANSI escape codes)
 #endif
+#if PRECHARGE_DEBUG
+        Serial.print(" | PCC_State");
+        Serial.print(PCC_GetData()->state);
+        Serial.print(" | Prog");
+        Serial.print(PCC_GetData()->prechargeProgress);
+#endif
 #if BMS_FLAG
         // --- NEW: Orion BMS 2 Telemetry ---
         // Orion BMS Telemetry

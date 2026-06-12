@@ -38,6 +38,7 @@ void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
 void Bypass_TSSI() {
     feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
 
+    // if not in startup state
     bool imdFaulted = (IMD_GetInfo()->status != 0x200) ? LOW : HIGH;
     // bool bmsFaulted = (BMS_GetOrionData()->relayState)
 

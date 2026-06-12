@@ -42,9 +42,9 @@ constexpr int apps2Full_address = apps2FullWritten_address + sizeof(uint8_t);
 #define WSS_FLAG 0
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
-#define APPS_DEBUG 0
+#define APPS_DEBUG 1
 #define BSE_DEBUG 0
-#define APPS_CALIBRATION_DEBUG 1
+#define APPS_CALIBRATION_DEBUG 0
 
 #define ACTIVE_MAP 1
 
@@ -128,7 +128,7 @@ constexpr int apps2Full_address = apps2FullWritten_address + sizeof(uint8_t);
 
 #define APPS_ADC_DIFF_BUFF 30
 #define APPS_ADC_RANGE_LOWER_THRESH 250
-#define APPS_ADC_RANGE_UPPER_THRESH 500
+#define APPS_ADC_RANGE_UPPER_THRESH 1000
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)

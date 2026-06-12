@@ -107,8 +107,26 @@ void threadMain(void *pvParameters) {
         Serial.print(abs(APPS_GetAPPSReading1() - APPS_GetAPPSReading2()));
         Serial.print(" | ");
         Serial.print("Fault bitmap: ");
-        Serial.println(Faults_GetFaults(), arduino::BIN);
+        Serial.print(Faults_GetFaults(), arduino::BIN);
+        Serial.print(" | ");
+        Serial.print("APPS1 rest: ");
+        Serial.print(getAPPS1Rest());
+        Serial.print(" | ");
+        Serial.print("APPS1 full: ");
+        Serial.print(getAPPS1Full());
+        Serial.print(" | ");
+        Serial.print("APPS2 rest: ");
+        Serial.print(getAPPS2Rest());
+        Serial.print(" | ");
+        Serial.print("APPS1 reading: ");
+        Serial.print(ADC_GetAPPS1Value());
+        Serial.print(" | ");
+        Serial.print("APPS2 reading: ");
+        Serial.println(ADC_GetAPPS2Value());
         Serial.print("\r");
+
+        Serial.print("\r");
+
 
 #endif
 

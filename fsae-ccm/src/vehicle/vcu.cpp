@@ -45,6 +45,9 @@ static TickType_t xLastWakeTime;
 static bool enableRegen = false;
 static float debugPedalDemand = 0.0f;
 
+static bool RTMOnCalibration = false;
+static bool doneCalibrating = false;
+
 // Define 3 Presets (Steepness k, Midpoint x0)
 // Map 0: Rain (High precision, late power)
 // Map 1: Endurance (Balanced, predictable)
@@ -71,6 +74,7 @@ void VCU_Init() {
 }
 
 void threadVCU(void *pvParameters) {
+    xLastWakeTime = xTaskGetTickCount();
     while (true) {
         vcu_last_run_tick = xTaskGetTickCount(); // update WDT tick
         float pedalAccel = APPS_GetAPPSReading();
@@ -78,20 +82,34 @@ void threadVCU(void *pvParameters) {
         Faults_HandleFaults();
         WSS_Update();
 
+    // todo add a bool to latch it if you already sampled
+    // can do it when its flicked out
+
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
 #endif
+        bool buttonState = RTM_ButtonState();
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
             DTI_SetDCLimits(60.0, -2.0);
             DTI_SetACLimits(150.0, -20.0);
-            // Natalie added just now uh oh
-            if (RTM_ButtonState()){
-                Serial.println("RTM Pressed in precharge state!");
+
+            // Serial.print("RTM state (precharge): ");
+            // Serial.println(buttonState);
+
+            if (buttonState && !RTMOnCalibration && !doneCalibrating){
+                Serial.println("RTM Flipped on in precharge state!");
+                RTMOnCalibration = true;
+            }
+
+            if (RTMOnCalibration && !buttonState && !doneCalibrating) {
+                Serial.println("RTM Flipped off in precharge state!");
                 APPS_Calibrate_Full();
                 RTM_ButtonReset();
+                doneCalibrating = true;
             }
+
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
@@ -144,12 +162,24 @@ void threadVCU(void *pvParameters) {
 
         case STATE_FAULT:
             // DTI_SendEnableCommand(false);
-            Serial.println(Faults_GetFaults());
-            if (RTM_ButtonState()){
-                Serial.println("RTM Pressed in precharge state!");
+            // Serial.print("Fault state: ");
+            // Serial.println(Faults_GetFaults());
+
+            // Serial.print("RTM state (fault): ");
+            // Serial.println(buttonState);
+
+            if (buttonState && !RTMOnCalibration && !doneCalibrating){
+                Serial.println("RTM Flipped on in fault state!");
+                RTMOnCalibration = true;
+            }
+
+            if (RTMOnCalibration && !buttonState && !doneCalibrating) {
+                Serial.println("RTM Flipped off in fault state!");
                 APPS_Calibrate_Full();
                 RTM_ButtonReset();
+                doneCalibrating = true;
             }
+
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
             }

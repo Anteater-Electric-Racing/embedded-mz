@@ -40,15 +40,14 @@ static TickType_t appsLatestHealthyStateTimeAPPSDifference =
 static void checkAndHandleAPPSFault();
 static void checkAndHandlePlausibilityFault();
 
-
 void APPS_Calibrate_Rest() {
 
-    delay(100);
+    delay(1000);
     // collect 50 samples of apps adc
     uint8_t i = 0;
     uint32_t totalADC1 = 0;
     uint32_t totalADC2 = 0;
-    uint8_t cycles = 50;
+    uint16_t cycles = 500;
     uint16_t rawReading1;
     uint16_t rawReading2;
     uint16_t processedReading1 = ADC_GetAPPS1Value();
@@ -88,15 +87,15 @@ void APPS_Calibrate_Rest() {
     Serial.println(restingAPPS1_ADC);
     Serial.print("APPS1 Average Resting ADC : ");
     Serial.println(averageADC1);
-    Serial.print("APPS1 Resting Comparison : ");
-    Serial.println((averageADC1 == APPS1_REST_ADC));
+    Serial.print("APPS1 Resting Difference : ");
+    Serial.println(abs(averageADC1 - APPS1_REST_ADC));
 
     Serial.print("Resting APPS2 ADC: ");
     Serial.println(restingAPPS2_ADC);
     Serial.print("APPS2 Average Resting ADC : ");
     Serial.println(averageADC2);
-    Serial.print("APPS2 Resting Comparison : ");
-    Serial.println((averageADC2 == APPS2_REST_ADC));
+    Serial.print("APPS2 Resting Difference : ");
+    Serial.println(abs(averageADC2 - APPS2_REST_ADC));
 # endif
 
     EEPROM.get(apps1FullWritten_address, apps1FullWritten);
@@ -140,26 +139,16 @@ void APPS_Calibrate_Full(){
 
     // if never written to eeprom before write the defaul
 
-    uint8_t i = 0;
+    uint16_t cycles = 500;
     uint32_t totalADC1 = 0;
     uint32_t totalADC2 = 0;
-    uint8_t cycles = 50;
-    uint16_t rawReading1;
-    uint16_t rawReading2;
-    uint16_t processedReading1 = ADC_GetAPPS1Value();
-    uint16_t processedReading2 = ADC_GetAPPS2Value();
 
-    for(; i < cycles; ++i){
-        rawReading1 = appsData.apps1RawReading;
-        rawReading2 = appsData.apps1RawReading;
-        LOWPASS_FILTER(rawReading1, processedReading1, appsAlpha);
-        LOWPASS_FILTER(rawReading2, processedReading2, appsAlpha);
-        totalADC1 += processedReading1;
-        totalADC2 += processedReading2;
+    for (uint8_t i = 0; i < cycles; ++i){
+        totalADC1 += appsData.apps1RawReading;
+        totalADC2 += appsData.apps2RawReading;
         vTaskDelay(pdMS_TO_TICKS(2));
     }
 
-    // get average
     uint16_t averageADC1 = totalADC1 / cycles;
     uint16_t averageADC2 = totalADC2 / cycles;
 
@@ -178,15 +167,16 @@ void APPS_Calibrate_Full(){
     Serial.print("average apps2 adc ");
     Serial.println(averageADC2);
     Serial.print("Difference in apps2 values is ");
-    Serial.println(abs(restingAPPS1_ADC - averageADC1));
+    Serial.println(abs(restingAPPS2_ADC - averageADC2));
 
     if (abs(restingAPPS1_ADC - averageADC1) > APPS_ADC_RANGE_LOWER_THRESH &&
         abs(restingAPPS1_ADC - averageADC1) < APPS_ADC_RANGE_UPPER_THRESH){
         Serial.println("Updated ADC2 Full!");
         fullAPPS1_ADC = averageADC1;
         EEPROM.put(apps1Full_address, fullAPPS1_ADC);
+        Serial.println("APPS1 Calibration done!!");
     } else {
-        uint16_t fullAPPS1_stored_val;
+        float fullAPPS1_stored_val;
         EEPROM.get(apps1Full_address, fullAPPS1_stored_val);
         fullAPPS1_ADC = fullAPPS1_stored_val;
         Serial.println("Using old full apps1 value");
@@ -199,6 +189,7 @@ void APPS_Calibrate_Full(){
         Serial.println("Updated ADC2 Full!");
         fullAPPS2_ADC = averageADC2;
         EEPROM.put(apps2Full_address, fullAPPS2_ADC);
+        Serial.println("APPS2 Calibration done!!");
     } else {
         float fullAPPS2_stored_val;
         EEPROM.get(apps2Full_address, fullAPPS2_stored_val);
@@ -373,9 +364,9 @@ static void checkAndHandleAPPSFault() {
     if (implausibilityActive) {
         if ((now - appsLatestHealthyStateTimeAPPSDifference) * portTICK_PERIOD_MS > APPS_FAULT_TIME_THRESHOLD_MS) {
             Serial.print("APPS 1 reading: ");
-            Serial.println(appsData.appsReading1_Voltage);
+            Serial.println(appsData.appsReading1_Percentage);
             Serial.print("APPS 2 Reading: ");
-            Serial.println(appsData.appsReading2_Voltage);
+            Serial.println(appsData.appsReading2_Percentage);
             Serial.print("Difference: ");
             Serial.println(difference);
 
@@ -389,6 +380,22 @@ static void checkAndHandleAPPSFault() {
     if (!voltageFaultActive && !implausibilityActive) {
         Faults_ClearFault(FAULT_APPS);
     }
+}
+
+float getAPPS1Rest(){
+    return restingAPPS1_ADC;
+}
+
+float getAPPS1Full(){
+    return fullAPPS1_ADC;
+}
+
+float getAPPS2Rest(){
+    return restingAPPS2_ADC;
+}
+
+float getAPPS2Full(){
+    return fullAPPS2_ADC;
 }
 
 static void checkAndHandlePlausibilityFault() {

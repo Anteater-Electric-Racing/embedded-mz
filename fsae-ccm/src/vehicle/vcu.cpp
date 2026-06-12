@@ -196,8 +196,8 @@ void VCU_ForceIdleState() { RTM_ButtonReset(); }
 
 void VCU_ClearFaultState() { vehicleState = STATE_DRIVING; }
 
-void VCU_SetDebugPedalDemand(float pedalDemand) {
-    debugPedalDemand = constrain(pedalDemand, 0.0f, 1.0f);
-}
+// void VCU_SetDebugPedalDemand(float pedalDemand) {
+//     debugPedalDemand = constrain(pedalDemand, 0.0f, 1.0f);
+// }
 
 VehicleState VCU_GetState() { return vehicleState; }

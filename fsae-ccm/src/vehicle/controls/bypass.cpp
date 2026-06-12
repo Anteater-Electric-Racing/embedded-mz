@@ -38,6 +38,9 @@ void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
 void Bypass_TSSI() {
     feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
 
+    bool imdFaulted = (IMD_GetInfo()->status != 0x200) ? LOW : HIGH;
+    // bool bmsFaulted = (BMS_GetOrionData()->relayState)
+
     // Serial.print("in startup? : ");
     // Serial.print(startup ? "TRUE" : "FALSE");
     // Serial.print(" | feedbackStatus = ");
@@ -64,7 +67,19 @@ void Bypass_TSSI() {
             } else {
                 // Was healthy before - bypass this startup fault
                 digitalWrite(TSSI_BYPASS_PIN, LOW);
+
+                // if (actualFault){
+                //     //want this to happen after buttons clicked
+                //     //i only know when buttons are clicked if state changes
+                //     //case is if feedback is clicked, still low
+                //     //if deeback is low and actual fault, or what if I do if
+                //     bypass high
+                // }
             }
+
+            // feedback status is always low on startup, so when its being
+            // bypassed,
+            //
         }
     } else {
         // Normal operation

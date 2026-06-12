@@ -30,13 +30,13 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/vcu.h"
 #include <arduino_freertos.h>
 
-template <typename T> T constrain(T val, T minVal, T maxVal) {
-    if (val < minVal)
-        return minVal;
-    if (val > maxVal)
-        return maxVal;
-    return val;
-}
+// template <typename T> T constrain(T val, T minVal, T maxVal) {
+//     if (val < minVal)
+//         return minVal;
+//     if (val > maxVal)
+//         return maxVal;
+//     return val;
+// }
 
 static VehicleState vehicleState;
 static DriveState driveState;
@@ -141,18 +141,19 @@ void threadVCU(void *pvParameters) {
                 targetTorque = VCU_TorqueMap(pedalAccel);
             }
 
-            float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
-            float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
-            float inverterFactor = VCU_Derate(DTI_GetDTIData()->controllerTemp);
+            // float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
+            // float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
+            // float inverterFactor =
+            // VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
-            // Get the Smallest Factor
-            float smallestFactor =
-                min(batteryFactor, min(motorFactor, inverterFactor));
+            // // Get the Smallest Factor
+            // float smallestFactor =
+            //     min(batteryFactor, min(motorFactor, inverterFactor));
 
-            DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
-            DTI_SetACLimits(150.0 * smallestFactor, -20.0);
+            DTI_SetDCLimits(60.0, -2.0);
+            DTI_SetACLimits(150.0, -20.0);
 
-            DTI_SendAccelCommand(targetTorque * smallestFactor);
+            DTI_SendAccelCommand(targetTorque);
 
             // Serial.println(targetTorque * smallestFactor);
             if (enableRegen && BSE_BrakesPressed()) {
@@ -191,15 +192,16 @@ void threadVCU(void *pvParameters) {
     }
 }
 
-float VCU_Derate(float temperature) {
-    float factor = 1.0f;
-    float min_factor = 0.2f;
-    temperature = constrain(temperature, TEMP_START, TEMP_MAX);
-    // Piecewise Linear Derating
-    factor = 1.0f - (1.0f - min_factor) *
-                        ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
-    return factor;
-}
+// float VCU_Derate(float temperature) {
+//     float factor = 1.0f;
+//     float min_factor = 0.2f;
+//     temperature = constrain(temperature, TEMP_START, TEMP_MAX);
+//     // Piecewise Linear Derating
+//     factor = 1.0f - (1.0f - min_factor) *
+//                         ((temperature - TEMP_START) / (TEMP_MAX -
+//                         TEMP_START));
+//     return factor;
+// }
 
 // TODO switch to LUT for all applicable strategies
 float VCU_TorqueMap(float pedal) {

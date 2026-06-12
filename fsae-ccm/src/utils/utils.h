@@ -36,7 +36,7 @@ constexpr int apps2FullWritten_address = apps1Full_address + sizeof(float);
 constexpr int apps2Full_address = apps2FullWritten_address + sizeof(uint8_t);
 
 
-#define SERIALMONITOR_FLAG 0
+#define SERIALMONITOR_FLAG 1
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
@@ -123,18 +123,14 @@ constexpr int apps2Full_address = apps2FullWritten_address + sizeof(uint8_t);
 
 /*New values*/
 
-#define APPS1_FULL_PCT_ADC 450.0F
-#define APPS2_FULL_PCT_ADC 2540.0F
-
-#define APPS_ADC_DIFF_BUFF 30
-#define APPS_ADC_RANGE_LOWER_THRESH 250
-#define APPS_ADC_RANGE_UPPER_THRESH 1000
+#define APPS1_FULL_PCT_ADC 460.21F
+#define APPS2_FULL_PCT_ADC 2515.51F
 
 // Measured resting ADC (change these with actual findings this is just safe
 // zone values)
 /**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 38.0F
-#define APPS2_REST_ADC 2915.0F
+#define APPS1_REST_ADC 40.0F
+#define APPS2_REST_ADC 2900.57F
 
 // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))

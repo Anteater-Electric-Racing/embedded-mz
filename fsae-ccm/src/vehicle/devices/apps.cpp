@@ -150,13 +150,13 @@ void APPS_Calibrate_Full(){
     uint16_t processedReading2 = ADC_GetAPPS2Value();
 
     for(; i < cycles; ++i){
-        rawReading1 = ADC_GetAPPS1Value();
-        rawReading2 = ADC_GetAPPS2Value();
+        rawReading1 = appsData.apps1RawReading;
+        rawReading2 = appsData.apps1RawReading;
         LOWPASS_FILTER(rawReading1, processedReading1, appsAlpha);
         LOWPASS_FILTER(rawReading2, processedReading2, appsAlpha);
         totalADC1 += processedReading1;
         totalADC2 += processedReading2;
-        delay(2);
+        vTaskDelay(pdMS_TO_TICKS(2));
     }
 
     // get average
@@ -165,6 +165,21 @@ void APPS_Calibrate_Full(){
 
     // compare average to expected value and update if within reasonable range
     // if (abs(averageADC1 - fullAPPS1_ADC) < APPS_ADC_DIFF_BUFF){
+
+    Serial.print("resting apps1 adc ");
+    Serial.println(restingAPPS1_ADC);
+    Serial.print("average apps1 adc ");
+    Serial.println(averageADC1);
+    Serial.print("Difference in apps1 values is ");
+    Serial.println(abs(restingAPPS1_ADC - averageADC1));
+
+    Serial.print("resting apps2 adc ");
+    Serial.println(restingAPPS2_ADC);
+    Serial.print("average apps2 adc ");
+    Serial.println(averageADC2);
+    Serial.print("Difference in apps2 values is ");
+    Serial.println(abs(restingAPPS1_ADC - averageADC1));
+
     if (abs(restingAPPS1_ADC - averageADC1) > APPS_ADC_RANGE_LOWER_THRESH &&
         abs(restingAPPS1_ADC - averageADC1) < APPS_ADC_RANGE_UPPER_THRESH){
         Serial.println("Updated ADC2 Full!");
@@ -185,7 +200,7 @@ void APPS_Calibrate_Full(){
         fullAPPS2_ADC = averageADC2;
         EEPROM.put(apps2Full_address, fullAPPS2_ADC);
     } else {
-        uint16_t fullAPPS2_stored_val;
+        float fullAPPS2_stored_val;
         EEPROM.get(apps2Full_address, fullAPPS2_stored_val);
         fullAPPS2_ADC = fullAPPS2_stored_val;
         Serial.println("Using old full apps2 value");
@@ -229,10 +244,10 @@ void APPS_Init() {
 void APPS_UpdateData(uint16_t rawReading1,
                      uint16_t rawReading2) { // changed uint16 from 32
 
-    // Serial.print("Raw APPS1: ");
-    // Serial.println(rawReading1);
-    // Serial.print("Raw APPS2: ");
-    // Serial.println(rawReading2);
+    Serial.print("Raw APPS1: ");
+    Serial.println(rawReading1);
+    Serial.print("Raw APPS2: ");
+    Serial.println(rawReading2);
 
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
@@ -357,6 +372,13 @@ static void checkAndHandleAPPSFault() {
 
     if (implausibilityActive) {
         if ((now - appsLatestHealthyStateTimeAPPSDifference) * portTICK_PERIOD_MS > APPS_FAULT_TIME_THRESHOLD_MS) {
+            Serial.print("APPS 1 reading: ");
+            Serial.println(appsData.appsReading1_Voltage);
+            Serial.print("APPS 2 Reading: ");
+            Serial.println(appsData.appsReading2_Voltage);
+            Serial.print("Difference: ");
+            Serial.println(difference);
+
             Serial.println("Voltage implausibility");
             Faults_SetFault(FAULT_APPS);
         }

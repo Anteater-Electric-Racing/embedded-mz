@@ -145,6 +145,11 @@ void threadVCU(void *pvParameters) {
         case STATE_FAULT:
             // DTI_SendEnableCommand(false);
             Serial.println(Faults_GetFaults());
+            if (RTM_ButtonState()){
+                Serial.println("RTM Pressed in precharge state!");
+                APPS_Calibrate_Full();
+                RTM_ButtonReset();
+            }
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
             }

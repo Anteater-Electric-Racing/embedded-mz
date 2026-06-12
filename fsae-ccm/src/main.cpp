@@ -91,11 +91,14 @@ void threadMain(void *pvParameters) {
 
         RTM_ButtonUpdate(digitalRead(rtm_PIN));
 
-        // Serial.print(digitalRead(23));
-        // Serial.print(digitalRead(22));
-        // Serial.print(digitalRead(21));
-        // Serial.print(digitalRead(20));
-        // Serial.print("\r");
+        // thermal_regulate(); //still need to tune parameters
+
+        if (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD) {
+            digitalWrite(BRAKE_LIGHT_PIN, HIGH);
+        } else {
+            digitalWrite(BRAKE_LIGHT_PIN, LOW);
+        }
+
 #if APPS_DEBUG
         Serial.print("APPS1 %: ");
         Serial.print(APPS_GetAPPSReading1());
@@ -149,47 +152,33 @@ void threadMain(void *pvParameters) {
         Serial.print(WSS_GetSpeed4_MPH());
 #endif
 
-        // thermal_regulate(); //still need to tune parameters
-
-        if (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD) {
-            digitalWrite(BRAKE_LIGHT_PIN, HIGH);
-        } else {
-            digitalWrite(BRAKE_LIGHT_PIN, LOW);
-        }
-
-#if IMD_FLAG
-
-        Serial.print("IMD_HV: ");
-        Serial.print(IMD_GetInfo()->hv_voltage);
-        Serial.print(" | ");
-        Serial.print("IMD_Resistance: ");
-        Serial.print(IMD_GetInfo()->resistance);
-        Serial.print(" | ");
-        Serial.print("IMD_Status: ");
-        Serial.print(IMD_GetInfo()->status);
-        Serial.print(" | ");
-        Serial.print("IMD_Fault: ");
-        Serial.print(IMD_GetInfo()->isolation_fault);
-        Serial.print(" | ");
-
-#endif
-
 #if SERIALMONITOR_FLAG
-        Serial.print(" | ControlMode: ");
+        Serial.print("Fault bitmap: ");
+        Serial.println(Faults_GetFaults(), arduino::BIN);
+        Serial.print(" | ");
+        Serial.print("State: ");
+        Serial.print(VCU_GetState());
+        Serial.print(" | InvCurr: ");
+        Serial.print(DTI_GetDTIData()->acCurrent);
+        Serial.print("A | DriveEn: ");
+        Serial.print(DTI_GetDTIData()->driveEnabled);
+        Serial.print(" | Mode: ");
         Serial.print(DTI_GetDTIData()->controlMode);
-        Serial.print(" | ");
-        Serial.print("targetIq ");
-        Serial.print(DTI_GetDTIData()->targetIq);
-        Serial.print(" | ");
-        Serial.print("ERPM: ");
+        Serial.print(" | RPM: ");
         Serial.print(DTI_GetDTIData()->eRPM);
-        Serial.print(" | ");
-        Serial.print("DutyCycle: ");
-        Serial.print(DTI_GetDTIData()->dutyCycle);
-        Serial.print(" | ");
-        Serial.print("Invt Temp: ");
+        Serial.print(" | ThrottleIn: ");
+        Serial.print(APPS_GetAPPSReading());
+        Serial.print("% | TorqueOut: ");
+        Serial.print(DTI_GetDTIData()->targetIq);
+        Serial.print(" | DutyCycle: ");
+        Serial.print(DTI_GetDTIData()->dutyCycle, 2);
+        Serial.print(" | BatTemp: ");
+        Serial.print(BMS_GetOrionData()->highTemp);
+        Serial.print("C | MotorTemp: ");
+        Serial.print(DTI_GetDTIData()->motorTemp);
+        Serial.print("C | InvTemp: ");
         Serial.print(DTI_GetDTIData()->controllerTemp);
-        Serial.print(" | ");
+        Serial.print("C");
 
         // Serial.print("\r");
         //  IMPLEMENT BETTER SERIAL PROCESSING(
@@ -220,6 +209,24 @@ void threadMain(void *pvParameters) {
         Serial.print(BMS_GetOrionData()->highCellVolt, 4);
 
 #endif
+
+#if IMD_FLAG
+
+        Serial.print("IMD_HV: ");
+        Serial.print(IMD_GetInfo()->hv_voltage);
+        Serial.print(" | ");
+        Serial.print("IMD_Resistance: ");
+        Serial.print(IMD_GetInfo()->resistance);
+        Serial.print(" | ");
+        Serial.print("IMD_Status: ");
+        Serial.print(IMD_GetInfo()->status);
+        Serial.print(" | ");
+        Serial.print("IMD_Fault: ");
+        Serial.print(IMD_GetInfo()->isolation_fault);
+        Serial.print(" | ");
+
+#endif
+
         Serial.print("\r");
 #if HIMAC_FLAG
 

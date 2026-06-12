@@ -118,7 +118,7 @@ void threadBus(void *pvParameters) {
             Faults_ClearFault(FAULT_CAN);
         }
         // Normalize DTI frames that carry the node ID in the low byte.
-        Serial.print(rx_id);
+        // Serial.print(rx_id);
         switch (((rx_id & 0xFF) == DTI_NODE_ID) ? (rx_id >> 8) : rx_id) {
         case PKT_1_ID: {
             PKT_DTI1 dti1 = {0};

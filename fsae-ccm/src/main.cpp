@@ -52,7 +52,7 @@ void setup() { // runs once on bootup
     Bypass_Init();
     GPIO_Init();
     WSS_Init();
-    // WDT_Init();
+    WDT_Init();
 
     xTaskCreate(threadADC, "threadADC", THREAD_ADC_STACK_SIZE, NULL,
                 THREAD_ADC_PRIORITY, NULL);
@@ -66,8 +66,8 @@ void setup() { // runs once on bootup
 
     xTaskCreate(threadMain, "threadMain", THREAD_MAIN_STACK_SIZE, NULL,
                 THREAD_MAIN_PRIORITY, NULL);
-    // xTaskCreate(threadWDT, "threadWDT", THREAD_WDT_STACK_SIZE, NULL,
-    //             THREAD_WDT_PRIORITY, NULL);
+    xTaskCreate(threadWDT, "threadWDT", THREAD_WDT_STACK_SIZE, NULL,
+                THREAD_WDT_PRIORITY, NULL);
     vTaskStartScheduler();
 }
 
@@ -107,8 +107,8 @@ void threadMain(void *pvParameters) {
         Serial.print(abs(APPS_GetAPPSReading1() - APPS_GetAPPSReading2()));
         Serial.print(" | ");
         Serial.print("Fault bitmap: ");
-        Serial.println(Faults_GetFaults(), arduino::BIN);
-        Serial.print("\r");
+        Serial.print(Faults_GetFaults(), arduino::BIN);
+        // Serial.print("\r");
 
 #endif
 
@@ -124,7 +124,6 @@ void threadMain(void *pvParameters) {
         Serial.print(" | ");
         Serial.print("Fault bitmap: ");
         Serial.println(Faults_GetFaults(), arduino::BIN);
-        Serial.print("\r");
 
 #endif
 
@@ -148,7 +147,6 @@ void threadMain(void *pvParameters) {
         Serial.print(WSS_GetRPM4());
         Serial.print(" | W4 MPH: ");
         Serial.print(WSS_GetSpeed4_MPH());
-        Serial.print("\r");
 #endif
 
         // thermal_regulate(); //still need to tune parameters
@@ -177,7 +175,7 @@ void threadMain(void *pvParameters) {
 #endif
 
 #if SERIALMONITOR_FLAG
-        Serial.print("ControlMode: ");
+        Serial.print(" | ControlMode: ");
         Serial.print(DTI_GetDTIData()->controlMode);
         Serial.print(" | ");
         Serial.print("targetIq ");
@@ -193,9 +191,9 @@ void threadMain(void *pvParameters) {
         Serial.print(DTI_GetDTIData()->controllerTemp);
         Serial.print(" | ");
 
-        Serial.print("\r");
-        // IMPLEMENT BETTER SERIAL PROCESSING(
-        //     TEENSY does not support ANSI escape codes)
+        // Serial.print("\r");
+        //  IMPLEMENT BETTER SERIAL PROCESSING(
+        //      TEENSY does not support ANSI escape codes)
 #endif
 #if BMS_FLAG
         // --- NEW: Orion BMS 2 Telemetry ---
@@ -221,9 +219,8 @@ void threadMain(void *pvParameters) {
         Serial.print("V | HiCell: ");
         Serial.print(BMS_GetOrionData()->highCellVolt, 4);
 
-        Serial.print("\r");
 #endif
-        thermal_regulate();
+        Serial.print("\r");
 #if HIMAC_FLAG
 
         /*

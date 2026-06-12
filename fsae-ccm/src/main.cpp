@@ -17,6 +17,7 @@
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/linpots.h"
 #include "vehicle/devices/rtm.h"
+#include "vehicle/devices/speaker.h"
 #include "vehicle/devices/thermal.h"
 #include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
@@ -53,6 +54,7 @@ void setup() { // runs once on bootup
     GPIO_Init();
     WSS_Init();
     WDT_Init();
+    Speaker_Init();
 
     xTaskCreate(threadADC, "threadADC", THREAD_ADC_STACK_SIZE, NULL,
                 THREAD_ADC_PRIORITY, NULL);

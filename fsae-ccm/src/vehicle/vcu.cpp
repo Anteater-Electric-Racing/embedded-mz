@@ -25,6 +25,7 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/dti.h"
 #include "vehicle/devices/rtm.h"
+#include "vehicle/devices/speaker.h"
 #include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
@@ -98,6 +99,7 @@ void threadVCU(void *pvParameters) {
             //  mech brakes are engaged
             if (BSE_BrakesPressed()) {
                 if (RTM_ButtonState() && Faults_CheckAllClear()) {
+                    Speaker_Play(); // Play Ready to Drive sound
                     vehicleState = STATE_DRIVING;
                 }
             } else {

@@ -41,6 +41,8 @@ void Bypass_TSSI() {
     bool imdFaulted = (IMD_GetInfo()->status != 0x200) ? LOW : HIGH;
     // bool bmsFaulted = (BMS_GetOrionData()->relayState)
 
+    bool actualFault = imdFaulted; // || bmsFaulted;
+
     // Serial.print("in startup? : ");
     // Serial.print(startup ? "TRUE" : "FALSE");
     // Serial.print(" | feedbackStatus = ");
@@ -68,13 +70,16 @@ void Bypass_TSSI() {
                 // Was healthy before - bypass this startup fault
                 digitalWrite(TSSI_BYPASS_PIN, LOW);
 
-                // if (actualFault){
-                //     //want this to happen after buttons clicked
-                //     //i only know when buttons are clicked if state changes
-                //     //case is if feedback is clicked, still low
-                //     //if deeback is low and actual fault, or what if I do if
-                //     bypass high
-                // }
+                if (actualFault) {
+                    is_fault = LOW;
+                    //     //want this to happen after buttons clicked
+                    //     //i only know when buttons are clicked if state
+                    //     changes
+                    //     //case is if feedback is clicked, still low
+                    //     //if deeback is low and actual fault, or what if I do
+                    //     if bypass high
+                    // TBD Fix nly when ubttons are pressed
+                }
             }
 
             // feedback status is always low on startup, so when its being
@@ -100,10 +105,9 @@ void Bypass_TSSI() {
 
 // TO FIX same logic as eariler
 /**
- * need a bool called actualFault, if its any error except in startup mode (for
- * IMD, BMS), actual fault should be true
- * Question: what faults should be detected as a part of this for BMS?
- * Any fault at ALL?
+ * need a bool called actualFault, if its any error except in startup mode
+ * (for IMD, BMS), actual fault should be true Question: what faults should
+ * be detected as a part of this for BMS? Any fault at ALL?
  *
  */
 void Bypass_TSSI_Full() {

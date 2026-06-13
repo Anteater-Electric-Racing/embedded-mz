@@ -87,6 +87,7 @@ void threadMain(void *pvParameters) {
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
         thermal_forceOn();
 
+        Speaker_Play();
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();
@@ -155,11 +156,11 @@ void threadMain(void *pvParameters) {
 #endif
 
 #if SERIALMONITOR_FLAG
-        Serial.print("Fault bitmap: ");
-        Serial.println(Faults_GetFaults(), arduino::BIN);
-        Serial.print(" | ");
+
         Serial.print("State: ");
         Serial.print(VCU_GetState());
+        Serial.print(" | Fault bitmap: ");
+        Serial.print(Faults_GetFaults(), arduino::BIN);
         Serial.print(" | InvCurr: ");
         Serial.print(DTI_GetDTIData()->acCurrent);
         Serial.print("A | DriveEn: ");
@@ -187,9 +188,9 @@ void threadMain(void *pvParameters) {
         //      TEENSY does not support ANSI escape codes)
 #endif
 #if PRECHARGE_DEBUG
-        Serial.print(" | PCC_State");
+        Serial.print(" | PCC_State: ");
         Serial.print(PCC_GetData()->state);
-        Serial.print(" | Prog");
+        Serial.print(" | Prog: ");
         Serial.print(PCC_GetData()->prechargeProgress);
 #endif
 #if BMS_FLAG

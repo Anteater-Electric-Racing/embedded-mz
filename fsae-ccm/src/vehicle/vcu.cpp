@@ -76,6 +76,7 @@ void threadVCU(void *pvParameters) {
         vcu_last_run_tick = xTaskGetTickCount(); // update WDT tick
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
+        float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
 
@@ -111,33 +112,40 @@ void threadVCU(void *pvParameters) {
             // if (!HIMAC_FLAG || RTM_ButtonState() == false) {
             //     vehicleState = STATE_IDLE;
             // } else {
-            DTI_SendEnableCommand(true);
 
-            float targetTorque = 0.0f;
-            if (HIMAC_FLAG) {
-                targetTorque = VCU_TorqueMap(debugPedalDemand);
+            if (RTM_ButtonState()) {
+                DTI_SendEnableCommand(true);
+
+                if (HIMAC_FLAG) {
+                    targetTorque = VCU_TorqueMap(debugPedalDemand);
+                } else {
+                    targetTorque = VCU_TorqueMap(pedalAccel);
+                }
+
+                // float batteryFactor =
+                // VCU_Derate(BMS_GetOrionData()->highTemp); float motorFactor =
+                // VCU_Derate(DTI_GetDTIData()->motorTemp); float inverterFactor
+                // = VCU_Derate(DTI_GetDTIData()->controllerTemp);
+
+                // // Get the Smallest Factor
+                // float smallestFactor =
+                //     min(batteryFactor, min(motorFactor, inverterFactor));
+
+                DTI_SetDCLimits(60.0, -2.0);
+                DTI_SetACLimits(150.0, -20.0);
+
+                DTI_SendAccelCommand(targetTorque);
+
+                // Serial.println(targetTorque * smallestFactor);
+                if (enableRegen && BSE_BrakesPressed()) {
+                    DTI_SendBrakeCommand(pedalBrake);
+                }
+
             } else {
-                targetTorque = VCU_TorqueMap(pedalAccel);
+                vehicleState = STATE_IDLE;
+                targetTorque = 0;
             }
 
-            // float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
-            // float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
-            // float inverterFactor =
-            // VCU_Derate(DTI_GetDTIData()->controllerTemp);
-
-            // // Get the Smallest Factor
-            // float smallestFactor =
-            //     min(batteryFactor, min(motorFactor, inverterFactor));
-
-            DTI_SetDCLimits(60.0, -2.0);
-            DTI_SetACLimits(150.0, -20.0);
-
-            DTI_SendAccelCommand(targetTorque);
-
-            // Serial.println(targetTorque * smallestFactor);
-            if (enableRegen && BSE_BrakesPressed()) {
-                DTI_SendBrakeCommand(pedalBrake);
-            }
         } break;
 
         case STATE_FAULT:
@@ -196,7 +204,7 @@ void VCU_SetState(VehicleState state) { vehicleState = state; }
 
 void VCU_ForceIdleState() { RTM_ButtonReset(); }
 
-void VCU_ClearFaultState() { vehicleState = STATE_DRIVING; }
+void VCU_ClearFaultState() { vehicleState = STATE_IDLE; }
 
 // void VCU_SetDebugPedalDemand(float pedalDemand) {
 //     debugPedalDemand = constrain(pedalDemand, 0.0f, 1.0f);

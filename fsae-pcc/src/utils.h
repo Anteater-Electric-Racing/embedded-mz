@@ -29,10 +29,10 @@
     0001U // [ms] Minimum time to wait for precharge to complete
 #define PCC_MAX_TIME_MS                                                        \
     20000U // [ms] Maximum time to wait for precharge to complete
-#define PCC_TARGET_PERCENT 90U // Target precharge percent
-#define PCC_SETTLING_TIME 200U // [ms] Time to wait for precharge to settle
-#define PCC_MIN_ACC_VOLTAGE 1U // [V] Minimum voltage for shutdown circuit
-#define PCC_WAIT_TIME 200U     // [ms] Time to wait for stable voltage
+#define PCC_TARGET_PERCENT 90U   // Target precharge percent
+#define PCC_SETTLING_TIME 200U   // [ms] Time to wait for precharge to settle
+#define PCC_MIN_ACC_VOLTAGE 100U // [V] Minimum voltage for shutdown circuit
+#define PCC_WAIT_TIME 200U       // [ms] Time to wait for stable voltage
 
 #define ACCUM_MIN_VOLTAGE 9
 
@@ -42,7 +42,7 @@
 // #define VOLTAGE_DIVIDER_R1 0
 // #define VOLTAGE_DIVIDER_R2 1
 #define VOLTAGE_DIVIDER_R1 510000 * 5
-#define VOLTAGE_DIVIDER_R2 33000
+#define VOLTAGE_DIVIDER_R2 3900
 #define VOLTAGE_DIVIDER_RATIO                                                  \
     ((VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2)
 

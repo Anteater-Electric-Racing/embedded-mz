@@ -15,8 +15,8 @@
 #define PRECHARGE_PRIORITY 8
 
 #define TIME_HYSTERESIS_MS 20U
-//5.56 
-//6.37
+// 5.56
+// 6.37
 constexpr double THERMISTOR1_PIN = 21;
 constexpr double THERMISTOR2_PIN = 20;
 constexpr double THERMISTOR_T0_C = 26;
@@ -59,6 +59,8 @@ static void running();
 static void charging();
 static void errorState();
 
+int analogVal;
+
 // Initialize mutex and precharge task
 void prechargeInit() {
     pcData.tsAlpha =
@@ -85,8 +87,10 @@ void prechargeTask(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
 
     // state = STATE_PRECHARGE;
+    analogReadResolution(10);
 
     while (true) {
+        analogVal = analogRead(A2);
         // double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
         // double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
 
@@ -191,7 +195,7 @@ void prechargeTask(void *pvParameters) {
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
-
+int getSDCval() { return analogVal; }
 float getFrequency(int pin) {
     uint32_t TIMEOUT = 2000;
     uint32_t tHigh = pulseIn(pin, 1, TIMEOUT); // microseconds
@@ -424,20 +428,21 @@ double temperatureFromADC(double adc) {
         adc = (1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0;
     }
     if (adc <= 0) {
-        // Return high ADC hence temperature value if voltage at thermistors is 0
+        // Return high ADC hence temperature value if voltage at thermistors is
+        // 0
         adc = 9999.0;
     }
 
     // Temperature in Celsius in terms of ADC value for thermistor
-     double resistorRatio =
-         THERMISTOR_DIVIDER_RESISTOR /
-         (THERMISTOR_R0 *
-          ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
-           1.0));
-  
-    return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) -
-              (1.0 / THERMISTOR_BETA) * std::log(resistorRatio)) - 273.15;
+    double resistorRatio =
+        THERMISTOR_DIVIDER_RESISTOR /
+        (THERMISTOR_R0 *
+         ((static_cast<double>(1 << TEENSY_ADC_RESOLUTION_BITS) - 1.0) / adc -
+          1.0));
 
+    return 1.0 / ((1.0 / (THERMISTOR_T0_C + 273.15)) -
+                  (1.0 / THERMISTOR_BETA) * std::log(resistorRatio)) -
+           273.15;
 }
 
 // Check thermistor for temperature reading: (Threshold: 69 C)
@@ -450,8 +455,8 @@ bool checkSafeTemperature() {
 
     // TEST VALUES (DUMMY ADC VALUES)
 
-    //double T1ADC_DUMMY = 609.0; // 25 C
-    //double T2ADC_DUMMY = 609.0; // 25 C
+    // double T1ADC_DUMMY = 609.0; // 25 C
+    // double T2ADC_DUMMY = 609.0; // 25 C
 
     // double T1ADC_DUMMY = 134.0; // 100 C
     // double T2ADC_DUMMY = 134.0; // 100 C
@@ -469,7 +474,7 @@ bool checkSafeTemperature() {
                  ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
                  (String)T2Temp);
     */
-   
+
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {
         tempData.isSafeTemperature = 1;

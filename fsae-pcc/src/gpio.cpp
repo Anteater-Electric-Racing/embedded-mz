@@ -5,7 +5,8 @@
 #include <Arduino.h>
 
 void gpioInit(void) {
-    pinMode(SHUTDOWN_CTRL_PIN, OUTPUT);
+    pinMode(IR_PLUS, OUTPUT);
+    pinMode(IR_MINUS, OUTPUT);
     pinMode(FREQ_ACCU_PIN, INPUT_PULLDOWN);
     pinMode(FREQ_TS_PIN, INPUT_PULLDOWN);
     // pinMode(16, INPUT);

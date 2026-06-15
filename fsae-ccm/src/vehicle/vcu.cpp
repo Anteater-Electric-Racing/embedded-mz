@@ -98,13 +98,18 @@ void threadVCU(void *pvParameters) {
             //  transition to IDLE
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
-            if (BSE_BrakesPressed()) {
-                if (RTM_ButtonState() && Faults_CheckAllClear()) {
-                    Speaker_Play(); // Play Ready to Drive sound
-                    vehicleState = STATE_DRIVING;
+            if (PCC_PrechargeComplete()) {
+
+                if (BSE_BrakesPressed()) {
+                    if (RTM_ButtonState() && Faults_CheckAllClear()) {
+                        Speaker_Play(); // Play Ready to Drive sound
+                        vehicleState = STATE_DRIVING;
+                    }
+                } else {
+                    RTM_ButtonReset();
                 }
             } else {
-                RTM_ButtonReset();
+                vehicleState = STATE_PRECHARGING;
             }
             // motorData.desiredTorque = 0.0F;
             break;

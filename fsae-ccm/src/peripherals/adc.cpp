@@ -77,6 +77,28 @@ void ADC_Init() {
     adc->adc1->setSamplingSpeed(
         ADC_SAMPLING_SPEED::LOW_SPEED); // change the sampling speed
 
+        float apps1Sum = 0;
+    float apps2Sum = 0;
+    float bseSum1 = 0;
+    float bseSum2 = 0;
+
+    constexpr uint16_t samples = 30;
+
+    for (uint16_t i = 0; i < samples; i++) {
+        apps1Sum += adc->adc0->analogRead(adc0Pins[APPS_1_INDEX]);
+        apps2Sum += adc->adc0->analogRead(adc0Pins[APPS_2_INDEX]);
+        bseSum1 += adc->adc0->analogRead(adc0Pins[BSE_1_INDEX]);
+        bseSum2 += adc->adc0->analogRead(adc0Pins[BSE_2_INDEX]);
+    }
+
+    APPS1_REST_ADC = apps1Sum / samples;
+    APPS2_REST_ADC = apps2Sum / samples;
+    bseSum1 /= samples;
+    bseSum2 /= samples;
+
+    BSE_MIN_V = bseSum1 + bseSum2 / 2.0F;
+    BSE_MIN_PSI = BSE_VOLTAGE_TO_PSI(BSE_MIN_V) + 3.0F;
+
 #if DEBUG_FLAG
     Serial.println("Done initializing ADCs");
 #endif

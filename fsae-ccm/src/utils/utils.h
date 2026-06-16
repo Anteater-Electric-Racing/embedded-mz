@@ -100,8 +100,8 @@ constexpr int fault_address = 0;
 // APPS_RANGE_MIN_PERCENT) #define APPS_3V3_INV_MAX 1.25F //(APPS2_VOLTAGE_LEVEL
 // * APPS_RANGE_MAX_PERCENT)
 
-#define APPS1_REST_ADC 40.0F
-#define APPS2_REST_ADC 2900.57F
+extern float APPS1_REST_ADC;
+extern float APPS2_REST_ADC;
 
 #define APPS1_FULL_PCT_ADC 460.21F
 #define APPS2_FULL_PCT_ADC 2480.51F
@@ -144,9 +144,9 @@ constexpr int fault_address = 0;
     0.50 // TODO: change back to PSI200    // IN VOLTS --> use PSI value here
 #define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05F // 5%
 
-#define BSE_MIN_PSI 0.0F
+extern float BSE_MIN_PSI;
 #define BSE_MAX_PSI 1000.0F
-#define BSE_MIN_V 0.5F
+extern float BSE_MIN_V;
 #define BSE_MAX_V 4.5F
 #define BSE_VOLTAGE_TO_PSI(x)                                                  \
     (BSE_MAX_PSI / (BSE_MAX_V - BSE_MIN_V)) * (x - BSE_MIN_V)

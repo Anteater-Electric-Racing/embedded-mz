@@ -103,8 +103,8 @@ constexpr int fault_address = 0;
 extern float APPS1_REST_ADC;
 extern float APPS2_REST_ADC;
 
-#define APPS1_FULL_PCT_ADC 460.21F
-#define APPS2_FULL_PCT_ADC 2480.51F
+#define APPS1_FULL_PCT_ADC 476.21F
+#define APPS2_FULL_PCT_ADC 2512.51F
 
 // // Clamp helper
 // #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))

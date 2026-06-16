@@ -102,7 +102,8 @@ void ADC_Init() {
     bseSum1 /= samples;
     bseSum2 /= samples;
 
-    BSE_MIN_V = (bseSum1 + bseSum2) / 2.0F;
+    BSE_MIN_V =
+        ADC_VALUE_TO_VOLTAGE((bseSum1 + bseSum2) / 2.0F, ADC_VOLTAGE_DIVIDER);
     BSE_MIN_PSI = BSE_VOLTAGE_TO_PSI(BSE_MIN_V) + 3.0F;
 
 #if DEBUG_FLAG
@@ -132,15 +133,16 @@ void threadADC(void *pvParameters) {
             uint16_t adcRead = adc->adc1->analogRead(currentPinADC1);
             adc1Reads[currentIndexADC1] = adcRead;
         }
-        Serial.print(BSE_MIN_PSI);
-        Serial.print(" - ");
-        Serial.print(APPS1_REST_ADC);
-        Serial.print(" - ");
-        Serial.println(APPS2_REST_ADC);
+        // Serial.print(BSE_MIN_PSI);
+        // Serial.print(" - ");
+        // Serial.print(APPS1_REST_ADC);
+        // Serial.print(" - ");
+        // Serial.println(APPS2_REST_ADC);
         // ShockTravelUpdateData(
         //     adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
         //     adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
         APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
         BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
+        // Serial.println(BSE_GetBSEAverage());
     }
 }

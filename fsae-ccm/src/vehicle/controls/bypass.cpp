@@ -39,7 +39,7 @@ void Bypass_TSSI() {
     feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
 
     // if not in startup state
-    bool imdFaulted = (IMD_GetInfo()->status != 0x200) ? LOW : HIGH;
+    bool imdFaulted = (IMD_GetInfo()->status == 0x200) ? LOW : HIGH;
     // bool bmsFaulted = (BMS_GetOrionData()->relayState)
 
     bool actualFault = imdFaulted; // || bmsFaulted;

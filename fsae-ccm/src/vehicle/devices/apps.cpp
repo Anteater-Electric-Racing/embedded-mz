@@ -50,7 +50,7 @@ void APPS_UpdateData(uint16_t rawReading1,
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
 
-    // Serial.print("\n\n\n\n\n");
+    // // // Serial.print("\n\n\n\n\n");
     // Serial.print("Raw APPS1: ");
     // Serial.println(appsData.apps1RawReading);
     // Serial.print("Raw APPS2: ");
@@ -84,11 +84,11 @@ void APPS_UpdateData(uint16_t rawReading1,
     appsData.appsReading2_Voltage =
         ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading, ADC_VOLTAGE_DIVIDER2);
 
-    /*========================== RAW VOLTAGE ==========================*/
-    Serial.print("APPS1 RAW Voltage: ");
-    Serial.println(appsData.appsReading1_Voltage);
-    Serial.print("APPS2 RAW Voltage: ");
-    Serial.println(appsData.appsReading2_Voltage);
+    // /*========================== RAW VOLTAGE ==========================*/
+    // Serial.print("APPS1 RAW Voltage: ");
+    // Serial.println(appsData.appsReading1_Voltage);
+    // Serial.print("APPS2 RAW Voltage: ");
+    // Serial.println(appsData.appsReading2_Voltage);
 
     // Serial.print(APPS_3V3_MIN);
     // Serial.print(" - ");
@@ -169,10 +169,10 @@ static void checkAndHandleAPPSFault() {
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
-#if DEBUG_FLAG
+            // #if DEBUG_FLAG
             Serial.println(elapsedMs);
             Serial.println("Setting APPS fault ELAPSED");
-#endif
+            // #endif
             Faults_SetFault(FAULT_APPS);
             return;
         }

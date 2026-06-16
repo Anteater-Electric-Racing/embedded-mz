@@ -30,13 +30,13 @@ operation)
 */
 constexpr int fault_address = 0;
 
-#define SERIALMONITOR_FLAG 0
+#define SERIALMONITOR_FLAG 1
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
 #define BMS_FLAG 0 // REMOVE
-#define IMD_FLAG 0
-#define APPS_DEBUG 0
+#define IMD_FLAG 1
+#define APPS_DEBUG 1
 #define BSE_DEBUG 0
 #define PRECHARGE_DEBUG 1
 
@@ -65,7 +65,7 @@ constexpr int fault_address = 0;
 
 #define WHEEL_SPEED_1_PIN 2
 #define WHEEL_SPEED_2_PIN 3
-#define rtm_PIN 35
+#define rtm_PIN 36
 #define BRAKE_LIGHT_PIN 9
 
 #define LOGIC_LEVEL_V 3.3F
@@ -77,7 +77,7 @@ constexpr int fault_address = 0;
 #define TICKTYPE_FREQUENCY 1
 
 #define ADC_VOLTAGE_DIVIDER 1.88F
-#define ADC_VOLTAGE_DIVIDER1 0.5F
+#define ADC_VOLTAGE_DIVIDER1 1.88F
 #define ADC_VOLTAGE_DIVIDER2 1.36F
 
 #define ADC_VALUE_TO_VOLTAGE(x, divider)                                       \
@@ -104,15 +104,15 @@ constexpr int fault_address = 0;
 #define APPS2_REST_ADC 2900.57F
 
 #define APPS1_FULL_PCT_ADC 460.21F
-#define APPS2_FULL_PCT_ADC 2515.51F
+#define APPS2_FULL_PCT_ADC 2480.51F
 
 // // Clamp helper
 // #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
 // #define CLAMP01(x) CLAMP((x), 0.0F, 1.0F)
 
 // // Convert raw ADC -> commanded percent using only 0-20% physical range
-// #define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20) \
-//     CLAMP01(((float)(adc) - (float)(rest_adc)) / \
+// #define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20)
+//     CLAMP01(((float)(adc) - (float)(rest_adc)) /
 //             ((float)(adc_20) - (float)(rest_adc)))
 
 // noise adjustment
@@ -153,7 +153,7 @@ constexpr int fault_address = 0;
 
 // ALL in volts rn
 #define BRAKE_LIGHT_THRESHOLD 4.0F // PSI
-#define BRAKE_LIGHT_AVG_THRESHOLD 133
+#define BRAKE_LIGHT_AVG_THRESHOLD 142.5F
 #define BSE_LOWER_THRESHOLD 0.25F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F

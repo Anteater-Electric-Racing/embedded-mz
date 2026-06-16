@@ -119,7 +119,7 @@ void threadMain(void *pvParameters) {
 #endif
 
 #if BSE_DEBUG
-        Serial.print("BSE Reading 1 ");
+        Serial.print(" BSE Reading 1 ");
         Serial.print(BSE_GetBSEReading()->bseRear_Reading);
         Serial.print(" | ");
         Serial.print("BSE Reading 2 ");
@@ -128,8 +128,8 @@ void threadMain(void *pvParameters) {
         Serial.print("BSE Avg ");
         Serial.print(BSE_GetBSEAverage());
         Serial.print(" | ");
-        Serial.print("Fault bitmap: ");
-        Serial.println(Faults_GetFaults(), arduino::BIN);
+        // Serial.print("Fault bitmap: ");
+        // Serial.println(Faults_GetFaults(), arduino::BIN);
 
 #endif
 
@@ -159,6 +159,8 @@ void threadMain(void *pvParameters) {
 
         Serial.print("State: ");
         Serial.print(VCU_GetState());
+        Serial.print(" | RTM: ");
+        Serial.print(digitalRead(rtm_PIN));
         Serial.print(" | Fault bitmap: ");
         Serial.print(Faults_GetFaults(), arduino::BIN);
         Serial.print(" | InvCurr: ");
@@ -192,6 +194,10 @@ void threadMain(void *pvParameters) {
         Serial.print(PCC_GetData()->state);
         Serial.print(" | Prog: ");
         Serial.print(PCC_GetData()->prechargeProgress);
+        Serial.print(" | ACC_V: ");
+        Serial.print(PCC_GetData()->accumulatorVoltage);
+        Serial.print(" | TS_V: ");
+        Serial.print(PCC_GetData()->tsVoltage);
 #endif
 #if BMS_FLAG
         // --- NEW: Orion BMS 2 Telemetry ---
@@ -221,7 +227,7 @@ void threadMain(void *pvParameters) {
 
 #if IMD_FLAG
 
-        Serial.print("IMD_HV: ");
+        Serial.print(" IMD_HV: ");
         Serial.print(IMD_GetInfo()->hv_voltage);
         Serial.print(" | ");
         Serial.print("IMD_Resistance: ");

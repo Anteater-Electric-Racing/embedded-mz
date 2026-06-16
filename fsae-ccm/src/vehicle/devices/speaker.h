@@ -4,7 +4,7 @@
 
 #include <Arduino.h>
 
-constexpr uint8_t speakerPin = 14; // old was 36
+constexpr uint8_t speakerPin = 35; // old was 36
 constexpr uint16_t speakerFrequency = 1300;
 constexpr uint16_t speakerDuration = 3000;
 

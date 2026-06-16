@@ -86,8 +86,6 @@ void threadMain(void *pvParameters) {
         // WSS_Update();
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
         thermal_forceOn();
-
-        Speaker_Play();
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();

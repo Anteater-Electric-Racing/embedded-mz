@@ -2,12 +2,12 @@
 
 #include "speaker.h"
 #include "arduino_freertos.h"
+#include <Arduino.h>
 
-void Speaker_Init() { pinMode(speakerPin, 1); }
+void Speaker_Init() { pinMode(speakerPin, arduino::INPUT); }
 
 void Speaker_Play() {
     tone(speakerPin, speakerFrequency);
-    // digitalWrite(14, 0);
-    //  vTaskDelay(pdMS_TO_TICKS(speakerDuration));
-    //  noTone(speakerPin);
+    vTaskDelay(pdMS_TO_TICKS(speakerDuration));
+    noTone(speakerPin);
 }

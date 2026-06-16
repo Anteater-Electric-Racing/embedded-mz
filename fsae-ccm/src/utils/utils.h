@@ -30,7 +30,7 @@ operation)
 */
 constexpr int fault_address = 0;
 
-#define SERIALMONITOR_FLAG 1
+#define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
@@ -76,10 +76,12 @@ constexpr int fault_address = 0;
 #define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
 #define TICKTYPE_FREQUENCY 1
 
-#define ADC_VOLTAGE_DIVIDER 1.85F
+#define ADC_VOLTAGE_DIVIDER 1.88F
+#define ADC_VOLTAGE_DIVIDER1 0.5F
+#define ADC_VOLTAGE_DIVIDER2 1.36F
 
-#define ADC_VALUE_TO_VOLTAGE(x)                                                \
-    ((x) * (LOGIC_LEVEL_V * ADC_VOLTAGE_DIVIDER / ADC_MAX_VALUE))
+#define ADC_VALUE_TO_VOLTAGE(x, divider)                                       \
+    ((x) * (LOGIC_LEVEL_V * (divider) / ADC_MAX_VALUE))
 
 #define APPS_FAULT_PERCENT_MIN .1F
 #define APPS_FAULT_PERCENT_MAX .9F
@@ -114,18 +116,26 @@ constexpr int fault_address = 0;
 //             ((float)(adc_20) - (float)(rest_adc)))
 
 // noise adjustment
-#define APPS_3V3_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.05F
-#define APPS_3V3_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.05F
+#define APPS_3V3_MIN                                                           \
+    ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC, ADC_VOLTAGE_DIVIDER1) - 0.15F
+#define APPS_3V3_MAX                                                           \
+    ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER1) + 0.15F
 
-#define APPS_3V3_INV_MIN ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC) + 0.05F
-#define APPS_3V3_INV_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.05F
+#define APPS_3V3_INV_MIN                                                       \
+    ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC, ADC_VOLTAGE_DIVIDER2) + 0.15F
+#define APPS_3V3_INV_MAX                                                       \
+    ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER2) - 0.15F
 
 // go back to idle faults
-#define APPS_3V3_FAULT_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.15F
-#define APPS_3V3_FAULT_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.15F
+#define APPS_3V3_FAULT_MIN                                                     \
+    ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC, ADC_VOLTAGE_DIVIDER1) - 0.3F
+#define APPS_3V3_FAULT_MAX                                                     \
+    ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER1) + 0.3F
 
-#define APPS_3V3_INV_FAULT_MIN ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC) + 0.15F
-#define APPS_3V3_INV_FAULT_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.15F
+#define APPS_3V3_INV_FAULT_MIN                                                 \
+    ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC, ADC_VOLTAGE_DIVIDER2) + 0.3F
+#define APPS_3V3_INV_FAULT_MAX                                                 \
+    ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER2) - 0.3F
 #define APPS_FAULT_TIME_THRESHOLD_MS 100
 
 #define APPS_IMPLAUSABILITY_THRESHOLD 0.10F            // 10%

@@ -47,14 +47,14 @@ void ShockTravelUpdateData(uint16_t rawReading1, uint16_t rawReading2,
     // Serial.println(linPots.Shock3RawReading);
     // Serial.println(linPots.Shock4RawReading);
 
-    linPots.LinPot1Voltage =
-        abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock1RawReading));
-    linPots.LinPot2Voltage =
-        abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock2RawReading));
-    linPots.LinPot3Voltage =
-        abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock3RawReading));
-    linPots.LinPot4Voltage =
-        abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock4RawReading));
+    linPots.LinPot1Voltage = abs(
+        ADC_VALUE_TO_VOLTAGE(linPots.Shock1RawReading, ADC_VOLTAGE_DIVIDER));
+    linPots.LinPot2Voltage = abs(
+        ADC_VALUE_TO_VOLTAGE(linPots.Shock2RawReading, ADC_VOLTAGE_DIVIDER));
+    linPots.LinPot3Voltage = abs(
+        ADC_VALUE_TO_VOLTAGE(linPots.Shock3RawReading, ADC_VOLTAGE_DIVIDER));
+    linPots.LinPot4Voltage = abs(
+        ADC_VALUE_TO_VOLTAGE(linPots.Shock4RawReading, ADC_VOLTAGE_DIVIDER));
 
     // Serial.println("\n\nVOLTAGE:");
     // Serial.println(linPots.LinPot1Voltage);

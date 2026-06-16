@@ -13,6 +13,8 @@ void GPIO_Init() {
     pinMode(3, INPUT_PULLUP);         // wheel speed 2
     pinMode(rtm_PIN, INPUT_PULLDOWN); // rtm button
     pinMode(9, OUTPUT);
+    pinMode(18, INPUT_PULLUP);
+    pinMode(19, INPUT_PULLDOWN);
 }
 
 // Read the current logical level of a GPIO pin.

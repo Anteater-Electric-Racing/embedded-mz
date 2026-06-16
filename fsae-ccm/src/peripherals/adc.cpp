@@ -12,6 +12,7 @@
 #include "wdt.h"
 
 #include <ADC.h>
+#include <Arduino.h>
 #include <arduino_freertos.h>
 #include <chrono>
 #include <stdint.h>

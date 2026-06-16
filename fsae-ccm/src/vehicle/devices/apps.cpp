@@ -80,15 +80,23 @@ void APPS_UpdateData(uint16_t rawReading1,
 
     // Convert ADC values to voltage
     appsData.appsReading1_Voltage =
-        ADC_VALUE_TO_VOLTAGE(appsData.apps1RawReading);
+        ADC_VALUE_TO_VOLTAGE(appsData.apps1RawReading, ADC_VOLTAGE_DIVIDER1);
     appsData.appsReading2_Voltage =
-        ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading);
+        ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading, ADC_VOLTAGE_DIVIDER2);
 
     /*========================== RAW VOLTAGE ==========================*/
-    // Serial.print("APPS1 RAW Voltage: ");
-    // Serial.println(appsData.appsReading1_Voltage);
-    // Serial.print("APPS2 RAW Voltage: ");
-    // Serial.println(appsData.appsReading2_Voltage);
+    Serial.print("APPS1 RAW Voltage: ");
+    Serial.println(appsData.appsReading1_Voltage);
+    Serial.print("APPS2 RAW Voltage: ");
+    Serial.println(appsData.appsReading2_Voltage);
+
+    // Serial.print(APPS_3V3_MIN);
+    // Serial.print(" - ");
+    // Serial.print(APPS_3V3_MAX);
+    // Serial.print(" | ");
+    // Serial.print(APPS_3V3_INV_MIN);
+    // Serial.print(" - ");
+    // Serial.println(APPS_3V3_INV_MAX);
 
     if (appsData.appsReading1_Voltage < APPS_3V3_MIN) {
         appsData.appsReading1_Voltage = APPS_3V3_MIN;

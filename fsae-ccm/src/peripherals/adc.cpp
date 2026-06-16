@@ -132,6 +132,11 @@ void threadADC(void *pvParameters) {
             uint16_t adcRead = adc->adc1->analogRead(currentPinADC1);
             adc1Reads[currentIndexADC1] = adcRead;
         }
+        Serial.print(BSE_MIN_PSI);
+        Serial.print(" - ");
+        Serial.print(APPS1_REST_ADC);
+        Serial.print(" - ");
+        Serial.println(APPS2_REST_ADC);
         // ShockTravelUpdateData(
         //     adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
         //     adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);

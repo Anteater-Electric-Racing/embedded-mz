@@ -60,6 +60,12 @@ static TickType_t lastWakeTime;
 
 ADC *adc = new ADC();
 
+float APPS1_REST_ADC = 0.0F;
+float APPS2_REST_ADC = 0.0F;
+
+float BSE_MIN_V = 0.0F;
+float BSE_MIN_PSI = 0.0F;
+
 void ADC_Init() {
     // ADC 0
     adc->adc0->setAveraging(ADC_AVERAGING);   // set number of averages
@@ -77,7 +83,7 @@ void ADC_Init() {
     adc->adc1->setSamplingSpeed(
         ADC_SAMPLING_SPEED::LOW_SPEED); // change the sampling speed
 
-        float apps1Sum = 0;
+    float apps1Sum = 0;
     float apps2Sum = 0;
     float bseSum1 = 0;
     float bseSum2 = 0;
@@ -96,7 +102,7 @@ void ADC_Init() {
     bseSum1 /= samples;
     bseSum2 /= samples;
 
-    BSE_MIN_V = bseSum1 + bseSum2 / 2.0F;
+    BSE_MIN_V = (bseSum1 + bseSum2) / 2.0F;
     BSE_MIN_PSI = BSE_VOLTAGE_TO_PSI(BSE_MIN_V) + 3.0F;
 
 #if DEBUG_FLAG

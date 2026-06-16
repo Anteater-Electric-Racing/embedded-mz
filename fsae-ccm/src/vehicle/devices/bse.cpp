@@ -72,6 +72,5 @@ float BSE_GetBSEAverage() {
 }
 
 bool BSE_BrakesPressed() {
-    return (BSE_GetBSEReading()->bseFront_Reading >= BRAKE_LIGHT_THRESHOLD &&
-            BSE_GetBSEReading()->bseRear_Reading >= BRAKE_LIGHT_THRESHOLD);
+    return (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD);
 }

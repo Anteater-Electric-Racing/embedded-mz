@@ -81,15 +81,13 @@ constexpr int fault_address = 0;
 #define ADC_VALUE_TO_VOLTAGE(x)                                                \
     ((x) * (LOGIC_LEVEL_V * ADC_VOLTAGE_DIVIDER / ADC_MAX_VALUE))
 
-// TEMPFIX
-#define APPS2_OFFSET 0.35F
-
 #define APPS_FAULT_PERCENT_MIN .1F
 #define APPS_FAULT_PERCENT_MAX .9F
 
 #define APPS1_VOLTAGE_LEVEL 3.3F
 #define APPS2_VOLTAGE_LEVEL 3.3F
 
+// idt this is the play
 #define APPS_RANGE_MIN_PERCENT .15F
 #define APPS_RANGE_MAX_PERCENT .85F
 
@@ -100,41 +98,29 @@ constexpr int fault_address = 0;
 // APPS_RANGE_MIN_PERCENT) #define APPS_3V3_INV_MAX 1.25F //(APPS2_VOLTAGE_LEVEL
 // * APPS_RANGE_MAX_PERCENT)
 
+#define APPS1_REST_ADC 40.0F
+#define APPS2_REST_ADC 2900.57F
+
+#define APPS1_FULL_PCT_ADC 460.21F
+#define APPS2_FULL_PCT_ADC 2515.51F
+
+// // Clamp helper
+// #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
+// #define CLAMP01(x) CLAMP((x), 0.0F, 1.0F)
+
+// // Convert raw ADC -> commanded percent using only 0-20% physical range
+// #define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20) \
+//     CLAMP01(((float)(adc) - (float)(rest_adc)) / \
+//             ((float)(adc_20) - (float)(rest_adc)))
+
+// noise adjustment
 #define APPS_3V3_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.05F
 #define APPS_3V3_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.05F
 
 #define APPS_3V3_INV_MIN ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC) + 0.05F
 #define APPS_3V3_INV_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.05F
-// ADC values corresponding to physical 20% pedal)
-// #define APPS1_20PCT_ADC 784.0F // OLD
-// #define APPS2_20PCT_ADC 1150.0F
 
-/**MZ Driving MAX (30%)) */
-// #define APPS1_FULL_PCT_ADC 445.08F
-// #define APPS2_FULL_PCT_ADC 2454.0F
-
-/*New values*/
-
-#define APPS1_FULL_PCT_ADC 460.21F
-#define APPS2_FULL_PCT_ADC 2515.51F
-
-// Measured resting ADC (change these with actual findings this is just safe
-// zone values)
-/**MZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 40.0F
-#define APPS2_REST_ADC 2900.57F
-
-// Clamp helper
-#define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
-#define CLAMP01(x) CLAMP((x), 0.0F, 1.0F)
-
-// Convert raw ADC -> commanded percent using only 0-20% physical range
-#define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20)                         \
-    CLAMP01(((float)(adc) - (float)(rest_adc)) /                               \
-            ((float)(adc_20) - (float)(rest_adc)))
-
-/*     END ANOOP TESTING FOR 20% HERE     */
-
+// go back to idle faults
 #define APPS_3V3_FAULT_MIN ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC) - 0.15F
 #define APPS_3V3_FAULT_MAX ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC) + 0.15F
 
@@ -142,11 +128,11 @@ constexpr int fault_address = 0;
 #define APPS_3V3_INV_FAULT_MAX ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC) - 0.15F
 #define APPS_FAULT_TIME_THRESHOLD_MS 100
 
-#define APPS_IMPLAUSABILITY_THRESHOLD 0.1             // 10%
-#define APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD 0.15 // 15%
+#define APPS_IMPLAUSABILITY_THRESHOLD 0.10F            // 10%
+#define APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD 0.25F // 25% as per rules
 #define APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD                                  \
-    0.50 // TODO: change back to PSI200    // IN VOLTS
-#define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05 // 5%
+    0.50 // TODO: change back to PSI200    // IN VOLTS --> use PSI value here
+#define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05F // 5%
 
 #define BSE_MIN_PSI 0.0F
 #define BSE_MAX_PSI 1000.0F

@@ -185,13 +185,13 @@ static void checkAndHandleAPPSFault() {
 }
 
 static void checkAndHandlePlausibilityFault() {
-    float BSEReading_Front = BSE_GetBSEReading()->bseFront_Reading;
-    float BSEReading_Rear = BSE_GetBSEReading()->bseRear_Reading;
+    // float BSEReading_Front = BSE_GetBSEReading()->bseFront_Reading;
+    // float BSEReading_Rear = BSE_GetBSEReading()->bseRear_Reading;
 
-    float BSEReading = BSEReading_Front;
-    if (BSEReading_Rear > BSEReading_Front) {
-        BSEReading = BSEReading_Rear;
-    }
+    // float BSEReading = BSEReading_Front;
+    // if (BSEReading_Rear > BSEReading_Front) {
+    //     BSEReading = BSEReading_Rear;
+    // }
 
 #if DEBUG_FLAG
     Serial.print("BSE Reading: ");

@@ -87,6 +87,8 @@ void threadVCU(void *pvParameters) {
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
             DTI_SendEnableCommand(false);
+
+            // ENSURE never above 80kW limit (in DTI asw)
             DTI_SetDCLimits(60.0, -2.0);
             DTI_SetACLimits(150.0, -20.0);
             if (PCC_PrechargeComplete()) {
@@ -99,7 +101,6 @@ void threadVCU(void *pvParameters) {
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
             if (PCC_PrechargeComplete()) {
-
                 if (BSE_BrakesPressed()) {
                     if (RTM_ButtonState() && Faults_CheckAllClear()) {
                         Speaker_Play(); // Play Ready to Drive sound

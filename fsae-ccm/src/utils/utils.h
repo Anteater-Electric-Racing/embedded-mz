@@ -37,7 +37,7 @@ constexpr int fault_address = 0;
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
-#define BSE_DEBUG 0
+#define BSE_DEBUG 1
 #define PRECHARGE_DEBUG 0
 
 #define ACTIVE_MAP 1
@@ -157,7 +157,7 @@ extern float BSE_MIN_V2;
 
 // ALL in volts rn
 #define BRAKE_LIGHT_THRESHOLD 4.0F // PSI
-#define BRAKE_LIGHT_AVG_THRESHOLD 142.5F
+extern float BRAKE_LIGHT_AVG_THRESHOLD;
 #define BSE_LOWER_THRESHOLD 0.25F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F

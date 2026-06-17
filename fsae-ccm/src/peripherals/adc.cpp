@@ -68,6 +68,8 @@ float BSE_MIN_V2 = 0.0F;
 float BSE_MIN_PSI1 = 0.0F;
 float BSE_MIN_PSI2 = 0.0F;
 
+float BRAKE_LIGHT_AVG_THRESHOLD = 0.0F;
+
 void ADC_Init() {
     // ADC 0
     adc->adc0->setAveraging(ADC_AVERAGING);   // set number of averages
@@ -106,6 +108,10 @@ void ADC_Init() {
 
     BSE_MIN_V1 = ADC_VALUE_TO_VOLTAGE(bseSum1, ADC_VOLTAGE_DIVIDER);
     BSE_MIN_V2 = ADC_VALUE_TO_VOLTAGE(bseSum2, ADC_VOLTAGE_DIVIDER);
+    BSE_MIN_PSI1 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V1);
+    BSE_MIN_PSI2 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V2);
+
+    BRAKE_LIGHT_AVG_THRESHOLD = ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F) + 6.0F;
 #if DEBUG_FLAG
     Serial.println("Done initializing ADCs");
 #endif

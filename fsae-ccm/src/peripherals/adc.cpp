@@ -63,8 +63,10 @@ ADC *adc = new ADC();
 float APPS1_REST_ADC = 0.0F;
 float APPS2_REST_ADC = 0.0F;
 
-float BSE_MIN_V = 0.0F;
-float BSE_MIN_PSI = 0.0F;
+float BSE_MIN_V1 = 0.0F;
+float BSE_MIN_V2 = 0.0F;
+float BSE_MIN_PSI1 = 0.0F;
+float BSE_MIN_PSI2 = 0.0F;
 
 void ADC_Init() {
     // ADC 0
@@ -102,10 +104,8 @@ void ADC_Init() {
     bseSum1 /= samples;
     bseSum2 /= samples;
 
-    BSE_MIN_V =
-        ADC_VALUE_TO_VOLTAGE((bseSum1 + bseSum2) / 2.0F, ADC_VOLTAGE_DIVIDER);
-    BSE_MIN_PSI = BSE_VOLTAGE_TO_PSI(BSE_MIN_V) + 3.0F;
-
+    BSE_MIN_V1 = ADC_VALUE_TO_VOLTAGE(bseSum1, ADC_VOLTAGE_DIVIDER);
+    BSE_MIN_V2 = ADC_VALUE_TO_VOLTAGE(bseSum2, ADC_VOLTAGE_DIVIDER);
 #if DEBUG_FLAG
     Serial.println("Done initializing ADCs");
 #endif

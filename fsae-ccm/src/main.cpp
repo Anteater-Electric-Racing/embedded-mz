@@ -126,8 +126,8 @@ void threadMain(void *pvParameters) {
         Serial.print("BSE Avg ");
         Serial.print(BSE_GetBSEAverage());
         Serial.print(" | ");
-        // Serial.print("Fault bitmap: ");
-        // Serial.println(Faults_GetFaults(), arduino::BIN);
+        Serial.print("Fault bitmap: ");
+        Serial.println(Faults_GetFaults(), arduino::BIN);
 
 #endif
 

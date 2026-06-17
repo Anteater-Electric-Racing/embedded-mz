@@ -144,9 +144,13 @@ extern float APPS2_REST_ADC;
     0.50 // TODO: change back to PSI200    // IN VOLTS --> use PSI value here
 #define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05F // 5%
 
-extern float BSE_MIN_PSI;
+extern float BSE_MIN_PSI1;
+extern float BSE_MIN_PSI2;
+#define BSE_MIN_PSI 3.0F
 #define BSE_MAX_PSI 1000.0F
-extern float BSE_MIN_V;
+extern float BSE_MIN_V1;
+extern float BSE_MIN_V2;
+#define BSE_MIN_V 0.5F
 #define BSE_MAX_V 4.5F
 #define BSE_VOLTAGE_TO_PSI(x)                                                  \
     (BSE_MAX_PSI / (BSE_MAX_V - BSE_MIN_V)) * (x - BSE_MIN_V)

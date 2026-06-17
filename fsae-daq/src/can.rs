@@ -14,7 +14,11 @@
 //! using the virtual CAN network setup in the GitHub Actions workflow (test.yml).
 
 use structmap::{ToMap, value::Value};
-use crate::send::{now_ms, send_message, Reading, get_qdb_buffer};
+use crate::send::{now_ms, send_message, Reading, get_qdb_buffer, get_questdb_sender};
+use questdb::ingress::{
+    Sender,
+    Buffer
+};
 use deku::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -258,7 +262,8 @@ impl Reading for TelemetryData {
 ///
 /// Retries socket creation on failure; logs malformed packets.
 async fn read_can_hardware() {
-    let mut buffer : questdb::ingress::Buffer = get_qdb_buffer();
+    let mut buffer : Buffer = get_qdb_buffer();
+    let mut sender : Sender = get_questdb_sender().await;
     loop {
         let socket = match IsoTpSocket::open(
             CAN_INTERFACE,
@@ -279,7 +284,7 @@ async fn read_can_hardware() {
                 Ok(((remaining, _), _)) if !remaining.is_empty() => {
                     warn!("Telemetry packet has {} trailing bytes", remaining.len(),);
                 }
-                Ok((_, data)) => send_message(data, ts, &mut buffer).await,
+                Ok((_, data)) => send_message(data, ts, &mut buffer, &mut sender).await,
                 Err(e) => warn!(error = %e, "Malformed telemetry packet"),
             }
         }
@@ -295,7 +300,8 @@ impl TelemetryData {
 
 /// Generates synthetic telemetry (debug builds only).
 async fn read_can_synthetic() {
-    let mut buffer : questdb::ingress::Buffer = get_qdb_buffer();
+    let mut buffer : Buffer = get_qdb_buffer();
+    let mut sender : Sender = get_questdb_sender().await;
     use std::time::Instant;
 
     let mut count: u64 = 0;
@@ -304,7 +310,7 @@ async fn read_can_synthetic() {
     let mut interval = tokio::time::interval(Duration::from_millis(1));
     loop {
         interval.tick().await;
-        send_message(TelemetryData::default().mutate_test_val(), now_ms(), &mut buffer).await;
+        send_message(TelemetryData::default().mutate_test_val(), now_ms(), &mut buffer, &mut sender).await;
         count += 1;
 
         let elapsed = last.elapsed();

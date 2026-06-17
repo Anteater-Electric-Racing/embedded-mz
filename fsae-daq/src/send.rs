@@ -23,7 +23,7 @@ pub const TAOS_URL: &str = "taos+ws://localhost:6041/fsae";
 pub const MQTT_ID: &str = "fsae";
 pub const MQTT_HOST: &str = "127.0.0.1";
 pub const MQTT_PORT: u16 = 1883;
-pub const QUESTDB_URL: &str = "http::addr=localhost:9000;"; //this is probably (defintly) the wrong link but it does let me connect on my home computer
+pub const QUESTDB_URL: &str = "http::addr=localhost:9000"; //this is probably (defintly) the wrong link but it does let me connect on my home computer
 
 
 const CREATE_DB: &str =
@@ -149,8 +149,10 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
 
     let json = value.to_string(); //data as string
     let topic = T::topic(); //name of struct basically
-    
-    match *(*loss).lock().await {
+
+    let mut lock = (*loss).lock().await ;
+
+    match *lock {
         10 => {
             match get_mqtt_client()
                 .await
@@ -162,14 +164,14 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
                 }
                 Err(e) => error!(%e, "MQTT publish error"),
             }
-            let mut lock = (*loss).lock().await;
-            *lock -= 10;
+            *lock = 0;
         }
         _ => {
-            let mut lock = (*loss).lock().await;
-            *lock -= 1;
+            *lock += 1;
         }
     }
+    //error!("not locked");
+
     
     
     //async fn send_to_questdb(topic : &str, value : serde_json::Value) {

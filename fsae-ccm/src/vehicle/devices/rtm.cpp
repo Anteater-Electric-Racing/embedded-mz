@@ -20,12 +20,10 @@ void RTM_ButtonUpdate(bool rtmButton) {
 
     if (lastState == false && currentState == true) {
         rtmState = true;
-    } else {
-        rtmState = false;
     }
-    // reset it at the end
     lastState = currentState;
 }
+// reset it at the end
 
 bool RTM_ButtonState() { return rtmState; }
 

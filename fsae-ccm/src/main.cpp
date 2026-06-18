@@ -86,6 +86,7 @@ void threadMain(void *pvParameters) {
         // WSS_Update();
         main_last_run_tick = xTaskGetTickCount(); // update WDT tick
         thermal_forceOn();
+        Speaker_Play();
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();
@@ -98,6 +99,27 @@ void threadMain(void *pvParameters) {
             digitalWrite(BRAKE_LIGHT_PIN, HIGH);
         } else {
             digitalWrite(BRAKE_LIGHT_PIN, LOW);
+        }
+
+        // low priority faults
+        // cane be removed rn
+        if (DTI_GetDTIData()->acCurrent > BATTERY_MAX_CURRENT_A) {
+            Faults_SetFault(FAULT_OVER_CURRENT);
+        } else {
+            Faults_ClearFault(FAULT_OVER_CURRENT);
+        }
+
+        if (DTI_GetDTIData()->inputVoltage < 300.0) {
+            Faults_SetFault(FAULT_UNDER_VOLTAGE);
+        } else {
+            Faults_ClearFault(FAULT_UNDER_VOLTAGE);
+        }
+
+        if (DTI_GetDTIData()->inputVoltage < 335.0 &&
+            DTI_GetDTIData()->inputVoltage > 300.0) {
+            Faults_SetFault(LOW_BATTERY_VOLTAGE_FAULT);
+        } else {
+            Faults_ClearFault(LOW_BATTERY_VOLTAGE_FAULT);
         }
 
 #if APPS_DEBUG

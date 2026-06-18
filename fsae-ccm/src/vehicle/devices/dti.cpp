@@ -111,3 +111,17 @@ void DTI_SendBrakeCommand(float value) {
     brakeMsg.data.half[0] = (int16_t)roundf(value * 10);
     CAN_Send(&brakeMsg);
 }
+
+/**
+ * Relative (percentage) brake current command. Same units as relative accel
+ * current, so regen magnitude scales to motor capability instead of raw Amps.
+ * @param value regen magnitude as percent of max current (0-100)
+ *  */
+void DTI_SendBrakeCommandRelative(float value) {
+    DTIMessage brakeMsg;
+    brakeMsg.id = ((PKT_SetRelativeBrakeCurrent_ID));
+    brakeMsg.dlc = 2;
+    brakeMsg.is_bitfield = false;
+    brakeMsg.data.half[0] = (int16_t)roundf(value * 10);
+    CAN_Send(&brakeMsg);
+}

@@ -161,10 +161,10 @@ void Faults_HandleFaults() {
         VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_MASK) {
-        VCU_SetFaultState();
+        VCU_ForceFaultIdleState();
     }
     if (faultBitMap & FAULT_BSE_MASK) {
-        VCU_SetFaultState();
+        VCU_ForceFaultIdleState();
     }
     if (faultBitMap & FAULT_BPPS_MASK) {
         VCU_SetFaultState();

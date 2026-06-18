@@ -58,11 +58,6 @@ constexpr int fault_address = 0;
 #define THREAD_WDT_STACK_SIZE 128
 #define THREAD_WDT_PRIORITY 9
 
-/**
- *
- *
- */
-
 #define WHEEL_SPEED_1_PIN 2
 #define WHEEL_SPEED_2_PIN 3
 #define rtm_PIN 36

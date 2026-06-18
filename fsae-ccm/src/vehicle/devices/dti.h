@@ -44,5 +44,6 @@ void DTI_LinkControlMode(DTIControlMode *mode);
 void DTI_SendEnableCommand(bool enable);
 void DTI_SendAccelCommand(float value);
 void DTI_SendBrakeCommand(float value);
+void DTI_SendBrakeCommandRelative(float value);
 void DTI_SetACLimits(float max, float min);
 void DTI_SetDCLimits(float max, float min);

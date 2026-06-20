@@ -161,7 +161,7 @@ void threadMain(void *pvParameters) {
         Serial.print("State: ");
         Serial.print(VCU_GetState());
         Serial.print(" | RTM: ");
-        Serial.print(digitalRead(rtm_PIN));
+        Serial.print(RTM_ButtonState());
         Serial.print(" | Fault bitmap: ");
         Serial.print(Faults_GetFaults(), arduino::BIN);
         Serial.print(" | InvCurr: ");

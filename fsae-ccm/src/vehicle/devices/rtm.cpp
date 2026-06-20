@@ -10,8 +10,6 @@
 // TODO CLEANUP
 
 static bool rtmState = false; // Latching state of RTM based on momentary button
-                              // press. True - driving state, false - idle state
-static uint32_t lastDebounceTime = 0;
 
 void RTM_ButtonUpdate(bool rtmButton) {
 
@@ -21,8 +19,6 @@ void RTM_ButtonUpdate(bool rtmButton) {
 
     if (lastState == false && rtmButton == true) {
         rtmState = true;
-    } else {
-        rtmState = false;
     }
     // reset it at the end
     lastState = rtmButton;

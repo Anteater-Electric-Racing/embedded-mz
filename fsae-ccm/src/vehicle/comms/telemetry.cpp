@@ -11,6 +11,7 @@ TelemetryData telemetryData;
 void Telemetry_Init() {
     telemetryData = {// Fill with reasonable dummy values
                      // Analog Data
+                     .RTMState = 0,
                      .APPS_Travel = 0.0F,
                      .BSEFront = 0.0F,
                      .BSERear = 0.0F,
@@ -93,6 +94,8 @@ void threadTelemetry(void *pvParameters) {
         telemetryData = {
             // Fill with reasonable dummy values
             // Analog Data
+
+            .RTMState = RTM_ButtonState(),
             .APPS_Travel = APPS_GetAPPSReading(),
             .BSEFront = BSE_GetBSEReading()->bseFront_Reading,
             .BSERear = BSE_GetBSEReading()->bseRear_Reading,
@@ -176,6 +179,8 @@ void threadTelemetry(void *pvParameters) {
         // Serial.print(" | ");
         // Serial.print(sizeof(TelemetryData));
         // Serial.print("\r");
+
+        CAN_Send(0x520, (uint64_t)telemetryData.RTMState);
 
         uint8_t *serializedData = (uint8_t *)&telemetryData;
         CAN_ISOTP_Send(TELEMETRY_CAN_ID, serializedData, sizeof(TelemetryData));

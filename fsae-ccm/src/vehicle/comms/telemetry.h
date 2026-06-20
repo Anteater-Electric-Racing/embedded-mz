@@ -10,12 +10,15 @@
 #include "vehicle/devices/apps.h"
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/linpots.h"
+#include "vehicle/devices/rtm.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
 
 typedef struct __attribute__((packed)) {
 
     // Analog Data
+    bool RTMState;
+
     float APPS_Travel; // APPS travel in %
 
     float BSEFront; // front brake pressure in PSI

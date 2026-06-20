@@ -30,7 +30,7 @@ operation)
 */
 constexpr int fault_address = 0;
 
-#define SERIALMONITOR_FLAG 0
+#define SERIALMONITOR_FLAG 1
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
@@ -169,13 +169,15 @@ extern float BRAKE_LIGHT_AVG_THRESHOLD;
 #define CAN_FAULT_TIME_THRESHOLD_MS 100
 
 #define MOTOR_MAX_TORQUE 220.0F // TODO: Update with real value //used to be 220
-#define CAPPED_MOTOR_TORQUE 80.0F
+#define CAPPED_MOTOR_TORQUE 200.0F
 #define MAX_TORQUE_STEP_UP_PCT 0F
 #define MAX_TORQUE_STEP_DOWN_PCT 1.0F
 #define TORQUE_SHIFT_OFFSET 5.0F
 
-#define BATTERY_MAX_CURRENT_A 140.0F // TO CHANGE
-#define BATTERY_MAX_REGEN_A 140.0F   // TO CHANGE
+#define BATTERY_MAX_CURRENT_A 200.0F // TO CHANGE
+#define BATTERY_MAX_REGEN_A 60.0F    // TO CHANGE
+#define AC_MAX 200.0F                // TO CHANGE
+#define AC_MAX_R 60.0F               // TO CHANGE
 
 #define COMPUTE_ALPHA(CUTOFF_HZ)                                               \
     (1.0F / (1.0F + (1.0F / (2.0F * M_PI * CUTOFF_HZ)) / TIME_STEP))

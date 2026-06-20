@@ -90,8 +90,8 @@ void threadVCU(void *pvParameters) {
             DTI_SendEnableCommand(false);
 
             // ENSURE never above 80kW limit (in DTI asw)
-            DTI_SetDCLimits(60.0, -2.0);
-            DTI_SetACLimits(150.0, -20.0);
+            DTI_SetDCLimits(AC_MAX, -2.0);
+            DTI_SetACLimits(AC_MAX, -AC_MAX_R);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
@@ -102,8 +102,9 @@ void threadVCU(void *pvParameters) {
             //  mech brakes are engaged
             if (BSE_BrakesPressed()) {
                 if (RTM_ButtonState() && Faults_CheckAllClear()) {
-                    DTI_SendEnableCommand(true);
-                    vehicleState = STATE_DRIVING;
+                    // vehicleState = STATE_DRIVING;
+
+                    // assume rtm button gets sent, stays 1
                     Speaker_Play(); // Play Ready to Drive sound
                 }
             } else {
@@ -117,7 +118,7 @@ void threadVCU(void *pvParameters) {
             //     vehicleState = STATE_IDLE;
             // } else {
 
-            if (RTM_ButtonState()) {
+            if (RTM_ButtonState() && PCC_PrechargeComplete()) {
                 DTI_SendEnableCommand(true);
 
                 if (HIMAC_FLAG) {
@@ -127,16 +128,17 @@ void threadVCU(void *pvParameters) {
                 }
 
                 // float batteryFactor =
-                // VCU_Derate(BMS_GetOrionData()->highTemp); float motorFactor =
-                // VCU_Derate(DTI_GetDTIData()->motorTemp); float inverterFactor
-                // = VCU_Derate(DTI_GetDTIData()->controllerTemp);
+                // VCU_Derate(BMS_GetOrionData()->highTemp); float
+                // motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
+                // float inverterFactor =
+                // VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
                 // // Get the Smallest Factor
                 // float smallestFactor =
                 //     min(batteryFactor, min(motorFactor, inverterFactor));
 
-                DTI_SetDCLimits(60.0, -2.0);
-                DTI_SetACLimits(150.0, -20.0);
+                DTI_SetDCLimits(AC_MAX, -2.0);
+                DTI_SetACLimits(AC_MAX, -AC_MAX_R);
 
                 DTI_SendAccelCommand(targetTorque);
 
@@ -208,7 +210,7 @@ void VCU_SetState(VehicleState state) { vehicleState = state; }
 
 void VCU_ForceFaultIdleState() { RTM_ButtonReset(); }
 
-void VCU_ClearFaultState() { vehicleState = STATE_IDLE; }
+void VCU_ClearFaultState() { vehicleState = STATE_DRIVING; }
 
 // void VCU_SetDebugPedalDemand(float pedalDemand) {
 //     debugPedalDemand = constrain(pedalDemand, 0.0f, 1.0f);

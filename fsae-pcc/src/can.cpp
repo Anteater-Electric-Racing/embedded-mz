@@ -204,4 +204,5 @@ bool CAN_IsCharging() {
     taskENTER_CRITICAL();
     en = if_charging;
     taskEXIT_CRITICAL();
+    return en;
 }

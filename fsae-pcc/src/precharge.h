@@ -29,3 +29,6 @@ PrechargeState getPrechargeState();
 int getPrechargeError();
 double temperatureFromADC(double adc);
 bool checkSafeTemperature();
+
+double getAccumulatorRaw();
+double getTSRaw();

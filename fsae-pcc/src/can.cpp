@@ -14,6 +14,13 @@
 // charger can ids
 #define BMS_CHARGER_STATUS_CAN_ID 0x185
 #define BMS_CHARGER_CMD_CAN_ID 0x306
+
+// DTI inverter drive enable
+// Transmitted as extended ID: (PKT_SetDriveEnable_ID << 8) | DTI_NODE_ID
+#define DTI_NODE_ID 0x41 // 65
+#define PKT_SetDriveEnable_ID 12
+#define DTI_DRIVE_ENABLE_CAN_ID                                                \
+    (((uint32_t)PKT_SetDriveEnable_ID << 8) | DTI_NODE_ID) // 0x0C41 (EXT)
 // charger safety byte
 #define CHARGER_SAFETY_BYTE 6
 // charger safety mask
@@ -31,6 +38,10 @@ typedef struct {
 // struct for charger data declaration
 static ChargerData chargerData;
 
+// DTI drive enable state (buf[0]: 1 = enabled, 0 = disabled)
+static bool vcu_rtmState = false;
+static bool if_charging = false;
+
 FlexCAN_T4<CAN2, RX_SIZE_256, TX_SIZE_16> can2;
 
 static CAN_message_t canMsg;
@@ -47,6 +58,7 @@ void CAN_Init() {
     can2.setFIFOFilter(REJECT_ALL);
     can2.setFIFOFilter(0, BMS_CHARGER_STATUS_CAN_ID, STD);
     can2.setFIFOFilter(1, BMS_CHARGER_CMD_CAN_ID, STD);
+    can2.setFIFOFilter(2, DTI_DRIVE_ENABLE_CAN_ID, EXT);
 
     chargerData = {0};
 
@@ -114,6 +126,10 @@ static void pollMessages() {
             chargerData.packVoltage = rawVoltage / 10.0F;
             chargerData.packCCL = rxMsg.buf[2] * 8.0F / 10.0F;
             chargerData.rollingCounter = rxMsg.buf[6];
+        } else if (rxMsg.id == 0x520) {
+            // dlc<=1 path in CAN_Send: enable byte sits raw in buf[0], no swap
+            if_charging = true;
+            vcu_rtmState = (rxMsg.buf[0] != 0);
         }
     }
 }
@@ -172,4 +188,20 @@ uint8_t CAN_GetChargerCounter() {
     c = chargerData.rollingCounter;
     taskEXIT_CRITICAL();
     return c;
+}
+
+// get DTI drive enable state (mirrored from PKT_SetDriveEnable_ID = 12)
+bool CAN_RTMState() {
+    bool en;
+    taskENTER_CRITICAL();
+    en = vcu_rtmState;
+    taskEXIT_CRITICAL();
+    return en;
+}
+
+bool CAN_IsCharging() {
+    bool en;
+    taskENTER_CRITICAL();
+    en = if_charging;
+    taskEXIT_CRITICAL();
 }

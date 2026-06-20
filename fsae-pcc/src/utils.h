@@ -48,14 +48,15 @@
 // 101 Mohms = R1
 //  1 Mohms = R2
 
-#define ACCU_VOLTAGE_DIVIDER_R1 99
-#define TS_VOLTAGE_DIVIDER_R1 99
-#define VOLTAGE_DIVIDER_R2 1
-#define VOLTAGE_DIVIDER_RATIO(x) ((x + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2)
+#define ACCU_VOLTAGE_DIVIDER_R1 99.0F
+#define TS_VOLTAGE_DIVIDER_R1 99.0F
+#define VOLTAGE_DIVIDER_R2 1.0F
+#define VOLTAGE_DIVIDER_RATIO                                                  \
+    (ACCU_VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2
 
-#define Rs 12000
-#define Rl 100000
-#define Rt 6800
-#define Ct 1e-8
-#define FREQ_TO_VOLTAGE(FREQ, x)                                               \
-    (FREQ * Rt * Ct * Rl * 2.205F / Rs) * VOLTAGE_DIVIDER_RATIO(x)
+#define Rs 12000.0F
+#define Rl 100000.0F
+#define Rt 6800.0F
+#define Ct 1e-8F
+#define FREQ_TO_VOLTAGE(FREQ)                                                  \
+    (FREQ * Rt * Ct * Rl * 2.205F / Rs) * VOLTAGE_DIVIDER_RATIO

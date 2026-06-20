@@ -47,6 +47,8 @@ void threadMain(void *pvParameters) {
         state = getPrechargeState();
         Serial.print("SDC IN: ");
         Serial.print(getSDCval());
+        Serial.print(" IR + ");
+        Serial.print("IR- + ");
         Serial.print(" |                                         State: ");
         switch (state) {
         case STATE_STANDBY:

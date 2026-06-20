@@ -57,7 +57,7 @@ const float x0_vals[] PROGMEM = {0.7f, 0.425f, 0.375f};
 static float k = 0.0f, x0 = 0.0f, low_limit = 0.0f, high_limit = 0.0f;
 
 void VCU_Init() {
-    vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
+    vehicleState = STATE_IDLE; // DEFAULT TO PRECHARGE
     enableRegen = false;
 
     driveState.controlMode = TORQUE;
@@ -86,6 +86,7 @@ void threadVCU(void *pvParameters) {
 
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
+            vehicleState = STATE_IDLE;
             DTI_SendEnableCommand(false);
 
             // ENSURE never above 80kW limit (in DTI asw)
@@ -96,21 +97,18 @@ void threadVCU(void *pvParameters) {
             }
             break;
         case STATE_IDLE:
-            DTI_SendEnableCommand(false);
             //  transition to IDLE
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
-            if (PCC_PrechargeComplete()) {
-                if (BSE_BrakesPressed()) {
-                    if (RTM_ButtonState() && Faults_CheckAllClear()) {
-                        Speaker_Play(); // Play Ready to Drive sound
-                        vehicleState = STATE_DRIVING;
-                    }
-                } else {
-                    RTM_ButtonReset();
+            if (BSE_BrakesPressed()) {
+                if (RTM_ButtonState() && Faults_CheckAllClear()) {
+                    DTI_SendEnableCommand(true);
+                    vehicleState = STATE_DRIVING;
+                    Speaker_Play(); // Play Ready to Drive sound
                 }
             } else {
-                vehicleState = STATE_PRECHARGING;
+                RTM_ButtonReset();
+                DTI_SendEnableCommand(false);
             }
             // motorData.desiredTorque = 0.0F;
             break;
@@ -208,7 +206,7 @@ void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
 
 void VCU_SetState(VehicleState state) { vehicleState = state; }
 
-void VCU_ForceIdleState() { RTM_ButtonReset(); }
+void VCU_ForceFaultIdleState() { RTM_ButtonReset(); }
 
 void VCU_ClearFaultState() { vehicleState = STATE_IDLE; }
 

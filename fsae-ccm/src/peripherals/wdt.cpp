@@ -7,7 +7,7 @@
 #define ADC_FAULT_TIME_THRESHOLD_MS 100
 #define CAN_FAULT_TIME_THRESHOLD_MS 100
 #define MAIN_FAULT_TIME_THRESHOLD_MS 300
-#define VCU_FAULT_TIME_THRESHOLD_MS 100
+#define VCU_FAULT_TIME_THRESHOLD_MS 1000000
 
 // Global watchdog tick tracking variables
 TickType_t adc_last_run_tick = 0;

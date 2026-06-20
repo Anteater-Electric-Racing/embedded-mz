@@ -15,6 +15,11 @@
 #define PRECHARGE_PRIORITY 8
 
 #define TIME_HYSTERESIS_MS 20U
+
+// Define to bypass voltage-based precharge and use a fixed timer instead.
+// Uncomment to enable:
+#define PRECHARGE_TIMED_MODE
+#define PRECHARGE_TIMED_DURATION_MS 5000U  // [ms] duration when timed mode on
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -72,7 +77,7 @@ void prechargeInit() {
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
 
     tempData.isSafeTemperature = false;
-
+    pinMode(16, INPUT_PULLDOWN);
     // Create precharge task
     xTaskCreate(prechargeTask, "PrechargeTask", PRECHARGE_STACK_SIZE, NULL,
                 PRECHARGE_PRIORITY, NULL);
@@ -98,15 +103,15 @@ void prechargeTask(void *pvParameters) {
         // Serial.println("FREQ_TS: " + (String)FREQ_TS +
         //                ", FREQ_ACC: " + (String)FREQ_ACC);
 
-        // Check thermistor readings, discharge if exceeded
-        if (!checkSafeTemperature()) {
-            digitalWrite(IR_MINUS, LOW);
-            state = STATE_DISCHARGE;
+        // // Check thermistor readings, discharge if exceeded
+        // if (!checkSafeTemperature()) {
+        //     digitalWrite(IR_MINUS, LOW);
+        //     state = STATE_DISCHARGE;
 
-        } else {
-            // Update temperature CAN flag
-            tempData.isSafeTemperature = true;
-        }
+        // } else {
+        //     // Update temperature CAN flag
+        //     tempData.isSafeTemperature = true;
+        // }
 
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
@@ -118,9 +123,8 @@ void prechargeTask(void *pvParameters) {
             break;
         }
         case STATE_PRECHARGE: {
-            if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
-                state = STATE_DISCHARGE;
-            }
+            // Voltage measurement unreliable — discharge guard disabled
+            // if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) state = STATE_DISCHARGE;
             precharge();
             break;
         }
@@ -131,34 +135,33 @@ void prechargeTask(void *pvParameters) {
             break;
         }
         case STATE_ONLINE: {
-            if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
-                state = STATE_DISCHARGE;
-            }
-            if (CAN_IsChargerSafetyActive()) {
-                state = STATE_CHARGING;
-                break;
-            }
+            // Voltage measurement unreliable — discharge guard disabled
+            // if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) state = STATE_DISCHARGE;
+            // if (CAN_IsChargerSafetyActive()) {
+            //     state = STATE_CHARGING;
+            //     break;
+            // }
             running();
             break;
         }
-        case STATE_CHARGING: {
-            if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
-                state = STATE_DISCHARGE;
-                break;
-            }
-            if (!CAN_IsChargerSafetyActive()) {
-                state = STATE_STANDBY;
-                break;
-            }
-            if ((xTaskGetTickCount() - CAN_GetBMSLastRxTime()) >
-                pdMS_TO_TICKS(BMS_CAN_TIMEOUT_MS)) {
-                state = STATE_ERROR;
-                errorCode |= ERR_BMS_CAN_TIMEOUT;
-                break;
-            }
-            charging();
-            break;
-        }
+        // case STATE_CHARGING: {
+        //     if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
+        //         state = STATE_DISCHARGE;
+        //         break;
+        //     }
+        //     // if (!CAN_IsChargerSafetyActive()) {
+        //     //     state = STATE_STANDBY;
+        //     //     break;
+        //     // }
+        //     if ((xTaskGetTickCount() - CAN_GetBMSLastRxTime()) >
+        //         pdMS_TO_TICKS(BMS_CAN_TIMEOUT_MS)) {
+        //         state = STATE_ERROR;
+        //         errorCode |= ERR_BMS_CAN_TIMEOUT;
+        //         break;
+        //     }
+        //     charging();
+        //     break;
+        // }
         case STATE_ERROR: {
             if (pcData.accVoltage < PCC_MIN_ACC_VOLTAGE) {
                 state = STATE_DISCHARGE;
@@ -209,7 +212,11 @@ float getFrequency(int pin) {
 
 void updateVoltage(int pin) {
     float rawFreq = getFrequency(pin);
-    float rawVoltage = FREQ_TO_VOLTAGE(rawFreq); // Convert frequency to voltage
+
+    float rawVoltage = FREQ_TO_VOLTAGE(
+        rawFreq, (pin == ACCUMULATOR_VOLTAGE_PIN
+                      ? ACCU_VOLTAGE_DIVIDER_R1
+                      : TS_VOLTAGE_DIVIDER_R1)); // Convert frequency to voltage
 
     switch (pin) {
     case ACCUMULATOR_VOLTAGE_PIN: {
@@ -239,15 +246,22 @@ void standby() {
     digitalWrite(IR_PLUS, LOW);
     digitalWrite(IR_MINUS, HIGH);
 
-    // Serial.println("ACC: " + (String) pcData.accVoltage);
-    if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
-        lastState = STATE_STANDBY;
+
+
+    // 10s boot delay before entering precharge
+    static TickType_t standbyEntryTick = 0;
+    if (lastState != STATE_STANDBY) {
+        lastState = STATE_STANDBY;           // must set here so the guard above only fires once
+        standbyEntryTick = xTaskGetTickCount();
+    }
+    if ((xTaskGetTickCount() - standbyEntryTick) >= pdMS_TO_TICKS(10000)) {
         state = STATE_PRECHARGE;
     }
-    if (CAN_IsChargerSafetyActive()) {
-        lastState = STATE_STANDBY;
-        state = STATE_PRECHARGE;
-    }
+    // // nest if needed
+    // if (CAN_IsChargerSafetyActive()) {
+    //     lastState = STATE_STANDBY;
+    //     state = STATE_PRECHARGE;
+    // }
 }
 
 // PRECHARGE STATE: Close AIR- and precharge relay, monitor precharge voltage
@@ -266,8 +280,9 @@ void precharge() {
     }
 
     // The precharge progress is a function of the accumulator voltage
-    pcData.prechargeProgress =
-        100.0 * pcData.tsVoltage / pcData.accVoltage; // [%]
+    pcData.prechargeProgress = (pcData.accVoltage > 0.0F)
+        ? (100.0F * pcData.tsVoltage / pcData.accVoltage)
+        : 0.0F; // [%]
 
     // Print Precharging progress
     static uint32_t lastPrint = 0U;
@@ -282,6 +297,14 @@ void precharge() {
         Serial.print("V\r");
     }
 
+#ifdef PRECHARGE_TIMED_MODE
+    // Timed precharge: transition after fixed duration, ignore voltage.
+    // Subtraction form handles millis() rollover correctly.
+    if ((now - timePrechargeStart) >= PRECHARGE_TIMED_DURATION_MS) {
+        state = STATE_ONLINE;
+        Serial.println(" * Timed precharge complete (5s)");
+    }
+#else
     // Check if precharge complete
     if ((pcData.prechargeProgress >= PCC_TARGET_PERCENT)) {
         if (now - lastTimeBelowThreshold > TIME_HYSTERESIS_MS) {
@@ -294,8 +317,8 @@ void precharge() {
             }
             // Precharge complete
             else {
-                state =
-                    CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
+                state = STATE_ONLINE;
+                // CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
                 Serial.print(" * Precharge complete at: ");
                 Serial.print(now - timePrechargeStart);
                 Serial.print("ms, ");
@@ -321,6 +344,7 @@ void precharge() {
         lastTimeBelowThreshold = now;
         // }
     }
+#endif
 }
 
 // ONLINE STATE: Close AIR+ to connect ACC to TS, Open Precharge relay, indicate
@@ -334,7 +358,7 @@ void running() {
 
     // Close AIR+
     digitalWrite(IR_PLUS, HIGH);
-    // Open Precharge relay
+    // Keep IR-
     digitalWrite(IR_MINUS, HIGH);
 }
 

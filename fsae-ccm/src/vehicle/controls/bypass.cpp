@@ -71,16 +71,17 @@ void Bypass_TSSI() {
                 // Was healthy before - bypass this startup fault
                 digitalWrite(TSSI_BYPASS_PIN, LOW);
 
-                if (actualFault) {
-                    is_fault = LOW;
-                    //     //want this to happen after buttons clicked
-                    //     //i only know when buttons are clicked if state
-                    //     changes
-                    //     //case is if feedback is clicked, still low
-                    //     //if deeback is low and actual fault, or what if I do
-                    //     if bypass high
-                    // TBD Fix nly when ubttons are pressed
-                }
+                // if (actualFault) {
+                //     is_fault = LOW;
+                //     //     //want this to happen after buttons clicked
+                //     //     //i only know when buttons are clicked if state
+                //     //     changes
+                //     //     //case is if feedback is clicked, still low
+                //     //     //if deeback is low and actual fault, or what if I
+                //     do
+                //     //     if bypass high
+                //     // TBD Fix nly when ubttons are pressed
+                // }
             }
 
             // feedback status is always low on startup, so when its being

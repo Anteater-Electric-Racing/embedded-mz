@@ -170,8 +170,8 @@ static void checkAndHandleAPPSFault() {
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
             // #if DEBUG_FLAG
-            Serial.println(elapsedMs);
-            Serial.println("Setting APPS fault ELAPSED");
+            // Serial.println(elapsedMs);
+            // Serial.println("Setting APPS fault ELAPSED");
             // #endif
             Faults_SetFault(FAULT_APPS);
             return;

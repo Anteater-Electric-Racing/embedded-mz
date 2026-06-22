@@ -97,12 +97,16 @@ void threadVCU(void *pvParameters) {
             }
             break;
         case STATE_IDLE:
+
+            if (PCC_PrechargeComplete()) {
+
+                vehicleState = STATE_DRIVING;
+            }
             //  transition to IDLE
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
             if (BSE_BrakesPressed()) {
                 if (RTM_ButtonState() && Faults_CheckAllClear()) {
-                    // vehicleState = STATE_DRIVING;
 
                     // assume rtm button gets sent, stays 1
                     Speaker_Play(); // Play Ready to Drive sound
@@ -118,9 +122,9 @@ void threadVCU(void *pvParameters) {
             //     vehicleState = STATE_IDLE;
             // } else {
 
-            if (RTM_ButtonState() && PCC_PrechargeComplete()) {
-                DTI_SendEnableCommand(true);
+            if (RTM_ButtonState()) {
 
+                DTI_SendEnableCommand(true);
                 if (HIMAC_FLAG) {
                     targetTorque = VCU_TorqueMap(debugPedalDemand);
                 } else {

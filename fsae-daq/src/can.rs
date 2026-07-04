@@ -105,15 +105,44 @@ pub enum MotorRotateDirection {
 pub enum MCUMainState {
     #[deku(id = 0)]
     #[default]
-    Standby,
+    Off,
     #[deku(id = 1)]
-    Precharge,
+    Precharging,
     #[deku(id = 2)]
-    PowerReady,
+    Idle,
     #[deku(id = 3)]
-    Run,
+    Driving,
     #[deku(id = 4)]
-    PowerOff,
+    Fault,
+}
+
+#[derive(
+    Default,
+    Debug,
+    Deserialize_repr,
+    Serialize_repr,
+    PartialEq,
+    Clone,
+    Copy,
+    DekuRead,
+    DekuWrite,
+    DekuSize,
+)]
+#[deku(ctx = "endian: deku::ctx::Endian")]
+#[deku(id_type = "u8")]
+#[repr(u8)]
+pub enum VehicleState {
+    #[deku(id = 0)]
+    #[default]
+    Off,
+    #[deku(id = 1)]
+    Precharging,
+    #[deku(id = 2)]
+    Idle,
+    #[deku(id = 3)]
+    Driving,
+    #[deku(id = 4)]
+    Fault,
 }
 
 #[derive(
@@ -332,7 +361,9 @@ impl Reading for TelemetryData {
     pub rpm_max_limit_active: bool,
     pub power_limit_active: bool,
     
-    pub can_namp_version: u8,
+    pub can_nmap_version: u8,
+
+    pub vehicle_state: VehicleState,
 
     #[deku(bits = 1)]
     pub osr_current: bool,
@@ -354,7 +385,7 @@ impl Reading for TelemetryData {
 
 impl Reading for TelemetryData2 {
     fn topic() -> &'static str {
-        "telemetry"
+        "telemetry2"
     }
 }
 
@@ -384,7 +415,7 @@ async fn read_can_hardware() {
 
         while let Ok(packet) = socket.read_packet().await {
             let ts = now_ms();
-            match TelemetryData::from_bytes((packet.as_ref(), 0)) {
+            match TelemetryData2::from_bytes((packet.as_ref(), 0)) {
                 Ok(((remaining, _), _)) if !remaining.is_empty() => {
                     warn!("Telemetry packet has {} trailing bytes", remaining.len(),);
                 }
@@ -395,8 +426,8 @@ async fn read_can_hardware() {
     }
 }
 
-impl TelemetryData {
-    fn mutate_test_val(&mut self) -> TelemetryData{
+impl TelemetryData2 {
+    fn mutate_test_val(&mut self) -> TelemetryData2{
         self.imd_status=now_ms() as u32;
         self.clone()
     }
@@ -414,7 +445,7 @@ async fn read_can_synthetic() {
     let mut interval = tokio::time::interval(Duration::from_millis(1));
     loop {
         interval.tick().await;
-        send_message(TelemetryData::default().mutate_test_val(), now_ms(), &mut buffer, &mut sender).await;
+        send_message(TelemetryData2::default().mutate_test_val(), now_ms(), &mut buffer, &mut sender).await;
         count += 1;
 
         let elapsed = last.elapsed();

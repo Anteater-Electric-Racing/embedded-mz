@@ -1,0 +1,2 @@
+JAVA_VERSION="17.0.9"
+MODULES="java.base java.datatransfer java.xml java.prefs java.desktop java.management java.logging java.transaction.xa java.sql jdk.management jdk.unsupported io.questdb jdk.crypto.ec jdk.internal.vm.ci"

@@ -363,7 +363,7 @@ impl Reading for TelemetryData {
     
     pub can_nmap_version: u8,
 
-    pub vehicle_state: VehicleState,
+    pub vehicle_state: u16,
 
     #[deku(bits = 1)]
     pub osr_current: bool,

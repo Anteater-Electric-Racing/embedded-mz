@@ -75,6 +75,8 @@ pub async fn get_questdb_sender() -> Sender{
 #[serde(untagged)]
 enum PosssibleFields {
     Int(i64),
+    Unsign(u32),
+    Short(u8),
     Float(f32),
     Bool(bool)
 }
@@ -90,13 +92,18 @@ async fn data_into_buffer(table_name: &str, value: serde_json::Value, buffer : &
 
     for (key, value) in as_map.into_iter(){
         if let PosssibleFields::Int(f) = value {
-            let _ = buffer.column_i64(key.as_str(), f);
+            let _ = buffer.column_i64(key.as_str(), f.into());
         }
         else if let PosssibleFields::Float(f) = value {
             let _ = buffer.column_f64(key.as_str(), f.into());
         }
         else if let PosssibleFields::Bool(f) = value {
             let _ = buffer.column_bool(key.as_str(), f);
+        } 
+        else if let PosssibleFields::Short(s) = value {
+            let _ = buffer.column_i64(key.as_str(), s.into());
+        } else if let PosssibleFields::Unsign(s) = value {
+            let _ = buffer.column_i64(key.as_str(), s.into());
         }
     }
 

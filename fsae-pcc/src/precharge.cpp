@@ -99,13 +99,13 @@ void prechargeTask(void *pvParameters) {
         //                ", FREQ_ACC: " + (String)FREQ_ACC);
 
         // Check thermistor readings, discharge if exceeded
-        if (!checkSafeTemperature()) {
-            state = STATE_DISCHARGE;
+        // if (!checkSafeTemperature()) {
+        //     state = STATE_DISCHARGE;
 
-        } else {
-            // Update temperature CAN flag
-            tempData.isSafeTemperature = true;
-        }
+        // } else {
+        // Update temperature CAN flag
+        tempData.isSafeTemperature = true;
+        //}
 
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
@@ -208,8 +208,11 @@ float getFrequency(int pin) {
 
 void updateVoltage(int pin) {
     float rawFreq = getFrequency(pin);
+    // Serial.print("RawFreq: ");
+    // Serial.println(rawFreq);
     float rawVoltage = FREQ_TO_VOLTAGE(rawFreq); // Convert frequency to voltage
-
+    // Serial.print("RawVoltage: ");
+    // Serial.println(rawVoltage);
     switch (pin) {
     case ACCUMULATOR_VOLTAGE_PIN: {
         if (pcData.accVoltage == 0.0 && rawVoltage != 0.0) {
@@ -445,10 +448,10 @@ double temperatureFromADC(double adc) {
            273.15;
 }
 
-// Check thermistor for temperature reading: (Threshold: 69 C)
 bool checkSafeTemperature() {
-    // Read thermistor values, calculate current temperature and return boolean
-    // (Thermistor pins: A8, A9 (22, 23)) Thermistor power voltage: (3.3 V)
+    // Read thermistor values, calculate current temperature and return
+    // boolean (Thermistor pins: A8, A9 (22, 23)) Thermistor power voltage:
+    // (3.3 V)
 
     double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
     double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
@@ -470,7 +473,8 @@ bool checkSafeTemperature() {
     tempData.T2Temp = (int16_t)(T2Temp);
 
     /* Print test temp values
-     Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC +
+     Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC
+     +
                  ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
                  (String)T2Temp);
     */

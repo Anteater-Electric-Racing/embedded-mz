@@ -26,7 +26,7 @@
 #define PCC_RATIO .9
 
 #define PCC_MIN_TIME_MS                                                        \
-    0001U // [ms] Minimum time to wait for precharge to complete
+    00001U // [ms] Minimum time to wait for precharge to complete
 #define PCC_MAX_TIME_MS                                                        \
     20000U // [ms] Maximum time to wait for precharge to complete
 #define PCC_TARGET_PERCENT 90U   // Target precharge percent
@@ -41,10 +41,11 @@
 
 // #define VOLTAGE_DIVIDER_R1 0
 // #define VOLTAGE_DIVIDER_R2 1
-#define VOLTAGE_DIVIDER_R1 510000 * 5
-#define VOLTAGE_DIVIDER_R2 3900
+#define ACCU_VOLTAGE_DIVIDER_R1 48e6F
+#define TS_VOLTAGE_DIVIDER_R1 49.67e6F
+#define VOLTAGE_DIVIDER_R2 .995e6F
 #define VOLTAGE_DIVIDER_RATIO                                                  \
-    ((VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2)
+    (ACCU_VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2
 
 #define Rs 12000
 #define Rl 100000

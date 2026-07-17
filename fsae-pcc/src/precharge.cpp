@@ -245,10 +245,10 @@ void standby() {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
     }
-    if (CAN_IsChargerSafetyActive()) {
-        lastState = STATE_STANDBY;
-        state = STATE_PRECHARGE;
-    }
+    // if (CAN_IsChargerSafetyActive()) {
+    //     lastState = STATE_STANDBY;
+    //     state = STATE_PRECHARGE;
+    // }
 }
 
 // PRECHARGE STATE: Close AIR- and precharge relay, monitor precharge voltage

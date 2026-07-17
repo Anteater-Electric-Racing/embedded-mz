@@ -9,6 +9,8 @@
 #define HIGH 1
 
 // Relays
+#define IR_PLUS 11
+#define IR_MINUS 12
 #define SHUTDOWN_CTRL_PIN 11
 
 // Frequency measurements (from Voltage-to-Frequency converters)
@@ -26,9 +28,9 @@
 #define PCC_RATIO .9
 
 #define PCC_MIN_TIME_MS                                                        \
-    00001U // [ms] Minimum time to wait for precharge to complete
+    0001U // [ms] Minimum time to wait for precharge to complete
 #define PCC_MAX_TIME_MS                                                        \
-    20000U // [ms] Maximum time to wait for precharge to complete
+    5000U // [ms] Maximum time to wait for precharge to complete
 #define PCC_TARGET_PERCENT 90U   // Target precharge percent
 #define PCC_SETTLING_TIME 200U   // [ms] Time to wait for precharge to settle
 #define PCC_MIN_ACC_VOLTAGE 100U // [V] Minimum voltage for shutdown circuit
@@ -41,15 +43,21 @@
 
 // #define VOLTAGE_DIVIDER_R1 0
 // #define VOLTAGE_DIVIDER_R2 1
+// 50.01 Mohms = R1
+// 1 Mohms = R2
+
+// 101 Mohms = R1
+//  1 Mohms = R2
+
 #define ACCU_VOLTAGE_DIVIDER_R1 48e6F
 #define TS_VOLTAGE_DIVIDER_R1 49.67e6F
 #define VOLTAGE_DIVIDER_R2 .995e6F
 #define VOLTAGE_DIVIDER_RATIO                                                  \
     (ACCU_VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2
 
-#define Rs 12000
-#define Rl 100000
-#define Rt 6800
-#define Ct 1e-8
+#define Rs 12000.0F
+#define Rl 100000.0F
+#define Rt 6800.0F
+#define Ct 1e-8F
 #define FREQ_TO_VOLTAGE(FREQ)                                                  \
     (FREQ * Rt * Ct * Rl * 2.205F / Rs) * VOLTAGE_DIVIDER_RATIO

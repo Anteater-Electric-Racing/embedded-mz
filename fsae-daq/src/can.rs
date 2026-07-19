@@ -385,7 +385,7 @@ impl Reading for TelemetryData {
 
 impl Reading for TelemetryData2 {
     fn topic() -> &'static str {
-        "telemetry2"
+        "July_19_testing"
     }
 }
 

@@ -8,7 +8,7 @@
 constexpr float TEMP_START = 70.0f; // Temperature at which Derating Starts
 constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
                                     // than this returns max derating factor
-
+constexpr float MAX_TORQUE_COMMAND_NM = 130.0f;
 #include "vehicle/vcu.h"
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
@@ -144,6 +144,11 @@ void threadVCU(void *pvParameters) {
                 DTI_SetDCLimits(AC_MAX, -2.0);
                 DTI_SetACLimits(AC_MAX, -AC_MAX_R);
 
+                if (targetTorque < 0.0f) {
+                    targetTorque = 0.0f;
+                } else if (targetTorque > MAX_TORQUE_COMMAND_NM) {
+                    targetTorque = MAX_TORQUE_COMMAND_NM;
+                }
                 DTI_SendAccelCommand(targetTorque);
 
                 // Serial.println(targetTorque * smallestFactor);
@@ -193,7 +198,7 @@ float VCU_TorqueMap(float pedal) {
             float raw = 1.0f / (1.0f + expf(-k * (pedal - x0)));
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
-            target = (normalized_ratio * CAPPED_MOTOR_TORQUE);
+            target = (normalized_ratio * MAX_TORQUE_COMMAND_NM);
             break;
         }
     case TRACTION_CTRL: {

@@ -238,7 +238,8 @@ void updateVoltage(int pin) {
 // SDC
 void standby() {
     // Disable AIR, Disable Precharge
-    digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+    digitalWrite(IR_PLUS, LOW);
+    digitalWrite(IR_MINUS, HIGH);
 
     // Serial.println("ACC: " + (String) pcData.accVoltage);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
@@ -253,6 +254,7 @@ void standby() {
 
 // PRECHARGE STATE: Close AIR- and precharge relay, monitor precharge voltage
 void precharge() {
+    digitalWrite(IR_MINUS, HIGH);
     uint32_t now = millis();
     static uint32_t lastTimeBelowThreshold;
     static uint32_t timePrechargeStart;
@@ -333,7 +335,8 @@ void running() {
     }
 
     // Close AIR+
-    digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
+    digitalWrite(IR_PLUS, HIGH);
+    digitalWrite(IR_MINUS, HIGH);
 }
 
 // CHARGING STATE: AIRs closed, print charger data from BMS
@@ -344,7 +347,7 @@ void charging() {
         Serial.println(" === CHARGING");
     }
     // close AIRs
-    digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
+    digitalWrite(IR_PLUS, HIGH);
 
     // changed to using ticks instead of milliseconds
     static TickType_t lastPrint = 0;
@@ -364,7 +367,7 @@ void charging() {
 
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
-    digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+    digitalWrite(IR_PLUS, LOW);
 
     if (lastState != STATE_ERROR) {
         lastState = STATE_ERROR;

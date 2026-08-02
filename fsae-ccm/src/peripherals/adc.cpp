@@ -111,7 +111,7 @@ void ADC_Init() {
     BSE_MIN_PSI1 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V1);
     BSE_MIN_PSI2 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V2);
 
-    BRAKE_LIGHT_AVG_THRESHOLD = ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F) + 6.0F;
+    BRAKE_LIGHT_AVG_THRESHOLD = ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F) + 20.0F;
 #if DEBUG_FLAG
     Serial.println("Done initializing ADCs");
 #endif
@@ -149,6 +149,9 @@ void threadADC(void *pvParameters) {
         //     adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
         APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
         BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
+        ShockTravelUpdateData(
+            adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
+            adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
         // Serial.println(BSE_GetBSEAverage());
     }
 }

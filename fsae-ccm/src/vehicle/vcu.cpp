@@ -10,13 +10,12 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
                                     // than this returns max derating factor
 
 #include "vehicle/vcu.h"
+#include "devices/linpots.h"
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
 #include "peripherals/wdt.h"
 
 #include "utils/utils.h"
-
-#include <arduino_freertos.h>
 
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
@@ -90,8 +89,8 @@ void threadVCU(void *pvParameters) {
             DTI_SendEnableCommand(false);
 
             // ENSURE never above 80kW limit (in DTI asw)
-            DTI_SetDCLimits(AC_MAX, -2.0);
-            DTI_SetACLimits(AC_MAX, -AC_MAX_R);
+            DTI_SetDCLimits(400.0F, -2.0);
+            DTI_SetACLimits(400.0F, -AC_MAX_R);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
@@ -141,8 +140,8 @@ void threadVCU(void *pvParameters) {
                 // float smallestFactor =
                 //     min(batteryFactor, min(motorFactor, inverterFactor));
 
-                DTI_SetDCLimits(AC_MAX, -2.0);
-                DTI_SetACLimits(AC_MAX, -AC_MAX_R);
+                DTI_SetDCLimits(400.0F, -2.0);
+                DTI_SetACLimits(400.0F, -AC_MAX_R);
 
                 DTI_SendAccelCommand(targetTorque);
 
@@ -193,7 +192,9 @@ float VCU_TorqueMap(float pedal) {
             float raw = 1.0f / (1.0f + expf(-k * (pedal - x0)));
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
-            target = (normalized_ratio * CAPPED_MOTOR_TORQUE);
+            normalized_ratio = CLAMP(normalized_ratio, 0.0f, 1.0f);
+            target = (normalized_ratio * 100);
+
             break;
         }
     case TRACTION_CTRL: {
@@ -206,7 +207,7 @@ float VCU_TorqueMap(float pedal) {
         break;
     }
     }
-    return target;
+    return CLAMP(target, 0.0f, 100.0f);
 }
 void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
 

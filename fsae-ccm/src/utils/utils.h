@@ -30,15 +30,16 @@ operation)
 */
 constexpr int fault_address = 0;
 
-#define SERIALMONITOR_FLAG 1
+#define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
-#define APPS_DEBUG 1
-#define BSE_DEBUG 1
+#define APPS_DEBUG 0
+#define BSE_DEBUG 0
 #define PRECHARGE_DEBUG 0
+#define LP_FLAG 1
 
 #define ACTIVE_MAP 1
 
@@ -107,8 +108,8 @@ extern float APPS2_REST_ADC;
 #define APPS2_FULL_PCT_ADC 2512.51F
 
 // // Clamp helper
-// #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
-// #define CLAMP01(x) CLAMP((x), 0.0F, 1.0F)
+#define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
+#define CLAMP01(x) CLAMP((x), 0.0F, 1.0F)
 
 // // Convert raw ADC -> commanded percent using only 0-20% physical range
 // #define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20)

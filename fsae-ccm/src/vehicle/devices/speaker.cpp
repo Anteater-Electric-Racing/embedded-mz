@@ -7,7 +7,11 @@
 void Speaker_Init() { pinMode(speakerPin, arduino::INPUT); }
 
 void Speaker_Play() {
-    tone(speakerPin, speakerFrequency);
-    vTaskDelay(pdMS_TO_TICKS(speakerDuration));
+    // Short descending fart sound
+    for (int frequency = 180; frequency >= 65; frequency -= 12) {
+        tone(speakerPin, frequency);
+        vTaskDelay(pdMS_TO_TICKS(25));
+    }
+
     noTone(speakerPin);
 }

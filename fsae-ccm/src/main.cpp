@@ -185,7 +185,37 @@ void threadMain(void *pvParameters) {
         Serial.print("C | InvTemp: ");
         Serial.print(DTI_GetDTIData()->controllerTemp);
         Serial.print("C");
-
+        uint8_t fault = DTI_GetDTIData()->faultCode;
+        switch (fault) {
+        case 0:
+            Serial.print(" | DTI fault: None");
+            break;
+        case 1:
+            Serial.print(" | DTI fault: Overvoltage");
+            break;
+        case 2:
+            Serial.print(" | DTI fault: undervoltage");
+            break;
+        case 4:
+            Serial.print(" | DTI fault: gate driver fault");
+            break;
+        case 8:
+            Serial.print(" | DTI fault: abs overcurrent");
+            break;
+        case 16:
+            Serial.print(" | DTI fault: inverter overTemperature");
+            break;
+        case 32:
+            Serial.print(" | DTI fault: sensor wire fault");
+            break;
+        case 64:
+            Serial.print(" | DTI fault: sensor fault");
+            break;
+        default:
+            Serial.print(" | DTI fault: Invalid CAN cmd");
+            break;
+        }
+        Serial.println();
         // Serial.print("\r");
         //  IMPLEMENT BETTER SERIAL PROCESSING(
         //      TEENSY does not support ANSI escape codes)

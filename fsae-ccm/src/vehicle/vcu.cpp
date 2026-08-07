@@ -89,7 +89,7 @@ void threadVCU(void *pvParameters) {
             DTI_SendEnableCommand(false);
 
             // ENSURE never above 80kW limit (in DTI asw)
-            DTI_SetDCLimits(400.0F, -2.0);
+            DTI_SetDCLimits(300.0F, -2.0);
             DTI_SetACLimits(400.0F, -AC_MAX_R);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
@@ -140,7 +140,7 @@ void threadVCU(void *pvParameters) {
                 // float smallestFactor =
                 //     min(batteryFactor, min(motorFactor, inverterFactor));
 
-                DTI_SetDCLimits(400.0F, -2.0);
+                DTI_SetDCLimits(300.0F, -2.0);
                 DTI_SetACLimits(400.0F, -AC_MAX_R);
 
                 DTI_SendAccelCommand(targetTorque);
@@ -193,7 +193,7 @@ float VCU_TorqueMap(float pedal) {
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
             normalized_ratio = CLAMP(normalized_ratio, 0.0f, 1.0f);
-            target = (normalized_ratio * 100);
+            target = CLAMP((normalized_ratio * 100), 0, 100);
 
             break;
         }

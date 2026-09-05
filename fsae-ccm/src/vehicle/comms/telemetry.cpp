@@ -57,11 +57,6 @@ void Telemetry_Init() {
                      .dti_throttleInput = 0.0F,
                      .dti_brakeInput = 0.0F,
 
-                     .shocktravel1 = 0.0F,
-                     .shocktravel2 = 0.0F,
-                     .shocktravel3 = 0.0F,
-                     .shocktravel4 = 0.0F,
-
                      .wheel0RPM = 0.0F,
                      .wheel1RPM = 0.0F,
                      .wheel2RPM = 0.0F,

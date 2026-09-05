@@ -75,11 +75,6 @@ typedef struct __attribute__((packed)) {
     float dti_throttleInput; // throttle straight to inverter
     float dti_brakeInput;
 
-    // Dynamics Data
-    float shocktravel1;
-    float shocktravel2;
-    float shocktravel3;
-    float shocktravel4;
 
     float wheel0RPM;
     float wheel1RPM;

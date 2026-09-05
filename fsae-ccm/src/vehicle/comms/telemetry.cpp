@@ -28,7 +28,6 @@ void Telemetry_Init() {
                      .lowCellVolt = 0.0F,
                      .highCellVolt = 0.0F,
                      .avgCellVolt = 0.0F,
-
                      .controlMode = 0,
                      .targetIq = 0.0F,
                      .motorPosition = 0.0F,
@@ -44,6 +43,8 @@ void Telemetry_Init() {
                      .focId = 0.0F,
                      .focIq = 0.0F,
 
+
+                     
                      .driveEnabled = 0,
 
                      .maxAC_Current = 0.0F,
@@ -58,14 +59,7 @@ void Telemetry_Init() {
                      .dti_throttleInput = 0.0F,
                      .dti_brakeInput = 0.0F,
 
-                     .digitalIn1 = 0,
-                     .digitalIn2 = 0,
-                     .digitalIn3 = 0,
-                     .digitalIn4 = 0,
-                     .digitalOut1 = 0,
-                     .digitalOut2 = 0,
-                     .digitalOut3 = 0,
-                     .digitalOut4 = 0,
+                     
 
                      .capTempLimitActive = 0,
                      .dcTempLimitActive = 0,
@@ -141,15 +135,6 @@ void threadTelemetry(void *pvParameters) {
 
             .dti_throttleInput = DTI_GetDTI_ExtraData()->throttleInput,
             .dti_brakeInput = DTI_GetDTI_ExtraData()->brakeInput,
-
-            .digitalIn1 = DTI_GetDTI_ExtraData()->digitalIn1,
-            .digitalIn2 = DTI_GetDTI_ExtraData()->digitalIn2,
-            .digitalIn3 = DTI_GetDTI_ExtraData()->digitalIn3,
-            .digitalIn4 = DTI_GetDTI_ExtraData()->digitalIn4,
-            .digitalOut1 = DTI_GetDTI_ExtraData()->digitalOut1,
-            .digitalOut2 = DTI_GetDTI_ExtraData()->digitalOut2,
-            .digitalOut3 = DTI_GetDTI_ExtraData()->digitalOut3,
-            .digitalOut4 = DTI_GetDTI_ExtraData()->digitalOut4,
 
             .capTempLimitActive = DTI_GetDTI_ExtraData()->capTempLimitActive,
             .dcTempLimitActive = DTI_GetDTI_ExtraData()->dcTempLimitActive,

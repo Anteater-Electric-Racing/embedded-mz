@@ -75,16 +75,6 @@ typedef struct __attribute__((packed)) {
     float dti_throttleInput; // throttle straight to inverter
     float dti_brakeInput;
 
-    // Digital Inputs/Outputs
-    bool digitalIn1;
-    bool digitalIn2;
-    bool digitalIn3;
-    bool digitalIn4;
-    bool digitalOut1;
-    bool digitalOut2;
-    bool digitalOut3;
-    bool digitalOut4;
-
     // Limits Active - Group 1
     bool capTempLimitActive;
     bool dcTempLimitActive;

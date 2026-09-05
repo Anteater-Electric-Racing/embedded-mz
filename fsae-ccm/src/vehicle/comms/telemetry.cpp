@@ -142,6 +142,16 @@ void threadTelemetry(void *pvParameters) {
             .dti_throttleInput = DTI_GetDTI_ExtraData()->throttleInput,
             .dti_brakeInput = DTI_GetDTI_ExtraData()->brakeInput,
 
+            .wheel1RPM = WSS_GetRPM1(),
+            .wheel2RPM = WSS_GetRPM2(),
+            .wheel3RPM = WSS_GetRPM3(),
+            .wheel4RPM = WSS_GetRPM4(),
+
+            .wheel1MPH = WSS_GetSpeed1_MPH(),
+            .wheel2MPH = WSS_GetSpeed2_MPH(),
+            .wheel3MPH = WSS_GetSpeed3_MPH(),
+            .wheel4MPH = WSS_GetSpeed4_MPH(),
+
             .capTempLimitActive = DTI_GetDTI_ExtraData()->capTempLimitActive,
             .dcTempLimitActive = DTI_GetDTI_ExtraData()->dcTempLimitActive,
             .driveEnableLimitActive =

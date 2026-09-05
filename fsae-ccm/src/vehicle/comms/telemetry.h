@@ -11,6 +11,7 @@
 #include "vehicle/devices/bse.h"
 #include "vehicle/devices/linpots.h"
 #include "vehicle/devices/rtm.h"
+#include "vehicle/devices/wss.h"
 #include "vehicle/faults.h"
 #include "vehicle/vcu.h"
 
@@ -75,17 +76,15 @@ typedef struct __attribute__((packed)) {
     float dti_throttleInput; // throttle straight to inverter
     float dti_brakeInput;
 
-
-    float wheel0RPM;
     float wheel1RPM;
     float wheel2RPM;
     float wheel3RPM;
+    float wheel4RPM;
 
-    float wheel0MPH;
     float wheel1MPH;
     float wheel2MPH;
     float wheel3MPH;
-
+    float wheel4MPH;
 
     // Limits Active - Group 1
     bool capTempLimitActive;

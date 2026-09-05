@@ -193,7 +193,7 @@ float VCU_TorqueMap(float pedal) {
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
             normalized_ratio = CLAMP(normalized_ratio, 0.0f, 1.0f);
-            target = CLAMP((normalized_ratio * 100), 0, 95);
+            target = CLAMP((normalized_ratio * 100), 0, 100);
 
             break;
         }
@@ -207,7 +207,7 @@ float VCU_TorqueMap(float pedal) {
         break;
     }
     }
-    return CLAMP(target, 0.0f, 100.0f);
+    return CLAMP(target, 0.0f, 95.0f);
 }
 void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
 

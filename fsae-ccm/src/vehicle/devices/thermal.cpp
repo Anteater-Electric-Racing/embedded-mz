@@ -47,7 +47,7 @@ void thermal_regulate() {
     static PIDState pump1{0.0, 0.0, 0.0, xTaskGetTickCount()},
         pump2{0.0, 0.0, 0.0, xTaskGetTickCount()},
         fan{0.0, 0.0, 0.0, xTaskGetTickCount()};
-    static float temp =
+    float temp =
         max(DTI_GetDTIData()->controllerTemp, DTI_GetDTIData()->motorTemp);
     float fanOutput =
         computePID(&fan, FAN_THRESHOLD, temp, FAN_PROPORIONAL_GAIN,
@@ -106,13 +106,19 @@ void thermal_regulate() {
 float computePID(PIDState *state, float setPoint, float input, float propGain,
                  float integralGain, float derivativeGain) {
     TickType_t now = xTaskGetTickCount();
-    float dt = (now - state->lastTime) / (double)configTICK_RATE_HZ; // Convert
+    TickType_t elapsed = now - state->lastTime;
+
+    if (elapsed == 0) {
+        return state->prevOutput;
+    }
+    float dt = static_cast<float>(elapsed) /
+               static_cast<float>(configTICK_RATE_HZ); // Convert
     state->lastTime = now;
     float error = input - setPoint; // Find the size of error
     // From here to the end of if statement is not necissary for a general PID
     // controller
     if (input < setPoint) {
-        state->integral = error * dt;
+        state->integral = 0.0f; // Was: error * dt
         state->prevError = error;
         state->prevOutput = 0;
         return 0;

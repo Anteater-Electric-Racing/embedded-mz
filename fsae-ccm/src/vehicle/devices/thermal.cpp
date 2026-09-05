@@ -74,10 +74,10 @@ void thermal_regulate() {
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
 
-    // Serial.println("temp:" + String(temp));
-    // Serial.println("Fan Output:" + String(fanOutput));
-    // Serial.println("Pump1 Output:" + String(pump1Output));
-    // Serial.println("Pump2 Output:" + String(pump2Ouput));
+    Serial.println("temp:" + String(temp));
+    Serial.println("Fan Output:" + String(fanOutput));
+    Serial.println("Pump1 Output:" + String(pump1Output));
+    Serial.println("Pump2 Output:" + String(pump2Ouput));
     // temp -= (fanOutput + pump1Output + pump2Ouput) /
     //         3; // this is a very basic model of how the system responds to
     //         the

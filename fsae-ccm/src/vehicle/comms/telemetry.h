@@ -75,6 +75,23 @@ typedef struct __attribute__((packed)) {
     float dti_throttleInput; // throttle straight to inverter
     float dti_brakeInput;
 
+    // Dynamics Data
+    float shocktravel1;
+    float shocktravel2;
+    float shocktravel3;
+    float shocktravel4;
+
+    float wheel0RPM;
+    float wheel1RPM;
+    float wheel2RPM;
+    float wheel3RPM;
+
+    float wheel0MPH;
+    float wheel1MPH;
+    float wheel2MPH;
+    float wheel3MPH;
+
+
     // Limits Active - Group 1
     bool capTempLimitActive;
     bool dcTempLimitActive;

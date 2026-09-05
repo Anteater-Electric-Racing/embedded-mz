@@ -42,8 +42,6 @@ void Telemetry_Init() {
                      .faultCode = 0,
                      .focId = 0.0F,
                      .focIq = 0.0F,
-
-
                      
                      .driveEnabled = 0,
 
@@ -59,7 +57,20 @@ void Telemetry_Init() {
                      .dti_throttleInput = 0.0F,
                      .dti_brakeInput = 0.0F,
 
-                     
+                     .shocktravel1 = 0.0F,
+                     .shocktravel2 = 0.0F,
+                     .shocktravel3 = 0.0F,
+                     .shocktravel4 = 0.0F,
+
+                     .wheel0RPM = 0.0F,
+                     .wheel1RPM = 0.0F,
+                     .wheel2RPM = 0.0F,
+                     .wheel3RPM = 0.0F,
+
+                     .wheel0MPH = 0.0F,
+                     .wheel1MPH = 0.0F,
+                     .wheel2MPH = 0.0F,
+                     .wheel3MPH = 0.0F,
 
                      .capTempLimitActive = 0,
                      .dcTempLimitActive = 0,

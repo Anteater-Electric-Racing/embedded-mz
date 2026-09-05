@@ -193,7 +193,7 @@ float VCU_TorqueMap(float pedal) {
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
             normalized_ratio = CLAMP(normalized_ratio, 0.0f, 1.0f);
-            target = CLAMP((normalized_ratio * 100), 0, 100);
+            target = CLAMP((normalized_ratio * 100), 0, 95);
 
             break;
         }

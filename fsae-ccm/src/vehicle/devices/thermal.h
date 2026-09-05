@@ -13,8 +13,8 @@ constexpr int PUMP1_PIN = 29; // Define the PWM pin for the pump
 constexpr int PUMP2_PIN = 28; // Define PWM pin for pump 2
 constexpr int FAN_PIN = 7;
 
-constexpr int PUMP_THRESHOLD = 45; // Temperature threshold in degrees Celsius
-constexpr int FAN_THRESHOLD = 50;  // Temperature threshold in degrees Celsius
+constexpr int PUMP_THRESHOLD = 35; // Temperature threshold in degrees Celsius
+constexpr int FAN_THRESHOLD = 40;  // Temperature threshold in degrees Celsius
 constexpr float MAX_OUTPUT = 100.0;
 
 constexpr float PUMP1_PROPORIONAL_GAIN = 1.0; // tuning parameters for pump PID

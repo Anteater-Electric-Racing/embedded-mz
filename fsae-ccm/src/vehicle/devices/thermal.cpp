@@ -55,7 +55,7 @@ void thermal_regulate() {
     float pump1Output =
         computePID(&pump1, FAN_THRESHOLD, temp, PUMP1_PROPORIONAL_GAIN,
                    PUMP1_INTEGRAL_GAIN, PUMP1_DERIVATIVE_GAIN);
-    float pump2Ouput =
+    float pump2Output =
         computePID(&pump2, FAN_THRESHOLD, temp, PUMP2_PROPORTIONAL_GAIN,
                    PUMP2_INTEGRAL_GAIN, PUMP2_DERIVATIVE_GAIN);
     //
@@ -70,8 +70,8 @@ void thermal_regulate() {
                                             PUMP2_PROPORTIONAL_GAIN,
                                             PUMP2_INTEGRAL_GAIN,
                                             PUMP2_DERIVATIVE_GAIN)); */
-    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
-    analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
+    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
+    analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
 
     // Serial.println("temp:" + String(temp));

@@ -39,11 +39,6 @@ int errorCode = ERR_NONE;
 static PCCData pccData{};
 static PCCTempData tempData{};
 // Voltage measurements
-typedef struct {
-    int PreChargeTime;
-} debugData;
-debugData *time = {0};
-
 // Low pass filter
 typedef struct {
     float tsAlpha;
@@ -273,7 +268,7 @@ void precharge() {
     const bool minimumTimeElapsed =
         (now - timePrechargeStart) >= PCC_FORCED_MIN_PRECHARGE_MS;
     if (minimumTimeElapsed)
-        time->PreChargeTime = (now - timePrechargeStart);
+        time_s->PreChargeTime = (now - timePrechargeStart);
     if (voltageReady && voltageStable && minimumTimeElapsed) {
         state = CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
 

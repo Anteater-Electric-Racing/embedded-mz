@@ -16,6 +16,10 @@ void Telemetry_Init() {
                      .BSEFront = 0.0F,
                      .BSERear = 0.0F,
                      .BSEAvg = 0.0F,
+                     .BRLinpot = 0.0F,
+                     .FRLinpot = 0.0F,
+                     .BLLinpot = 0.0F,
+                     .FLLinpot = 0.0F,
 
                      .imdResistance = 0.0F,
                      .imdStatus = 0,
@@ -100,6 +104,10 @@ void threadTelemetry(void *pvParameters) {
             .BSEFront = BSE_GetBSEReading()->bseFront_Reading,
             .BSERear = BSE_GetBSEReading()->bseRear_Reading,
             .BSEAvg = BSE_GetBSEAverage(),
+            .BRLinpots = Linpot_GetData()->shockTravel1_mm,
+            .FRLinpots = Linpot_GetData()->shockTravel2_mm,
+            .BLLinpots = Linpot_GetData()->shockTravel3_mm,
+            .FLLinpots = Linpot_GetData()->shockTravel4_mm,
 
             .imdResistance = IMD_GetInfo()->resistance,
             .imdStatus = IMD_GetInfo()->status,

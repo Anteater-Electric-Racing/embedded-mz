@@ -17,6 +17,7 @@
 #include <chrono>
 #include <stdint.h>
 
+/* Reference CCM PCB for what A0-A9 correspond to */
 enum SensorIndexesADC0 {    // TODO: Update with real values
     THERMISTOR_1_INDEX = 0, // A0
     APPS_1_INDEX = 5,
@@ -42,18 +43,12 @@ enum SensorIndexesADC1 { // TODO: Update with real values
     SUSP_TRAV_LINPOT32,
     SUSP_TRAV_LINPOT42
 };
-
-uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {
-    A0, A1, A2, A3, A4, A5, A6, A7, A8, A9 //, A16
-}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21,
-   // 24, 25, 19, 18, 14, 15, 17};
+uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {A0, A1, A2, A3, A4,
+                                          A5, A6, A7, A8, A9};
 uint16_t adc0Reads[SENSOR_PIN_AMT_ADC0];
 
-uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {
-    // A17, A16, A15,
-    A7, A6, A5, A4,
-    A3, A2, A1, A0}; // A4, A4, 18, 17, 17, 17, 17}; // real values: {21,
-                     // 24, 25, 19, 18, 14, 15, 17};
+uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {// A17, A16, A15,
+                                          A7, A6, A5, A4, A3, A2, A1, A0};
 uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 static TickType_t lastWakeTime;
@@ -93,35 +88,32 @@ void ADC_Init() {
     float bseSum2 = 0;
 
     constexpr uint16_t samples = 30;
+    static bool calibrated = false;
+    if (!calibrated) {
+        for (uint16_t i = 0; i < samples; i++) {
+            apps1Sum += adc->adc0->analogRead(adc0Pins[APPS_1_INDEX]);
+            apps2Sum += adc->adc0->analogRead(adc0Pins[APPS_2_INDEX]);
+            bseSum1 += adc->adc0->analogRead(adc0Pins[BSE_1_INDEX]);
+            bseSum2 += adc->adc0->analogRead(adc0Pins[BSE_2_INDEX]);
+        }
 
-    for (uint16_t i = 0; i < samples; i++) {
-        apps1Sum += adc->adc0->analogRead(adc0Pins[APPS_1_INDEX]);
-        apps2Sum += adc->adc0->analogRead(adc0Pins[APPS_2_INDEX]);
-        bseSum1 += adc->adc0->analogRead(adc0Pins[BSE_1_INDEX]);
-        bseSum2 += adc->adc0->analogRead(adc0Pins[BSE_2_INDEX]);
+        APPS1_REST_ADC = apps1Sum / samples;
+        APPS2_REST_ADC = apps2Sum / samples;
+        bseSum1 /= samples;
+        bseSum2 /= samples;
+
+        BSE_MIN_V1 = ADC_VALUE_TO_VOLTAGE(bseSum1, ADC_VOLTAGE_DIVIDER);
+        BSE_MIN_V2 = ADC_VALUE_TO_VOLTAGE(bseSum2, ADC_VOLTAGE_DIVIDER);
+        BSE_MIN_PSI1 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V1);
+        BSE_MIN_PSI2 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V2);
+
+        BRAKE_LIGHT_AVG_THRESHOLD =
+            ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F) + 50.0F;
+        calibrated = true;
     }
-
-    APPS1_REST_ADC = apps1Sum / samples;
-    APPS2_REST_ADC = apps2Sum / samples;
-    bseSum1 /= samples;
-    bseSum2 /= samples;
-
-    BSE_MIN_V1 = ADC_VALUE_TO_VOLTAGE(bseSum1, ADC_VOLTAGE_DIVIDER);
-    BSE_MIN_V2 = ADC_VALUE_TO_VOLTAGE(bseSum2, ADC_VOLTAGE_DIVIDER);
-    BSE_MIN_PSI1 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V1);
-    BSE_MIN_PSI2 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V2);
-
-    BRAKE_LIGHT_AVG_THRESHOLD = ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F) + 50.0F;
-#if DEBUG_FLAG
-    Serial.println("Done initializing ADCs");
-#endif
 }
 
 void threadADC(void *pvParameters) {
-#if DEBUG_FLAG
-    Serial.print("Beginning adc thread");
-#endif
-
     lastWakeTime = xTaskGetTickCount();
     while (true) {
         vTaskDelayUntil(&lastWakeTime, TICKTYPE_FREQUENCY);
@@ -139,19 +131,10 @@ void threadADC(void *pvParameters) {
             uint16_t adcRead = adc->adc1->analogRead(currentPinADC1);
             adc1Reads[currentIndexADC1] = adcRead;
         }
-        // Serial.print(BSE_MIN_PSI);
-        // Serial.print(" - ");
-        // Serial.print(APPS1_REST_ADC);
-        // Serial.print(" - ");
-        // Serial.println(APPS2_REST_ADC);
-        // ShockTravelUpdateData(
-        //     adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
-        //     adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
         APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
         BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
         ShockTravelUpdateData(
             adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
             adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
-        // Serial.println(BSE_GetBSEAverage());
     }
 }

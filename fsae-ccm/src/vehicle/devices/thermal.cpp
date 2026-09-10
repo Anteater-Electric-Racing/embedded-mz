@@ -73,34 +73,6 @@ void thermal_regulate() {
     analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
-
-    // Serial.println("temp:" + String(temp));
-    // Serial.println("Fan Output:" + String(fanOutput));
-    // Serial.println("Pump1 Output:" + String(pump1Output));
-    // Serial.println("Pump2 Output:" + String(pump2Ouput));
-    // temp -= (fanOutput + pump1Output + pump2Ouput) /
-    //         3; // this is a very basic model of how the system responds to
-    //         the
-    //            // outputs, just for testing PID
-    // if (temp <= 50) {
-    //     temp = 80;
-    // }
-    // fanOutput =
-    //     1 -
-    //     fanOutput; // invert fan output because a higher output means we want
-    //     to
-    //                // run the fan faster which means we want a lower duty
-    //                cycle
-    // pump1Output = 1 - pump1Output; // invert pump output because a higher
-    // output
-    //                                // means we want to run the pump faster
-    //                                which
-    //                                // means we want a lower duty cycle
-    // pump2Ouput = 1 - pump2Ouput;   // invert pump output because a higher
-    // output
-    //                                // means we want to run the pump faster
-    //                                which
-    //                                // means we want a lower duty cycle
 }
 
 float computePID(PIDState *state, float setPoint, float input, float propGain,

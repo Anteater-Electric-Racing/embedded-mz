@@ -42,27 +42,8 @@ void APPS_Init() {
 void APPS_UpdateData(uint16_t rawReading1,
                      uint16_t rawReading2) { // changed uint16 from 32
 
-    // Serial.print("Raw APPS1: ");
-    // Serial.println(rawReading1);
-    // Serial.print("Raw APPS2: ");
-    // Serial.println(rawReading2);
-
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
-
-    // // // Serial.print("\n\n\n\n\n");
-    // Serial.print("Raw APPS1: ");
-    // Serial.println(appsData.apps1RawReading);
-    // Serial.print("Raw APPS2: ");
-    // Serial.println(appsData.apps2RawReading);
-
-    // if (appsData.appsReading2_Percentage < 0.0F) {
-    //     appsData.appsReading2_Percentage = 0.0F;
-    // } else if (appsData.appsReading2_Percentage > 1.0F) {
-    //     appsData.appsReading2_Percentage = 1.0F;
-    // }
-
-    // after LOWPASS_FILTER
     appsData.appsReading1_Percentage =
         LINEAR_MAP(appsData.apps1RawReading, (float)APPS1_REST_ADC,
                    (float)APPS1_FULL_PCT_ADC, 0.0F, 1.0F);
@@ -71,33 +52,10 @@ void APPS_UpdateData(uint16_t rawReading1,
         LINEAR_MAP(appsData.apps2RawReading, (float)APPS2_REST_ADC,
                    (float)APPS2_FULL_PCT_ADC, 0.0F, 1.0F);
 
-    /*========================== HELPER PCT CLAMP ==========================*/
-    // clamp since LINEAR_MAP doesn't clamp
-    // appsData.appsReading1_Percentage =
-    //     CLAMP01(appsData.appsReading1_Percentage);
-    // appsData.appsReading2_Percentage =
-    //     CLAMP01(appsData.appsReading2_Percentage);
-
-    // Convert ADC values to voltage
     appsData.appsReading1_Voltage =
         ADC_VALUE_TO_VOLTAGE(appsData.apps1RawReading, ADC_VOLTAGE_DIVIDER1);
     appsData.appsReading2_Voltage =
         ADC_VALUE_TO_VOLTAGE(appsData.apps2RawReading, ADC_VOLTAGE_DIVIDER2);
-
-    // /*========================== RAW VOLTAGE ==========================*/
-    // Serial.print("APPS1 RAW Voltage: ");
-    // Serial.println(appsData.appsReading1_Voltage);
-    // Serial.print("APPS2 RAW Voltage: ");
-    // Serial.println(appsData.appsReading2_Voltage);
-
-    // Serial.print(APPS_3V3_MIN);
-    // Serial.print(" - ");
-    // Serial.print(APPS_3V3_MAX);
-    // Serial.print(" | ");
-    // Serial.print(APPS_3V3_INV_MIN);
-    // Serial.print(" - ");
-    // Serial.println(APPS_3V3_INV_MAX);
-
     if (appsData.appsReading1_Voltage < APPS_3V3_MIN) {
         appsData.appsReading1_Voltage = APPS_3V3_MIN;
     } else if (appsData.appsReading1_Voltage > APPS_3V3_MAX) {
@@ -109,23 +67,6 @@ void APPS_UpdateData(uint16_t rawReading1,
     } else if (appsData.appsReading2_Voltage < APPS_3V3_INV_MAX) {
         appsData.appsReading2_Voltage = APPS_3V3_INV_MAX;
     }
-
-    // Serial.print("APPS1 RAW Voltage: ");
-    // Serial.println(appsData.appsReading1_Voltage);
-    // Serial.print("APPS2 RAW Voltage: ");
-    // Serial.println(appsData.appsReading2_Voltage);
-
-    /*========================== 20 PCT LINEAR MAP ==========================*/
-    // Moved this upwards to before the clamping of percentage
-    // Map voltage to percentage of throttle travel, limiting to 0-1 range
-    // appsData.appsReading1_Percentage =
-    //     LINEAR_MAP(appsData.apps1RawReading, 0.0F, (float)APPS1_20PCT_ADC,
-    //     0.0F, 1.0F);
-
-    // appsData.appsReading2_Percentage =
-    //     LINEAR_MAP(appsData.apps2RawReading, 0.0F, (float)APPS2_20PCT_ADC,
-    //     0.0F, 1.0F);
-
     if (appsData.appsReading1_Percentage < 0.0F) {
         appsData.appsReading1_Percentage = 0.0F;
     } else if (appsData.appsReading1_Percentage > 1.0F) {
@@ -169,10 +110,6 @@ static void checkAndHandleAPPSFault() {
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
 
         if (elapsedMs > APPS_FAULT_TIME_THRESHOLD_MS) {
-            // #if DEBUG_FLAG
-            // Serial.println(elapsedMs);
-            // Serial.println("Setting APPS fault ELAPSED");
-            // #endif
             Faults_SetFault(FAULT_APPS);
             return;
         }
@@ -191,7 +128,7 @@ static void checkAndHandleAPPSFault() {
         Faults_ClearFault(FAULT_APPS);
     }
 }
-
+/* TODO: Fix the fuckass broken sensor so we can use this*/
 static void checkAndHandlePlausibilityFault() {
     // float BSEReading_Front = BSE_GetBSEReading()->bseFront_Reading;
     // float BSEReading_Rear = BSE_GetBSEReading()->bseRear_Reading;

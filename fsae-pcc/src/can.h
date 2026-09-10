@@ -35,5 +35,3 @@ TickType_t CAN_GetBMSLastRxTime();
 float CAN_GetChargerVoltage();
 float CAN_GetChargerCCL();
 uint8_t CAN_GetChargerCounter();
-bool CAN_RTMState();
-bool CAN_IsCharging();

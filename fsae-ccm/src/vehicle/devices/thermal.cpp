@@ -59,17 +59,6 @@ void thermal_regulate() {
         computePID(&pump2, FAN_THRESHOLD, temp, PUMP2_PROPORTIONAL_GAIN,
                    PUMP2_INTEGRAL_GAIN, PUMP2_DERIVATIVE_GAIN);
     //
-
-    /*analogWrite(PUMP1_PIN,
-                DUTY_CYCLE_MAX * computePID(&pump1, PUMP_THRESHOLD, temp,
-                                            PUMP1_PROPORIONAL_GAIN,
-                                            PUMP1_INTEGRAL_GAIN,
-                                            PUMP1_DERIVATIVE_GAIN));*/
-    /*analogWrite(PUMP2_PIN,
-                DUTY_CYCLE_MAX * computePID(&pump2, PUMP_THRESHOLD, temp,
-                                            PUMP2_PROPORTIONAL_GAIN,
-                                            PUMP2_INTEGRAL_GAIN,
-                                            PUMP2_DERIVATIVE_GAIN)); */
     analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));

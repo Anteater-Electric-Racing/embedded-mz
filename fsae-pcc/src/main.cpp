@@ -82,7 +82,7 @@ void threadMain(void *pvParameters) {
         Serial.print(" | IR -: ");
         Serial.print(digitalRead(IR_MINUS));
         Serial.print(" | Minimum Precharge Time: ");
-        Serial.print(time_s->PreChargeTime);
+        Serial.print(times_s.PreChargeTime);
         Serial.print("ms");
         Serial.print("\r");
         vTaskDelay(100);

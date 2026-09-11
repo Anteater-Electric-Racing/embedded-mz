@@ -29,7 +29,7 @@ constexpr uint32_t PCC_FORCED_MIN_PRECHARGE_MS = 1000U;
 
 constexpr double DEBUG_FREQ_TS_PIN = 15;
 constexpr double DEBUG_FREQ_ACC_PIN = 14;
-
+debugData times_s = {0};
 constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 70;
 
 // States (Global Variables)
@@ -268,7 +268,7 @@ void precharge() {
     const bool minimumTimeElapsed =
         (now - timePrechargeStart) >= PCC_FORCED_MIN_PRECHARGE_MS;
     if (minimumTimeElapsed)
-        time_s->PreChargeTime = (now - timePrechargeStart);
+        times_s.PreChargeTime = (now - timePrechargeStart);
     if (voltageReady && voltageStable && minimumTimeElapsed) {
         state = CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
 

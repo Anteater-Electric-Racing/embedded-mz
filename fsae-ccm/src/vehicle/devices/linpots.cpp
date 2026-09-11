@@ -6,8 +6,6 @@
 #include <arduino_freertos.h>
 #include <cmath>
 
-// TODO CLEANUP
-
 template <typename T> T constrain(T val, T minVal, T maxVal) {
     if (val < minVal)
         return minVal;
@@ -41,12 +39,6 @@ void ShockTravelUpdateData(uint16_t rawReading1, uint16_t rawReading2,
     linPots.Shock3RawReading = abs(4095 - rawReading3);
     linPots.Shock4RawReading = abs(4095 - rawReading4);
 
-    // Serial.println("\n\nRAW:");
-    // Serial.println(linPots.Shock1RawReading);
-    // Serial.println(linPots.Shock2RawReading);
-    // Serial.println(linPots.Shock3RawReading);
-    // Serial.println(linPots.Shock4RawReading);
-
     linPots.LinPot1Voltage =
         abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock1RawReading, 1.52));
     linPots.LinPot2Voltage =
@@ -55,12 +47,6 @@ void ShockTravelUpdateData(uint16_t rawReading1, uint16_t rawReading2,
         abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock3RawReading, 1.52));
     linPots.LinPot4Voltage =
         abs(ADC_VALUE_TO_VOLTAGE(linPots.Shock4RawReading, 1.52));
-
-    // Serial.println("\n\nVOLTAGE:");
-    // Serial.println(linPots.LinPot1Voltage);
-    // Serial.println(linPots.LinPot2Voltage);
-    // Serial.println(linPots.LinPot3Voltage);
-    // Serial.println(linPots.LinPot4Voltage);
 
     linPots.shockTravel1_mm =
         constrain(linPots.LinPot1Voltage / 5.0F * SHOCK_TRAVEL_MAX_MM, 0.0f,

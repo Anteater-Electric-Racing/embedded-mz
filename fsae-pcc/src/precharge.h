@@ -6,7 +6,7 @@ typedef struct {
     int PreChargeTime;
 } debugData;
 
-debugData *time_s = {0};
+extern debugData times_s;
 
 enum PrechargeState {
     STATE_STANDBY,

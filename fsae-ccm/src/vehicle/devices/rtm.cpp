@@ -7,8 +7,6 @@
 
 #include "rtm.h"
 
-// TODO CLEANUP
-
 static bool rtmState = false; // Latching state of RTM based on momentary button
 
 void RTM_ButtonUpdate(bool rtmButton) {

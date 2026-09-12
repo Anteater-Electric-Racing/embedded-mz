@@ -218,6 +218,7 @@ void updateVoltage(int pin) {
 }
 void standby() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+    digitalWrite(IR_MINUS, LOW);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;

@@ -14,7 +14,7 @@
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
-#define TIME_HYSTERESIS_MS 100U
+#define TIME_HYSTERESIS_MS 20U
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -25,7 +25,7 @@ constexpr double THERMISTOR_BETA = 3880;
 constexpr double THERMISTOR_DIVIDER_RESISTOR = 6800;
 constexpr int TEENSY_ADC_RESOLUTION_BITS = 10;
 
-constexpr uint32_t PCC_FORCED_MIN_PRECHARGE_MS = 1000U;
+constexpr uint32_t PCC_FORCED_MIN_PRECHARGE_MS = 3000U;
 
 constexpr double DEBUG_FREQ_TS_PIN = 15;
 constexpr double DEBUG_FREQ_ACC_PIN = 14;
@@ -39,10 +39,6 @@ int errorCode = ERR_NONE;
 static PCCData pccData{};
 static PCCTempData tempData{};
 // Voltage measurements
-typedef struct {
-    int PreChargeTime;
-} debugData;
-debugData *time = {0};
 
 // Low pass filter
 typedef struct {
@@ -71,11 +67,11 @@ int analogVal;
 // Initialize mutex and precharge task
 void prechargeInit() {
     pcData.tsAlpha =
-        COMPUTE_ALPHA(10.0F); // 10Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(100.0F); // 100Hz cutoff frequency for lowpass filter
     pcData.accAlpha =
-        COMPUTE_ALPHA(10.0F); // 10Hz cutoff frequency for lowpass filter
-    pcData.accVoltage = 0.0F; // Initialize filtered tractive system frequency
-    pcData.tsVoltage = 0.0F;  // Initialize filtered accumulator frequency
+        COMPUTE_ALPHA(100.0F); // 100Hz cutoff frequency for lowpass filter
+    pcData.accVoltage = 0.0F;  // Initialize filtered tractive system frequency
+    pcData.tsVoltage = 0.0F;   // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
 
     tempData.isSafeTemperature = false;
@@ -98,12 +94,26 @@ void prechargeTask(void *pvParameters) {
 
     while (true) {
         analogVal = analogRead(A2);
-        /* TODO: Implement temperature checking (talk to EE about thermistors)*/
+        // double FREQ_TS = analogRead(DEBUG_FREQ_TS_PIN);
+        // double FREQ_ACC = analogRead(DEBUG_FREQ_ACC_PIN);
+
+        // Test to check for frequency channels agreement
+        // Serial.println("FREQ_TS: " + (String)FREQ_TS +
+        //                ", FREQ_ACC: " + (String)FREQ_ACC);
+
+        // Check thermistor readings, discharge if exceeded
+        // if (!checkSafeTemperature()) {
+        //     state = STATE_DISCHARGE;
+
+        // } else {
+        // Update temperature CAN flag
         tempData.isSafeTemperature = true;
+        //}
+
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
 
-        taskENTER_CRITICAL(); // Ensure atomic access to state
+        // taskENTER_CRITICAL(); // Ensure atomic access to state
         switch (state) {
         case STATE_STANDBY: {
             standby();
@@ -159,12 +169,15 @@ void prechargeTask(void *pvParameters) {
             errorState();
             break;
         }
+        // case STATE_ERROR:
+        //     errorState();
+        //     break;
         default: // Undefined state
             state = STATE_ERROR;
             errorCode |= ERR_STATE_UNDEFINED;
             errorState();
         }
-        taskEXIT_CRITICAL(); // Exit critical section
+        // taskEXIT_CRITICAL(); // Exit critical section
 
         // Send CAN message of current PCC state
         pccData = {
@@ -199,10 +212,14 @@ float getFrequency(int pin) {
 
 void updateVoltage(int pin) {
     float rawFreq = getFrequency(pin);
-    float rawVoltage = FREQ_TO_VOLTAGE(rawFreq);
+    // Serial.print("RawFreq: ");
+    // Serial.println(rawFreq);
+    float rawVoltage = FREQ_TO_VOLTAGE(rawFreq); // Convert frequency to voltage
+    // Serial.print("RawVoltage: ");
+    // Serial.println(rawVoltage);
     switch (pin) {
     case ACCUMULATOR_VOLTAGE_PIN: {
-        if (pcData.accVoltage == 0.0F && rawVoltage != 0.0F) {
+        if (pcData.accVoltage == 0.0 && rawVoltage != 0.0) {
             pcData.accVoltage = rawVoltage;
             break;
         }
@@ -211,8 +228,7 @@ void updateVoltage(int pin) {
         break;
     }
     case TS_VOLTAGE_PIN: {
-        if (rawVoltage == 0.0F && rawVoltage != 0.0F)
-            rawVoltage = pcData.tsVoltage;
+        // if(rawVoltage == 0.0F) rawVoltage = pcData.tsVoltage;
         LOWPASS_FILTER(rawVoltage, pcData.tsVoltage, pcData.tsAlpha);
         break;
     }
@@ -221,8 +237,27 @@ void updateVoltage(int pin) {
     }
     }
 }
+// static void discharge() {
+//     if (lastState != STATE_DISCHARGE) {
+//         lastState = STATE_DISCHARGE;
+//         Serial.println(" === DISCHARGE");
+//     }
+
+//     // Open AIR+ and switch shared relay to discharge position
+//     digitalWrite(IR_PLUS, LOW);
+//     digitalWrite(IR_MINUS, LOW);
+
+//     if (pcData.tsVoltage <= 5.0F) {
+//         state = STATE_STANDBY;
+//     }
+// }
+// STANDBY STATE: Open AIRs, Open Precharge, indicate status, wait for stable
+// SDC
 void standby() {
+    // Disable AIR, Disable Precharge
+    // digitalWrite(IR_PLUS, LOW);
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+    // Serial.println("ACC: " + (String) pcData.accVoltage);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
@@ -235,6 +270,7 @@ void standby() {
 
 // PRECHARGE STATE: Close AIR- and precharge relay, monitor precharge voltage
 void precharge() {
+    // digitalWrite(IR_MINUS, HIGH);
     uint32_t now = millis();
     static uint32_t lastTimeBelowThreshold;
     static uint32_t timePrechargeStart;
@@ -272,8 +308,7 @@ void precharge() {
 
     const bool minimumTimeElapsed =
         (now - timePrechargeStart) >= PCC_FORCED_MIN_PRECHARGE_MS;
-    if (minimumTimeElapsed)
-        time->PreChargeTime = (now - timePrechargeStart);
+
     if (voltageReady && voltageStable && minimumTimeElapsed) {
         state = CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
 
@@ -343,6 +378,8 @@ void charging() {
 
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
+    // digitalWrite(IR_PLUS, LOW);
+    // digitalWrite(IR_MINUS, LOW);
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
     if (lastState != STATE_ERROR) {
         lastState = STATE_ERROR;
@@ -434,11 +471,30 @@ bool checkSafeTemperature() {
 
     double T1ADC = static_cast<double>(analogRead(THERMISTOR1_PIN));
     double T2ADC = static_cast<double>(analogRead(THERMISTOR2_PIN));
+
+    // TEST VALUES (DUMMY ADC VALUES)
+
+    // double T1ADC_DUMMY = 609.0; // 25 C
+    // double T2ADC_DUMMY = 609.0; // 25 C
+
+    // double T1ADC_DUMMY = 134.0; // 100 C
+    // double T2ADC_DUMMY = 134.0; // 100 C
+
+    // =========
+
     double T1Temp = temperatureFromADC(T1ADC);
     double T2Temp = temperatureFromADC(T2ADC);
 
     tempData.T1Temp = (int16_t)(T1Temp);
     tempData.T2Temp = (int16_t)(T2Temp);
+
+    /* Print test temp values
+     Serial.println("T1ADC: " + (String)T1ADC + ", T2ADC: " + (String)T2ADC
+     +
+                 ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
+                 (String)T2Temp);
+    */
+
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {
         tempData.isSafeTemperature = 1;

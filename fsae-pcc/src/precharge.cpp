@@ -14,7 +14,7 @@
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
-#define TIME_HYSTERESIS_MS 100U
+#define TIME_HYSTERESIS_MS 50U
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -66,9 +66,9 @@ int analogVal;
 // Initialize mutex and precharge task
 void prechargeInit() {
     pcData.tsAlpha =
-        COMPUTE_ALPHA(10.0F); // 10Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(50.0F); // 10Hz cutoff frequency for lowpass filter
     pcData.accAlpha =
-        COMPUTE_ALPHA(10.0F); // 10Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(50.0F); // 10Hz cutoff frequency for lowpass filter
     pcData.accVoltage = 0.0F; // Initialize filtered tractive system frequency
     pcData.tsVoltage = 0.0F;  // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
@@ -339,6 +339,7 @@ void charging() {
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
+    digitalWrite(IR_MINUS, LOW);
     if (lastState != STATE_ERROR) {
         lastState = STATE_ERROR;
         Serial.println(" === ERROR");

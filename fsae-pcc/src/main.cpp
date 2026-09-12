@@ -81,9 +81,9 @@ void threadMain(void *pvParameters) {
         Serial.print(digitalRead(IR_PLUS));
         Serial.print(" | IR -: ");
         Serial.print(digitalRead(IR_MINUS));
-        Serial.print(" | Precharge Time: ");
-        Serial.print(times_s.PreChargeTime);
-        Serial.print(" ms");
+        // Serial.print(" | Precharge Time: ");
+        // Serial.print(times_s.PreChargeTime);
+        // Serial.print(" ms");
         Serial.print("\r");
         vTaskDelay(100);
     }

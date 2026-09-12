@@ -4,19 +4,19 @@
   "metadata": {
     "name": "adqk7pl",
     "namespace": "default",
-    "uid": "74a5125b-386f-426a-9965-91a3c9f1244f",
-    "resourceVersion": "1789178167847018",
+    "uid": "2b1400ed-cabe-496d-a4c3-dfb90b0cc6d0",
+    "resourceVersion": "1789227632702998",
     "generation": 4,
-    "creationTimestamp": "2026-09-12T01:47:37Z",
+    "creationTimestamp": "2026-09-12T01:05:37Z",
     "labels": {
-      "grafana.app/deprecatedInternalID": "4415489844240384"
+      "grafana.app/deprecatedInternalID": "4404921687351296"
     },
     "annotations": {
-      "grafana.app/createdBy": "user:ffxzj9xf6ybcwc",
+      "grafana.app/createdBy": "user:afv4fx31om8e8e",
       "grafana.app/folder": "",
-      "grafana.app/saved-from-ui": "Grafana v13.1.0 (b309c9bb3b)",
-      "grafana.app/updatedBy": "user:ffxzj9xf6ybcwc",
-      "grafana.app/updatedTimestamp": "2026-09-12T01:56:07Z"
+      "grafana.app/saved-from-ui": "Grafana v13.1.1 (a9cee6e172)",
+      "grafana.app/updatedBy": "user:afv4fx31om8e8e",
+      "grafana.app/updatedTimestamp": "2026-09-12T15:40:32Z"
     }
   },
   "spec": {
@@ -63,7 +63,7 @@
                       "group": "grafana-mqtt-datasource",
                       "version": "v0",
                       "datasource": {
-                        "name": "cfxzjotizxdz4d"
+                        "name": "ffx9tbc1s7gn4e"
                       },
                       "spec": {
                         "topic": "July_19_testing"
@@ -74,7 +74,93 @@
                   }
                 }
               ],
-              "transformations": [],
+              "transformations": [
+                {
+                  "kind": "Transformation",
+                  "group": "filterFieldsByName",
+                  "spec": {
+                    "options": {
+                      "include": {
+                        "names": [
+                          "Time",
+                          "BLLinpots",
+                          "BRLinpots",
+                          "FLLinpots",
+                          "FRLinpots",
+                          "RTMState",
+                          "ac_current",
+                          "apps",
+                          "apps_brake_plaus",
+                          "apps_travel",
+                          "av_max_ac_current",
+                          "av_max_dc_current",
+                          "av_min_ac_current",
+                          "av_min_dc_current",
+                          "avg_cell_volt",
+                          "bpps",
+                          "bse",
+                          "bse_avg",
+                          "bse_front",
+                          "bse_rear",
+                          "can_nmap_version",
+                          "cap_temp_limit_active",
+                          "charge_limit",
+                          "control_mode",
+                          "controller_temp",
+                          "dc_current",
+                          "dc_temp_limit_active",
+                          "digital_in1",
+                          "digital_in2",
+                          "digital_in3",
+                          "digital_in4",
+                          "digital_out1",
+                          "digital_out2",
+                          "digital_out3",
+                          "digital_out4",
+                          "discharge_limit",
+                          "drive_enable_limit_active",
+                          "drive_enabled",
+                          "dti_brake_input",
+                          "dti_throttle_input",
+                          "duty_cycle",
+                          "e_rpm",
+                          "fault_code",
+                          "foc_id",
+                          "foc_iq",
+                          "high_cell_volt",
+                          "igbt_accel_limit_active",
+                          "igbt_temp_limit_active",
+                          "imd_status",
+                          "input_voltage",
+                          "input_voltage_limit_active",
+                          "is_motor_still",
+                          "low_battery_voltage",
+                          "low_cell_volt",
+                          "max_ac_current",
+                          "max_dc_current",
+                          "min_ac_current",
+                          "min_dc_current",
+                          "motor_accel_temp_limit_active",
+                          "motor_position",
+                          "motor_temp",
+                          "motor_temp_limit_active",
+                          "osr_current",
+                          "over_temperature",
+                          "pack_current",
+                          "pack_voltage",
+                          "power_limit_active",
+                          "rpm_max_limit_active",
+                          "rpm_min_limit_active",
+                          "soc",
+                          "target_iq",
+                          "under_voltage",
+                          "vehicle_state"
+                        ]
+                      }
+                    }
+                  }
+                }
+              ],
               "queryOptions": {
                 "maxDataPoints": 30000
               }
@@ -83,7 +169,7 @@
           "vizConfig": {
             "kind": "VizConfig",
             "group": "timeseries",
-            "version": "13.1.0",
+            "version": "13.1.1",
             "spec": {
               "options": {
                 "annotations": {
@@ -182,7 +268,7 @@
                       "group": "grafana-mqtt-datasource",
                       "version": "v0",
                       "datasource": {
-                        "name": "cfxzjotizxdz4d"
+                        "name": "ffx9tbc1s7gn4e"
                       },
                       "spec": {
                         "topic": "July_19_testing"
@@ -193,42 +279,14 @@
                   }
                 }
               ],
-              "transformations": [
-                {
-                  "kind": "Transformation",
-                  "group": "filterFieldsByName",
-                  "spec": {
-                    "options": {
-                      "include": {
-                        "names": [
-                          "Time",
-                          "BLLinpots",
-                          "BRLinpots",
-                          "FLLinpots",
-                          "FRLinpots",
-                          "ac_current",
-                          "apps",
-                          "apps_brake_plaus",
-                          "apps_travel",
-                          "avg_cell_volt",
-                          "bpps",
-                          "duty_cycle",
-                          "e_rpm",
-                          "fault_code",
-                          "ts"
-                        ]
-                      }
-                    }
-                  }
-                }
-              ],
+              "transformations": [],
               "queryOptions": {}
             }
           },
           "vizConfig": {
             "kind": "VizConfig",
             "group": "gauge",
-            "version": "13.1.0",
+            "version": "13.1.1",
             "spec": {
               "options": {
                 "barShape": "flat",

@@ -14,7 +14,7 @@
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
-#define TIME_HYSTERESIS_MS 100U
+#define TIME_HYSTERESIS_MS 50U
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -218,7 +218,7 @@ void updateVoltage(int pin) {
 }
 void standby() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
-    digitalWrite(IR_MINUS, LOW);
+    // digitalWrite(IR_MINUS, LOW);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
@@ -234,7 +234,7 @@ void precharge() {
     uint32_t now = millis();
     static uint32_t lastTimeBelowThreshold;
     static uint32_t timePrechargeStart;
-    digitalWrite(IR_MINUS, HIGH);
+    // digitalWrite(IR_MINUS, HIGH);
     if (lastState != STATE_PRECHARGE) {
         lastState = STATE_PRECHARGE;
         Serial.printf(" === PRECHARGE   Target precharge %4.1f%%\n",
@@ -340,7 +340,7 @@ void charging() {
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
-    digitalWrite(IR_MINUS, LOW);
+    // digitalWrite(IR_MINUS, LOW);
     if (lastState != STATE_ERROR) {
         lastState = STATE_ERROR;
         Serial.println(" === ERROR");

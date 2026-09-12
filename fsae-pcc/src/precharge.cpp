@@ -256,6 +256,7 @@ void updateVoltage(int pin) {
 void standby() {
     // Disable AIR, Disable Precharge
     // digitalWrite(IR_PLUS, LOW);
+    digitalWrite(IR_MINUS, HIGH);
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
     // Serial.println("ACC: " + (String) pcData.accVoltage);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
@@ -270,7 +271,7 @@ void standby() {
 
 // PRECHARGE STATE: Close AIR- and precharge relay, monitor precharge voltage
 void precharge() {
-    // digitalWrite(IR_MINUS, HIGH);
+    digitalWrite(IR_MINUS, HIGH);
     uint32_t now = millis();
     static uint32_t lastTimeBelowThreshold;
     static uint32_t timePrechargeStart;
@@ -346,7 +347,7 @@ void running() {
 
     // Close AIR+
     // digitalWrite(IR_PLUS, HIGH);
-    // digitalWrite(IR_MINUS, HIGH);
+    digitalWrite(IR_MINUS, HIGH);
     digitalWrite(SHUTDOWN_CTRL_PIN, HIGH);
 }
 
@@ -379,7 +380,7 @@ void charging() {
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
     // digitalWrite(IR_PLUS, LOW);
-    // digitalWrite(IR_MINUS, LOW);
+    digitalWrite(IR_MINUS, LOW);
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
     if (lastState != STATE_ERROR) {
         lastState = STATE_ERROR;

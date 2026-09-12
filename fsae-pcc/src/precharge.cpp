@@ -14,7 +14,7 @@
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
-#define TIME_HYSTERESIS_MS 20U
+#define TIME_HYSTERESIS_MS 100U
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -25,7 +25,7 @@ constexpr double THERMISTOR_BETA = 3880;
 constexpr double THERMISTOR_DIVIDER_RESISTOR = 6800;
 constexpr int TEENSY_ADC_RESOLUTION_BITS = 10;
 
-constexpr uint32_t PCC_FORCED_MIN_PRECHARGE_MS = 2000U;
+constexpr uint32_t PCC_FORCED_MIN_PRECHARGE_MS = 1000U;
 
 constexpr double DEBUG_FREQ_TS_PIN = 15;
 constexpr double DEBUG_FREQ_ACC_PIN = 14;
@@ -67,11 +67,11 @@ int analogVal;
 // Initialize mutex and precharge task
 void prechargeInit() {
     pcData.tsAlpha =
-        COMPUTE_ALPHA(100.0F); // 100Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(10.0F); // 100Hz cutoff frequency for lowpass filter
     pcData.accAlpha =
-        COMPUTE_ALPHA(100.0F); // 100Hz cutoff frequency for lowpass filter
-    pcData.accVoltage = 0.0F;  // Initialize filtered tractive system frequency
-    pcData.tsVoltage = 0.0F;   // Initialize filtered accumulator frequency
+        COMPUTE_ALPHA(10.0F); // 100Hz cutoff frequency for lowpass filter
+    pcData.accVoltage = 0.0F; // Initialize filtered tractive system frequency
+    pcData.tsVoltage = 0.0F;  // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
 
     tempData.isSafeTemperature = false;

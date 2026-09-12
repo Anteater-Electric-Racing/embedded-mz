@@ -74,11 +74,13 @@ pub async fn get_questdb_sender() -> Sender{
 #[derive(Deserialize, PartialEq, Debug)]
 #[serde(untagged)]
 enum PosssibleFields {
-    Int(i64),
-    Unsign(u32),
-    Short(u8),
-    Float(f32),
-    Bool(bool)
+    U64(u64),
+    U32(u32),
+    U16(u16),
+    U8(u8),
+    F64(f64),
+    Bool(bool),
+    C(serde_json::Number),
 }
 
 pub fn get_qdb_buffer() -> questdb::ingress::Buffer{
@@ -87,29 +89,28 @@ pub fn get_qdb_buffer() -> questdb::ingress::Buffer{
 
 async fn data_into_buffer(table_name: &str, value: serde_json::Value, buffer : &mut questdb::ingress::Buffer){
     let _ = buffer.table(table_name);
-    let as_map : Map<String, PosssibleFields> = serde_json::from_value(value.clone()).unwrap();
-    let as_map2 : Map<String, PosssibleFields> = serde_json::from_value(value).unwrap();
+    let as_map : Map<String, PosssibleFields> = serde_json::from_value(value.clone()).expect("First one failed");
+    let as_map2 : Map<String, PosssibleFields> = serde_json::from_value(value).expect("Second one failed");
 
     for (key, value) in as_map.into_iter(){
-        if let PosssibleFields::Int(f) = value {
-            let _ = buffer.column_i64(key.as_str(), f.into());
-        }
-        else if let PosssibleFields::Float(f) = value {
+        if let PosssibleFields::U64(f) = value {
+            let _ = buffer.column_i64(key.as_str(), f.try_into().unwrap());
+        } else if let PosssibleFields::F64(f) = value {
             let _ = buffer.column_f64(key.as_str(), f.into());
-        }
-        else if let PosssibleFields::Bool(f) = value {
+        } else if let PosssibleFields::Bool(f) = value {
             let _ = buffer.column_bool(key.as_str(), f);
-        } 
-        else if let PosssibleFields::Short(s) = value {
+        } else if let PosssibleFields::U8(s) = value {
             let _ = buffer.column_i64(key.as_str(), s.into());
-        } else if let PosssibleFields::Unsign(s) = value {
+        } else if let PosssibleFields::U32(s) = value {
+            let _ = buffer.column_i64(key.as_str(), s.into());
+        } else if let PosssibleFields::U16(s) = value {
             let _ = buffer.column_i64(key.as_str(), s.into());
         }
     }
 
     let _ = buffer.column_str("col_name", "value");
-    if let PosssibleFields::Int(i) = as_map2.get("ts").expect("msg"){
-        let _ = buffer.at(TimestampMicros::new((*i)*1000));
+    if let PosssibleFields::U64(i) = as_map2.get("ts").expect("msg"){
+        let _ = buffer.at(TimestampMicros::new(((*i)*1000).try_into().unwrap()));
     }
 }
 
@@ -188,14 +189,17 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
     //}
 
     //put into buffer
+    //let json = value.to_string(); //data as string
+    //println!("{}", value);
+
     data_into_buffer(topic, value, buffer).await;
     //info!("what");
     //info!("sent to qdb {}", buffer.row_count());
     //check size
     if buffer.row_count() > 1_000 {
-        //send to buffer if fast enough
-        let _ = sender.flush( buffer);
-        //info!("sent to qdb {}", buffer.row_count());
+        //send to buffer if large enough
+        info!("sent to qdb {}", buffer.row_count());
+        let _ = sender.flush(buffer);
     }
     //tokio::time::sleep(Duration::from_millis(1)).await; //debugging cursor start with slower ingress?
 

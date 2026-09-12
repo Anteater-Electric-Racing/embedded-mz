@@ -288,11 +288,17 @@ impl Reading for TelemetryData {
     Serialize, Deserialize, Default, Debug, Clone, PartialEq, DekuRead, DekuWrite, DekuSize,
 )]
 #[deku(endian = "little")]pub struct TelemetryData2 {
+    pub RTMState: bool,
+
     pub apps_travel: f32,
 
     pub bse_front: f32,
     pub bse_rear: f32,
     pub bse_avg: f32,
+    pub BRLinpots: f32,
+    pub FRLinpots: f32,
+    pub BLLinpots: f32,
+    pub FLLinpots: f32,
 
     pub imd_resistance: f32,
     pub imd_status: u32,
@@ -308,8 +314,8 @@ impl Reading for TelemetryData {
 
     //MCU data
     pub control_mode: u8,
-    pub target_iq: f32,
 
+    pub target_iq: f32,
     pub motor_position: f32,
     pub is_motor_still: u8,
     pub e_rpm: f32,
@@ -363,7 +369,7 @@ impl Reading for TelemetryData {
     
     pub can_nmap_version: u8,
 
-    pub vehicle_state: u16,
+    pub vehicle_state: u8,
 
     #[deku(bits = 1)]
     pub osr_current: bool,

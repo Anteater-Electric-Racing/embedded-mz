@@ -2,12 +2,6 @@
 
 #pragma once
 
-typedef struct {
-    int PreChargeTime;
-} debugData;
-
-extern debugData times_s;
-
 enum PrechargeState {
     STATE_STANDBY,
     STATE_PRECHARGE,

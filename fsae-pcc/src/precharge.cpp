@@ -14,7 +14,7 @@
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
-#define TIME_HYSTERESIS_MS 50U
+#define TIME_HYSTERESIS_MS 100U
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -29,7 +29,7 @@ constexpr uint32_t PCC_FORCED_MIN_PRECHARGE_MS = 1000U;
 
 constexpr double DEBUG_FREQ_TS_PIN = 15;
 constexpr double DEBUG_FREQ_ACC_PIN = 14;
-debugData times_s = {0};
+
 constexpr double THERMISTOR_TEMPERATURE_THRESHOLD_C = 70;
 
 // States (Global Variables)
@@ -39,6 +39,11 @@ int errorCode = ERR_NONE;
 static PCCData pccData{};
 static PCCTempData tempData{};
 // Voltage measurements
+typedef struct {
+    int PreChargeTime;
+} debugData;
+debugData *time = {0};
+
 // Low pass filter
 typedef struct {
     float tsAlpha;
@@ -66,9 +71,9 @@ int analogVal;
 // Initialize mutex and precharge task
 void prechargeInit() {
     pcData.tsAlpha =
-        COMPUTE_ALPHA(50.0F); // 10Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(10.0F); // 10Hz cutoff frequency for lowpass filter
     pcData.accAlpha =
-        COMPUTE_ALPHA(50.0F); // 10Hz cutoff frequency for lowpass filter
+        COMPUTE_ALPHA(10.0F); // 10Hz cutoff frequency for lowpass filter
     pcData.accVoltage = 0.0F; // Initialize filtered tractive system frequency
     pcData.tsVoltage = 0.0F;  // Initialize filtered accumulator frequency
     pcData.prechargeProgress = 0.0F; // Initialize accumulator voltage
@@ -218,7 +223,6 @@ void updateVoltage(int pin) {
 }
 void standby() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
-    // digitalWrite(IR_MINUS, LOW);
     if (pcData.accVoltage >= PCC_MIN_ACC_VOLTAGE) {
         lastState = STATE_STANDBY;
         state = STATE_PRECHARGE;
@@ -234,7 +238,7 @@ void precharge() {
     uint32_t now = millis();
     static uint32_t lastTimeBelowThreshold;
     static uint32_t timePrechargeStart;
-    // digitalWrite(IR_MINUS, HIGH);
+
     if (lastState != STATE_PRECHARGE) {
         lastState = STATE_PRECHARGE;
         Serial.printf(" === PRECHARGE   Target precharge %4.1f%%\n",
@@ -269,7 +273,7 @@ void precharge() {
     const bool minimumTimeElapsed =
         (now - timePrechargeStart) >= PCC_FORCED_MIN_PRECHARGE_MS;
     if (minimumTimeElapsed)
-        times_s.PreChargeTime = (now - timePrechargeStart);
+        time->PreChargeTime = (now - timePrechargeStart);
     if (voltageReady && voltageStable && minimumTimeElapsed) {
         state = CAN_IsChargerSafetyActive() ? STATE_CHARGING : STATE_ONLINE;
 
@@ -340,7 +344,6 @@ void charging() {
 // ERROR STATE: Indicate error, open AIRs and precharge relay
 void errorState() {
     digitalWrite(SHUTDOWN_CTRL_PIN, LOW);
-    // digitalWrite(IR_MINUS, LOW);
     if (lastState != STATE_ERROR) {
         lastState = STATE_ERROR;
         Serial.println(" === ERROR");

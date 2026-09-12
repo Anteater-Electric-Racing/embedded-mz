@@ -14,7 +14,7 @@
 #define PRECHARGE_STACK_SIZE 512U
 #define PRECHARGE_PRIORITY 8
 
-#define TIME_HYSTERESIS_MS 50U
+#define TIME_HYSTERESIS_MS 100U
 // 5.56
 // 6.37
 constexpr double THERMISTOR1_PIN = 21;
@@ -233,7 +233,7 @@ void precharge() {
     uint32_t now = millis();
     static uint32_t lastTimeBelowThreshold;
     static uint32_t timePrechargeStart;
-
+    digitalWrite(IR_MINUS, HIGH);
     if (lastState != STATE_PRECHARGE) {
         lastState = STATE_PRECHARGE;
         Serial.printf(" === PRECHARGE   Target precharge %4.1f%%\n",

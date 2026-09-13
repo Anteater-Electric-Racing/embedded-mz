@@ -50,15 +50,14 @@ void thermal_regulate() {
     float temp =
         max(DTI_GetDTIData()->controllerTemp, DTI_GetDTIData()->motorTemp);
     float fanOutput =
-        computePID(&fan, FAN_THRESHOLD, temp, FAN_PROPORIONAL_GAIN,
+        computePID(&fan, FAN_THRESHOLD, 50, FAN_PROPORIONAL_GAIN,
                    FAN_INTEGRAL_GAIN, FAN_DERIVATIVE_GAIN);
     float pump1Output =
-        computePID(&pump1, FAN_THRESHOLD, temp, PUMP1_PROPORIONAL_GAIN,
+        computePID(&pump1, FAN_THRESHOLD, 50, PUMP1_PROPORIONAL_GAIN,
                    PUMP1_INTEGRAL_GAIN, PUMP1_DERIVATIVE_GAIN);
     float pump2Output =
-        computePID(&pump2, FAN_THRESHOLD, temp, PUMP2_PROPORTIONAL_GAIN,
+        computePID(&pump2, FAN_THRESHOLD, 50, PUMP2_PROPORTIONAL_GAIN,
                    PUMP2_INTEGRAL_GAIN, PUMP2_DERIVATIVE_GAIN);
-    //
     analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
@@ -84,16 +83,28 @@ float computePID(PIDState *state, float setPoint, float input, float propGain,
         state->prevOutput = 0;
         return 0;
     }
-    if (state->prevOutput < 1.0 && state->prevOutput > 0.0)
-        state->integral +=
-            error * dt; // disregard for normal applications of PID
+    if (state->prevOutput < 1.0 && state->prevOutput > 0.0){
+        if (state->integral > 200){
+            state->integral = 200;
+        } else {
+            state->integral += error * dt; // disregard for normal applications of PID
+        }
+
+    }
     float derivative =
         (error - state->prevError) /
         dt; // Calculate the derivative of the error (rate of change)
+    // Serial.print("Temp: ");    
+    // Serial.print(input); 
+    // Serial.print("| Integral: ");
+    // Serial.print(state->integral);
     float output =
         propGain * error + integralGain * state->integral +
         derivativeGain *
-            derivative; // Compute the PID output using the proportional,
+            derivative; 
+    // Serial.print("| Output: ");
+    // Serial.println(output);
+    // Compute the PID output using the proportional,
                         // integral, and derivative terms
     // From here to output = output / MAX_OUTPUT is not necissary for a general
     // PID controller

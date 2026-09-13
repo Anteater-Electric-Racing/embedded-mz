@@ -89,7 +89,7 @@ void threadVCU(void *pvParameters) {
             DTI_SendEnableCommand(false);
 
             // ENSURE never above 80kW limit (in DTI asw)
-            DTI_SetDCLimits(350.0F, -2.0);
+            DTI_SetDCLimits(300.0F, -2.0);
             DTI_SetACLimits(400.0F, -AC_MAX_R);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
@@ -207,7 +207,7 @@ float VCU_TorqueMap(float pedal) {
         break;
     }
     }
-    return CLAMP(target, 0.0f, 95.0f);
+    return CLAMP(target, 0.0f, 100.0f);
 }
 void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
 

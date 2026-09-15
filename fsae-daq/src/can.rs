@@ -13,7 +13,6 @@
 //! Production code relies on `can0`, while tests can run against vcan0
 //! using the virtual CAN network setup in the GitHub Actions workflow (test.yml).
 
-use structmap::{ToMap, value::Value};
 use crate::send::{now_ms, send_message, Reading, get_qdb_buffer, get_questdb_sender};
 use questdb::ingress::{
     Sender,
@@ -46,155 +45,20 @@ const CAN_DST_ID: u16 = 0x777;
 #[deku(ctx = "endian: deku::ctx::Endian")]
 #[deku(id_type = "u8")]
 #[repr(u8)]
-pub enum MotorState {
-    #[deku(id = 0)]
-    #[default]
-    Off,
-    #[deku(id = 1)]
-    Precharging,
-    #[deku(id = 2)]
-    Idle,
-    #[deku(id = 3)]
-    Driving,
-    #[deku(id = 4)]
-    Fault,
-}
-
-#[derive(
-    Default,
-    Debug,
-    Deserialize_repr,
-    Serialize_repr,
-    PartialEq,
-    Clone,
-    Copy,
-    DekuRead,
-    DekuWrite,
-    DekuSize,
-)]
-#[deku(ctx = "endian: deku::ctx::Endian")]
-#[deku(id_type = "u8")]
-#[repr(u8)]
-pub enum MotorRotateDirection {
-    #[deku(id = 0)]
-    #[default]
-    Standby,
-    #[deku(id = 1)]
-    Forward,
-    #[deku(id = 2)]
-    Backward,
-    #[deku(id = 3)]
-    Error,
-}
-
-#[derive(
-    Default,
-    Debug,
-    Deserialize_repr,
-    Serialize_repr,
-    PartialEq,
-    Clone,
-    Copy,
-    DekuRead,
-    DekuWrite,
-    DekuSize,
-)]
-#[deku(ctx = "endian: deku::ctx::Endian")]
-#[deku(id_type = "u8")]
-#[repr(u8)]
-pub enum MCUMainState {
-    #[deku(id = 0)]
-    #[default]
-    Off,
-    #[deku(id = 1)]
-    Precharging,
-    #[deku(id = 2)]
-    Idle,
-    #[deku(id = 3)]
-    Driving,
-    #[deku(id = 4)]
-    Fault,
-}
-
-#[derive(
-    Default,
-    Debug,
-    Deserialize_repr,
-    Serialize_repr,
-    PartialEq,
-    Clone,
-    Copy,
-    DekuRead,
-    DekuWrite,
-    DekuSize,
-)]
-#[deku(ctx = "endian: deku::ctx::Endian")]
-#[deku(id_type = "u8")]
-#[repr(u8)]
 pub enum VehicleState {
     #[deku(id = 0)]
     #[default]
     Off,
     #[deku(id = 1)]
-    Precharging,
-    #[deku(id = 2)]
-    Idle,
-    #[deku(id = 3)]
-    Driving,
-    #[deku(id = 4)]
-    Fault,
-}
-
-#[derive(
-    Default,
-    Debug,
-    Deserialize_repr,
-    Serialize_repr,
-    PartialEq,
-    Clone,
-    Copy,
-    DekuRead,
-    DekuWrite,
-    DekuSize,
-)]
-#[deku(ctx = "endian: deku::ctx::Endian")]
-#[deku(id_type = "u8")]
-#[repr(u8)]
-pub enum MCUWorkMode {
-    #[deku(id = 0)]
-    #[default]
     Standby,
-    #[deku(id = 1)]
-    Torque,
     #[deku(id = 2)]
-    Speed,
-}
-
-#[derive(
-    Default,
-    Debug,
-    Deserialize_repr,
-    Serialize_repr,
-    PartialEq,
-    Clone,
-    Copy,
-    DekuRead,
-    DekuWrite,
-    DekuSize,
-)]
-#[deku(ctx = "endian: deku::ctx::Endian")]
-#[deku(id_type = "u8")]
-#[repr(u8)]
-pub enum MCUWarningLevel {
-    #[deku(id = 0)]
-    #[default]
-    None,
-    #[deku(id = 1)]
-    Low,
-    #[deku(id = 2)]
-    Medium,
+    PreCharging,
     #[deku(id = 3)]
-    High,
+    IDLE,
+    #[deku(id = 4)]
+    Driving,
+    #[deku(id = 5)]
+    Fault,
 }
 
 /// Telemetry data record produced by the motor controller.
@@ -206,103 +70,17 @@ pub enum MCUWarningLevel {
     Serialize, Deserialize, Default, Debug, Clone, PartialEq, DekuRead, DekuWrite, DekuSize,
 )]
 #[deku(endian = "little")]pub struct TelemetryData {
-    pub apps_travel: f32,
-
-    pub bse_front: f32,
-    pub bse_rear: f32,
-
-    pub imd_resistance: f32,
-    pub imd_status: u32,
-
-    pub pack_voltage: f32,
-    pub pack_current: f32,
-    pub soc: f32,
-    pub discharge_limit: f32,
-    pub charge_limit: f32,
-    pub low_cell_volt: f32,
-    pub high_cell_volt: f32,
-    pub avg_cell_volt: f32,
-
-    pub motor_speed: f32,
-    pub motor_torque: f32,
-    pub max_motor_torque: f32,
-    pub motor_direction: MotorRotateDirection,
-    pub motor_state: MotorState,
-
-    pub mcu_main_state: MCUMainState,
-    pub mcu_work_mode: MCUWorkMode,
-
-    pub mcu_voltage: f32,
-    pub mcu_phase_current: f32,
-    pub mcu_current: f32,
-
-    pub motor_temp: i32,
-    pub mcu_temp: i32,
-
-    pub mcu_warning_level: MCUWarningLevel,
-
-    pub shocktravel1: f32,
-    pub shocktravel2: f32,
-    pub shocktravel3: f32,
-    pub shocktravel4: f32,
-
-    pub dc_main_wire_over_volt_fault: bool,
-    pub motor_phase_curr_fault: bool,
-    pub mcu_over_hot_fault: bool,
-    pub resolver_fault: bool,
-    pub phase_curr_sensor_fault: bool,
-    pub motor_over_spd_fault: bool,
-    pub drv_motor_over_hot_fault: bool,
-    pub dc_main_wire_over_curr_fault: bool,
-    pub drv_motor_over_cool_fault: bool,
-    pub dc_low_volt_warning: bool,
-    pub mcu_12v_low_volt_warning: bool,
-    pub motor_stall_fault: bool,
-    pub motor_open_phase_fault: bool,
-
-    #[deku(bits = 1)]
-    pub over_current: bool,
-    #[deku(bits = 1)]
-    pub under_voltage: bool,
-    #[deku(bits = 1)]
-    pub over_temperature: bool,
-    #[deku(bits = 1)]
-    pub apps: bool,
-    #[deku(bits = 1)]
-    pub bse: bool,
-    #[deku(bits = 1)]
-    pub bpps: bool,
-    #[deku(bits = 1)]
-    pub apps_brake_plaus: bool,
-    #[deku(bits = 1, pad_bits_after = "24")]
-    pub low_battery_voltage: bool,
-}
-
-impl Reading for TelemetryData {
-    fn topic() -> &'static str {
-        "telemetry"
-    }
-
-    fn error(&self) -> bool {
-        self.over_current && self.under_voltage && self.over_temperature && self.apps && self.bse && self.bpps && self.apps_brake_plaus && self.low_battery_voltage
-    }
-}
-
-#[derive(
-    Serialize, Deserialize, Default, Debug, Clone, PartialEq, DekuRead, DekuWrite, DekuSize,
-)]
-#[deku(endian = "little")]pub struct TelemetryData2 {
-    pub RTMState: bool,
+    pub rtm_state: bool,
 
     pub apps_travel: f32,
 
     pub bse_front: f32,
     pub bse_rear: f32,
     pub bse_avg: f32,
-    pub BRLinpots: f32,
-    pub FRLinpots: f32,
-    pub BLLinpots: f32,
-    pub FLLinpots: f32,
+    pub brl_linpots: f32,
+    pub frl_linpots: f32,
+    pub bll_linpots: f32,
+    pub fll_linpots: f32,
 
     pub imd_resistance: f32,
     pub imd_status: u32,
@@ -373,7 +151,7 @@ impl Reading for TelemetryData {
     
     pub can_nmap_version: u8,
 
-    pub vehicle_state: u8,
+    pub vehicle_state: VehicleState,
 
     #[deku(bits = 1)]
     pub osr_current: bool,
@@ -393,7 +171,7 @@ impl Reading for TelemetryData {
     pub low_battery_voltage: bool,
 }
 
-impl Reading for TelemetryData2 {
+impl Reading for TelemetryData {
     fn topic() -> &'static str {
         "July_19_testing"
     }
@@ -429,7 +207,7 @@ async fn read_can_hardware() {
 
         while let Ok(packet) = socket.read_packet().await {
             let ts = now_ms();
-            match TelemetryData2::from_bytes((packet.as_ref(), 0)) {
+            match TelemetryData::from_bytes((packet.as_ref(), 0)) {
                 Ok(((remaining, _), _)) if !remaining.is_empty() => {
                     warn!("Telemetry packet has {} trailing bytes", remaining.len(),);
                 }
@@ -437,13 +215,6 @@ async fn read_can_hardware() {
                 Err(e) => warn!(error = %e, "Malformed telemetry packet"),
             }
         }
-    }
-}
-
-impl TelemetryData2 {
-    fn mutate_test_val(&mut self) -> TelemetryData2{
-        self.imd_status=now_ms() as u32;
-        self.clone()
     }
 }
 
@@ -459,7 +230,7 @@ async fn read_can_synthetic() {
     let mut interval = tokio::time::interval(Duration::from_millis(1));
     loop {
         interval.tick().await;
-        send_message(TelemetryData2::default().mutate_test_val(), now_ms(), &mut buffer, &mut sender).await;
+        send_message(TelemetryData::default(), now_ms(), &mut buffer, &mut sender).await;
         count += 1;
 
         let elapsed = last.elapsed();

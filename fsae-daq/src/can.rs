@@ -182,8 +182,6 @@ impl Reading for TelemetryData {
 }
 
 
-//I'm very sorry but I honestly can't figure out how to properly have a global & mutable buffer (which rust kinda doesn't want to have (no shared mutable states)), so I;m doing some architectural ersosion and putting buffer here. 
-
 /// Reads ISO-TP packets from `can0` in a loop, parses each into
 /// [`TelemetryData`], and forwards via [`send_message`].
 ///

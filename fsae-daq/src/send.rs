@@ -152,19 +152,6 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
             *lock += 1;
         }
     }
-    //error!("not locked");
-
-    
-    
-    //async fn send_to_questdb(topic : &str, value : serde_json::Value) {
-    //    let buf = data_to_buffer( topic, value).await;
-    //    let mut data = Sending_data {buffer : buf};
-    //    data.send_questdb().await;
-    //}
-
-    //put into buffer
-    //let json = value.to_string(); //data as string
-    //println!("{}", value);
 
     data_into_buffer(topic, value, buffer).await;
     //info!("what");
@@ -175,11 +162,4 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
         info!("sent to qdb {}", buffer.row_count());
         let _ = sender.flush(buffer);
     }
-    //tokio::time::sleep(Duration::from_millis(1)).await; //debugging cursor start with slower ingress?
-
-    //tokio::spawn(send_to_questdb(topic, value));
-    //let buf = data_to_buffer( topic, value).await;
-    //let mut data = Sending_data {buffer : buf};
-    //data.send_questdb().await;
-
 }

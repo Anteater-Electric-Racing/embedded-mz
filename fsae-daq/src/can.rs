@@ -54,7 +54,7 @@ pub enum VehicleState {
     #[deku(id = 2)]
     PreCharging,
     #[deku(id = 3)]
-    IDLE,
+    Idle,
     #[deku(id = 4)]
     Driving,
     #[deku(id = 5)]

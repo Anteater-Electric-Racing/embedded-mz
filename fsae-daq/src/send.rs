@@ -1,34 +1,21 @@
-use std::any::TypeId;
-use std::default;
 use std::fmt::Debug;
-use std::sync::LazyLock;
 use config::Map;
 use serde::{Serialize, Deserialize};
 use rumqttc::{AsyncClient, ClientError, MqttOptions, QoS};
-use serde_json::map::Values;
-use tracing::field::display;
 use lazy_static::lazy_static;
 use tracing::{error, info};
 use tokio::sync::{Mutex, OnceCell};
 use tokio::time::Duration;
 use questdb::{
-    Result,
     ingress::{
         Sender,
-        SenderBuilder,
         TimestampMicros}};
-use crate::can::MCUWarningLevel;
 
-pub const TAOS_URL: &str = "taos+ws://localhost:6041/fsae";
 pub const MQTT_ID: &str = "fsae";
 pub const MQTT_HOST: &str = "127.0.0.1";
 pub const MQTT_PORT: u16 = 1883;
 pub const QUESTDB_URL: &str = "http::addr=localhost:9000"; //this is probably (defintly) the wrong link but it does let me connect on my home computer
 
-
-const CREATE_DB: &str =
-    "CREATE DATABASE IF NOT EXISTS fsae WAL_LEVEL 2 WAL_FSYNC_PERIOD 0 STT_TRIGGER 1 KEEP 365d";
-const MAX_CONSECUTIVE_FAILURES: u32 = 10;
 const RECONNECT_DELAY: Duration = Duration::from_secs(2);
 
 pub trait Reading: Serialize {
@@ -44,20 +31,6 @@ lazy_static! {
     Mutex::new(get_qdb_buffer());
     static ref loss: Mutex<i32> = Mutex::new(10);
 
-}
-struct Sending_data { //TODO: rename
-    pub buffer : questdb::ingress::Buffer
-}
-
-impl Sending_data {
-    async fn send_questdb(&mut self){
-        /*info!("{}", match self.buffer.check_can_flush() {
-            Ok(_val) => "ok",
-            Err(_val) => "err"
-        });*/
-        let mut sender: Sender =  get_questdb_sender().await;
-        let _ = sender.flush(&mut self.buffer);
-    }
 }
 
 pub async fn get_questdb_sender() -> Sender{
@@ -97,7 +70,7 @@ async fn data_into_buffer(table_name: &str, value: serde_json::Value, buffer : &
         if let PosssibleFields::U64(f) = value {
             let _ = buffer.column_i64(key.as_str(), f.try_into().unwrap());
         } else if let PosssibleFields::F64(f) = value {
-            let _ = buffer.column_f64(key.as_str(), f.into());
+            let _ = buffer.column_f64(key.as_str(), f);
         } else if let PosssibleFields::Bool(f) = value {
             let _ = buffer.column_bool(key.as_str(), f);
         } else if let PosssibleFields::U8(s) = value {

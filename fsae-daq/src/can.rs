@@ -282,6 +282,10 @@ impl Reading for TelemetryData {
     fn topic() -> &'static str {
         "telemetry"
     }
+
+    fn error(&self) -> bool {
+        self.over_current && self.under_voltage && self.over_temperature && self.apps && self.bse && self.bpps && self.apps_brake_plaus && self.low_battery_voltage
+    }
 }
 
 #[derive(
@@ -392,6 +396,10 @@ impl Reading for TelemetryData {
 impl Reading for TelemetryData2 {
     fn topic() -> &'static str {
         "July_19_testing"
+    }
+
+    fn error(&self) -> bool {
+        self.osr_current && self.under_voltage && self.over_temperature && self.apps && self.bse && self.bpps && self.apps_brake_plaus && self.low_battery_voltage
     }
 }
 

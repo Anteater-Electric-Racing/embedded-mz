@@ -33,6 +33,7 @@ const RECONNECT_DELAY: Duration = Duration::from_secs(2);
 
 pub trait Reading: Serialize {
     fn topic() -> &'static str;
+    fn error(&self) -> bool;
 }
 
 //static TDENGINE: OnceCell<Sender<String>> = OnceCell::const_new();
@@ -196,7 +197,7 @@ pub async fn send_message<T: Reading + Send + 'static>(message: T, timestamp_ms:
     //info!("what");
     //info!("sent to qdb {}", buffer.row_count());
     //check size
-    if buffer.row_count() > 1_000 {
+    if buffer.row_count() > 1_000 || message.error() {
         //send to buffer if large enough
         info!("sent to qdb {}", buffer.row_count());
         let _ = sender.flush(buffer);

@@ -108,7 +108,7 @@ void ADC_Init() {
         BSE_MIN_PSI2 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V2);
 
         BRAKE_LIGHT_AVG_THRESHOLD =
-            ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F) + 20.0F;
+            ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F + 10.0f);
         calibrated = true;
     }
 }

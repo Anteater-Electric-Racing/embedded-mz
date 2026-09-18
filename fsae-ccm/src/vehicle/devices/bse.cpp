@@ -35,9 +35,9 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
     // Filter incoming values
     LOWPASS_FILTER(bseReading1, bseRawData.bseRawFront, bseAlpha);
     LOWPASS_FILTER(bseReading2, bseRawData.bseRawRear, bseAlpha);
-    float bseVoltage1 =
-        ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawFront, ADC_VOLTAGE_DIVIDER);
     float bseVoltage2 =
+        ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawFront, ADC_VOLTAGE_DIVIDER);
+    float bseVoltage1 =
         ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawRear, ADC_VOLTAGE_DIVIDER);
     // Check BSE open/short circuit
     if (bseVoltage1 < BSE_LOWER_THRESHOLD ||

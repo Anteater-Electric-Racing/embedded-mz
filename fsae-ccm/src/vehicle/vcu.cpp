@@ -105,9 +105,10 @@ void threadVCU(void *pvParameters) {
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
             if (BSE_BrakesPressed()) {
-                if (RTM_ButtonState() && Faults_CheckAllClear()) {
+                if (RTM_ButtonState() /*&& Faults_CheckAllClear()*/) {
 
                     // assume rtm button gets sent, stays 1
+                    Serial.println("Playing Audio\n");
                     Speaker_Play(); // Play Ready to Drive sound
                 }
             } else {

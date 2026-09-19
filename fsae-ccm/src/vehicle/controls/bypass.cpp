@@ -60,14 +60,17 @@ void Bypass_TSSI() {
     if (startup) {
         if (feedbackStatus == HIGH) {
             // IMD and BMS stabilized, exit startup mode
+            // Serial.println("trigger1");
             digitalWrite(TSSI_BYPASS_PIN, HIGH);
             startup = false;
         } else if (feedbackStatus == LOW) {
             // Fault during startup
             if (is_fault == LOW) {
+                // Serial.println("trigger2");
                 // Was in fault state before - don't bypass
                 digitalWrite(TSSI_BYPASS_PIN, HIGH);
             } else {
+                // Serial.println("trigger3");
                 // Was healthy before - bypass this startup fault
                 digitalWrite(TSSI_BYPASS_PIN, LOW);
 
@@ -91,12 +94,14 @@ void Bypass_TSSI() {
     } else {
         // Normal operation
         if (feedbackStatus == LOW) {
+            Serial.println("trigger4");
             // Fault detected
             digitalWrite(TSSI_BYPASS_PIN, HIGH);
         } else {
             // No fault - delay and debounce before turning off bypass
             vTaskDelay(pdMS_TO_TICKS(100));
             if (feedbackStatus == HIGH) {
+                // Serial.println("trigger5");
                 digitalWrite(TSSI_BYPASS_PIN, HIGH);
             }
         }
@@ -118,6 +123,7 @@ void Bypass_TSSI_Full() {
 
     if (feedbackStatus == LOW && imdStatus == LOW) {
         // Feedback is LOW, turn bypass ON immediately
+        // Serial.println("trigger6");
         digitalWrite(TSSI_BYPASS_PIN, HIGH);
     } else {
         // Feedback is HIGH, wait a bit then turn OFF
@@ -125,6 +131,7 @@ void Bypass_TSSI_Full() {
 
         // Double check if feedback is still HIGH before switching off
         if (feedbackStatus == HIGH) {
+            // Serial.println("trigger7");
             digitalWrite(TSSI_BYPASS_PIN, LOW);
         }
     }

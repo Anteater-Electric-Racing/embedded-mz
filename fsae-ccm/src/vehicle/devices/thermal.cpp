@@ -4,7 +4,7 @@
 #define OUTPUT 1
 
 void thermal_forceOff() {
-    analogWrite(PUMP1_PIN, 0);
+    //analogWrite(PUMP1_PIN, 0);
     analogWrite(PUMP2_PIN, 0);
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX);
 }
@@ -37,7 +37,7 @@ void thermal_Init() {
  */
 
 void thermal_forceOn() {
-    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
+    //analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * 0.1);
 }
@@ -50,57 +50,17 @@ void thermal_regulate() {
     float temp =
         max(DTI_GetDTIData()->controllerTemp, DTI_GetDTIData()->motorTemp);
     float fanOutput =
-        computePID(&fan, FAN_THRESHOLD, temp, FAN_PROPORIONAL_GAIN,
+        computePID(&fan, FAN_THRESHOLD, 50, FAN_PROPORIONAL_GAIN,
                    FAN_INTEGRAL_GAIN, FAN_DERIVATIVE_GAIN);
     float pump1Output =
-        computePID(&pump1, FAN_THRESHOLD, temp, PUMP1_PROPORIONAL_GAIN,
+        computePID(&pump1, FAN_THRESHOLD, 50, PUMP1_PROPORIONAL_GAIN,
                    PUMP1_INTEGRAL_GAIN, PUMP1_DERIVATIVE_GAIN);
     float pump2Output =
-        computePID(&pump2, FAN_THRESHOLD, temp, PUMP2_PROPORTIONAL_GAIN,
+        computePID(&pump2, FAN_THRESHOLD, 50, PUMP2_PROPORTIONAL_GAIN,
                    PUMP2_INTEGRAL_GAIN, PUMP2_DERIVATIVE_GAIN);
-    //
-
-    /*analogWrite(PUMP1_PIN,
-                DUTY_CYCLE_MAX * computePID(&pump1, PUMP_THRESHOLD, temp,
-                                            PUMP1_PROPORIONAL_GAIN,
-                                            PUMP1_INTEGRAL_GAIN,
-                                            PUMP1_DERIVATIVE_GAIN));*/
-    /*analogWrite(PUMP2_PIN,
-                DUTY_CYCLE_MAX * computePID(&pump2, PUMP_THRESHOLD, temp,
-                                            PUMP2_PROPORTIONAL_GAIN,
-                                            PUMP2_INTEGRAL_GAIN,
-                                            PUMP2_DERIVATIVE_GAIN)); */
-    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
-    analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
+    //analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
+    //analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
-
-    // Serial.println("temp:" + String(temp));
-    // Serial.println("Fan Output:" + String(fanOutput));
-    // Serial.println("Pump1 Output:" + String(pump1Output));
-    // Serial.println("Pump2 Output:" + String(pump2Ouput));
-    // temp -= (fanOutput + pump1Output + pump2Ouput) /
-    //         3; // this is a very basic model of how the system responds to
-    //         the
-    //            // outputs, just for testing PID
-    // if (temp <= 50) {
-    //     temp = 80;
-    // }
-    // fanOutput =
-    //     1 -
-    //     fanOutput; // invert fan output because a higher output means we want
-    //     to
-    //                // run the fan faster which means we want a lower duty
-    //                cycle
-    // pump1Output = 1 - pump1Output; // invert pump output because a higher
-    // output
-    //                                // means we want to run the pump faster
-    //                                which
-    //                                // means we want a lower duty cycle
-    // pump2Ouput = 1 - pump2Ouput;   // invert pump output because a higher
-    // output
-    //                                // means we want to run the pump faster
-    //                                which
-    //                                // means we want a lower duty cycle
 }
 
 float computePID(PIDState *state, float setPoint, float input, float propGain,
@@ -123,16 +83,28 @@ float computePID(PIDState *state, float setPoint, float input, float propGain,
         state->prevOutput = 0;
         return 0;
     }
-    if (state->prevOutput < 1.0 && state->prevOutput > 0.0)
-        state->integral +=
-            error * dt; // disregard for normal applications of PID
+    if (state->prevOutput < 1.0 && state->prevOutput > 0.0){
+        if (state->integral > 200){
+            state->integral = 200;
+        } else {
+            state->integral += error * dt; // disregard for normal applications of PID
+        }
+
+    }
     float derivative =
         (error - state->prevError) /
         dt; // Calculate the derivative of the error (rate of change)
+    // Serial.print("Temp: ");    
+    // Serial.print(input); 
+    // Serial.print("| Integral: ");
+    // Serial.print(state->integral);
     float output =
         propGain * error + integralGain * state->integral +
         derivativeGain *
-            derivative; // Compute the PID output using the proportional,
+            derivative; 
+    // Serial.print("| Output: ");
+    // Serial.println(output);
+    // Compute the PID output using the proportional,
                         // integral, and derivative terms
     // From here to output = output / MAX_OUTPUT is not necissary for a general
     // PID controller

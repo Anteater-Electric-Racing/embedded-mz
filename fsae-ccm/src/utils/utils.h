@@ -73,7 +73,7 @@ constexpr int fault_address = 0;
 #define LOGIC_LEVEL_V 3.3F
 #define TIME_STEP 0.001F // 1ms time step
 
-#define ADC_AVERAGING 1
+#define ADC_AVERAGING 4
 #define ADC_RESOLUTION 12
 #define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
 #define TICKTYPE_FREQUENCY 1
@@ -160,7 +160,7 @@ extern float BSE_MIN_V2;
 // ALL in volts rn
 #define BRAKE_LIGHT_THRESHOLD 4.0F // PSI
 extern float BRAKE_LIGHT_AVG_THRESHOLD;
-#define BSE_LOWER_THRESHOLD 0.25F
+#define BSE_LOWER_THRESHOLD -1.00F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F
 

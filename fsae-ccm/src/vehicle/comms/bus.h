@@ -312,5 +312,7 @@ IMDData *IMD_GetInfo();
 dtiData1 *DTI_GetDTIData();
 dtiData2 *DTI_GetDTI_ExtraData();
 
+void DTI_RunDebug(void);
+
 void Bus_Init();
 void threadBus(void *pvParameters);

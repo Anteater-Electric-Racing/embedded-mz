@@ -11,6 +11,7 @@
 // Relays
 #define IR_PLUS 11
 #define IR_MINUS 12
+#define SHUTDOWN_CTRL_PIN 11
 
 // Frequency measurements (from Voltage-to-Frequency converters)
 #define FREQ_ACCU_PIN 14
@@ -48,9 +49,9 @@
 // 101 Mohms = R1
 //  1 Mohms = R2
 
-#define ACCU_VOLTAGE_DIVIDER_R1 99.0F
-#define TS_VOLTAGE_DIVIDER_R1 99.0F
-#define VOLTAGE_DIVIDER_R2 1.0F
+#define ACCU_VOLTAGE_DIVIDER_R1 48e6F
+#define TS_VOLTAGE_DIVIDER_R1 49.67e6F
+#define VOLTAGE_DIVIDER_R2 .995e6F
 #define VOLTAGE_DIVIDER_RATIO                                                  \
     (ACCU_VOLTAGE_DIVIDER_R1 + VOLTAGE_DIVIDER_R2) / VOLTAGE_DIVIDER_R2
 

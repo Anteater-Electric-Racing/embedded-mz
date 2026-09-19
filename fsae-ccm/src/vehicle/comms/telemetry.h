@@ -24,6 +24,10 @@ typedef struct __attribute__((packed)) {
     float BSEFront; // front brake pressure in PSI
     float BSERear;  // rear brake pressure in PSI
     float BSEAvg;
+    float BRLinpots; // Rear Right Shock Travel in mm
+    float FRLinpots; // Front Right Shock Travel in mm
+    float BLLinpots; // Rear Left Shock Travel in mm
+    float FLLinpots; // Front Left Shock Travel in mm
 
     float imdResistance;
     uint32_t imdStatus;

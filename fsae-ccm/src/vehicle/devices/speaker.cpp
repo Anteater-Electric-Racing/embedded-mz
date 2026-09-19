@@ -4,14 +4,9 @@
 #include "arduino_freertos.h"
 #include <Arduino.h>
 
-void Speaker_Init() { pinMode(speakerPin, arduino::INPUT); }
+void Speaker_Init() { pinMode(speakerPin, arduino::OUTPUT); }
 
 void Speaker_Play() {
-    // Short descending fart sound
-    for (int frequency = 180; frequency >= 65; frequency -= 12) {
-        tone(speakerPin, frequency);
-        vTaskDelay(pdMS_TO_TICKS(25));
-    }
-
-    noTone(speakerPin);
+        Serial.println("playin a sound type");
+        vTaskDelay(pdMS_TO_TICKS(20));
 }

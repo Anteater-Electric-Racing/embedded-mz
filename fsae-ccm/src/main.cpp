@@ -89,6 +89,7 @@ void threadMain(void *pvParameters) {
         /*============ LOW PRIORITY GPIO UPDATES ============*/
         digitalWrite(13, HIGH); // orange led on teensy
         Bypass_TSSI();
+        // Serial.println(digitalRead(TSSI_FEEDBACK_PIN));
 
         RTM_ButtonUpdate(digitalRead(rtm_PIN));
 

@@ -4,7 +4,7 @@
 #define OUTPUT 1
 
 void thermal_forceOff() {
-    analogWrite(PUMP1_PIN, 0);
+    //analogWrite(PUMP1_PIN, 0);
     analogWrite(PUMP2_PIN, 0);
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX);
 }
@@ -37,7 +37,7 @@ void thermal_Init() {
  */
 
 void thermal_forceOn() {
-    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
+    //analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * 0.9);
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * 0.1);
 }
@@ -58,8 +58,8 @@ void thermal_regulate() {
     float pump2Output =
         computePID(&pump2, FAN_THRESHOLD, 50, PUMP2_PROPORTIONAL_GAIN,
                    PUMP2_INTEGRAL_GAIN, PUMP2_DERIVATIVE_GAIN);
-    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
-    analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
+    //analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
+    //analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
     analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
 }
 

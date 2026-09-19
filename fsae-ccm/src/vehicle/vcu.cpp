@@ -43,6 +43,7 @@ static DriveState driveState;
 static TickType_t xLastWakeTime;
 
 static bool enableRegen = false;
+bool hornEnable = false;
 static float debugPedalDemand = 0.0f;
 
 // Define 3 Presets (Steepness k, Midpoint x0)
@@ -56,12 +57,14 @@ const float x0_vals[] PROGMEM = {0.7f, 0.425f, 0.375f};
 static float k = 0.0f, x0 = 0.0f, low_limit = 0.0f, high_limit = 0.0f;
 
 void VCU_Init() {
-    vehicleState = STATE_IDLE; // DEFAULT TO PRECHARGE
+    vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
     enableRegen = false;
 
     driveState.controlMode = TORQUE;
     driveState.driveStrategy = OPEN_LOOP;
     DTI_LinkControlMode(&driveState.controlMode);
+    pinMode(28, 1);
+    digitalWrite(28, 1);
 
     k = k_vals[ACTIVE_MAP];
     x0 = x0_vals[ACTIVE_MAP];
@@ -78,6 +81,7 @@ void threadVCU(void *pvParameters) {
         float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
+       // Serial.println(vehicleState);
 
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
@@ -96,6 +100,7 @@ void threadVCU(void *pvParameters) {
             }
             break;
         case STATE_IDLE:
+        //Serial.println("state idle\n");
 
             if (PCC_PrechargeComplete()) {
 
@@ -104,18 +109,44 @@ void threadVCU(void *pvParameters) {
             //  transition to IDLE
             //  TODO Update brake light threshold if we only want to move when
             //  mech brakes are engaged
+            //if(!BSE_BrakesPressed()) Serial.println("somehting broke");
             if (BSE_BrakesPressed()) {
-                if (RTM_ButtonState() /*&& Faults_CheckAllClear()*/) {
-
+            //     if(RTM_ButtonState()) {
+            //         Serial.print("active | ");
+            //     } else {
+            //         Serial.print("inactive | ");
+            //     }
+            //     Serial.print("Fault Status: ");
+            // if(Faults_CheckAllClear()){
+            //     Serial.print("Faults: ");
+            //     Serial.println(Faults_GetFaults());
+            // } else {
+            //     Serial.println("Clear");
+            // }
+                if (RTM_ButtonState() && (Faults_GetFaults() == 0)) {
                     // assume rtm button gets sent, stays 1
-                    Serial.println("Playing Audio\n");
-                    Speaker_Play(); // Play Ready to Drive sound
+                    if(hornEnable){
+                        Serial.println("Playing Audio");
+                        // digitalWrite(28, 1);
+                        // delay(1000);
+                        // digitalWrite(28,0);
+                        hornEnable = false;
+                    } else {
+                        Serial.println("let go of brake");
+                    }
+                    RTM_ButtonReset();
+                    
+                    //Speaker_Play(); // Play Ready to Drive sound obsolete after switching to horn
+
                 }
             } else {
+                digitalWrite(28, 0);
+                hornEnable = true;
                 RTM_ButtonReset();
                 DTI_SendEnableCommand(false);
             }
             // motorData.desiredTorque = 0.0F;
+
             break;
         case STATE_DRIVING: {
             // if (!HIMAC_FLAG || RTM_ButtonState() == false) {
@@ -159,6 +190,7 @@ void threadVCU(void *pvParameters) {
         } break;
 
         case STATE_FAULT:
+            Serial.println("fault state avadi help");
             // DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
@@ -210,7 +242,7 @@ float VCU_TorqueMap(float pedal) {
     }
     return CLAMP(target, 0.0f, 100.0f);
 }
-void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
+void VCU_SetFaultState() { vehicleState = STATE_IDLE; }
 
 void VCU_SetState(VehicleState state) { vehicleState = state; }
 

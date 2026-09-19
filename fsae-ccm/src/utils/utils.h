@@ -30,7 +30,7 @@ operation)
 */
 constexpr int fault_address = 0;
 
-#define SERIALMONITOR_FLAG 0
+#define SERIALMONITOR_FLAG 1
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
@@ -159,7 +159,7 @@ extern float BSE_MIN_V2;
 // ALL in volts rn
 #define BRAKE_LIGHT_THRESHOLD 4.0F // PSI
 extern float BRAKE_LIGHT_AVG_THRESHOLD;
-#define BSE_LOWER_THRESHOLD 0.25F
+#define BSE_LOWER_THRESHOLD -1.00F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F
 

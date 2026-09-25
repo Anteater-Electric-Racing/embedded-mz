@@ -15,7 +15,7 @@
 // exactly as before. Flip to 1 (or pass -DDTI_DEBUG=1 as a build flag) to
 // start checking DTI conditions into the fault log each loop iteration.
 #ifndef DTI_DEBUG
-#define DTI_DEBUG 0
+#define DTI_DEBUG 1
 #endif
 
 static TickType_t xLastWakeTime;
@@ -129,7 +129,7 @@ static void HandleSerialCommands(void) {
                 Serial.print("Got: ");
                 Serial.println(cmdBuf);
 
-                if (strcmp(cmdBuf, "faultlog") == 0) {
+                if (strcmp(cmdBuf, "log") == 0) {
                     FaultLog_Print();
                 } else if (strcmp(cmdBuf, "clear") == 0) {
                     FaultLog_Clear();

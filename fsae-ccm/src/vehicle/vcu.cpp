@@ -101,15 +101,7 @@ void threadVCU(void *pvParameters) {
             break;
         case STATE_IDLE:
         //Serial.println("state idle\n");
-
-            if (PCC_PrechargeComplete()) {
-
-                vehicleState = STATE_DRIVING;
-            }
             //  transition to IDLE
-            //  TODO Update brake light threshold if we only want to move when
-            //  mech brakes are engaged
-            //if(!BSE_BrakesPressed()) Serial.println("somehting broke");
             if (BSE_BrakesPressed()) {
             //     if(RTM_ButtonState()) {
             //         Serial.print("active | ");
@@ -126,18 +118,17 @@ void threadVCU(void *pvParameters) {
                 if (RTM_ButtonState() && (Faults_GetFaults() == 0)) {
                     // assume rtm button gets sent, stays 1
                     if(hornEnable){
-                        Serial.println("Playing Audio");
-                        // digitalWrite(28, 1);
-                        // delay(1000);
-                        // digitalWrite(28,0);
+                        //Serial.println("Playing Audio");
+                        digitalWrite(28, 1);
+                        delay(1000);
+                        digitalWrite(28,0);
+                        if (PCC_PrechargeComplete()) {
+                            //Serial.println("This is getting triggered!");
+                            vehicleState = STATE_DRIVING;
+                        }
                         hornEnable = false;
-                    } else {
-                        Serial.println("let go of brake");
-                    }
-                    RTM_ButtonReset();
-                    
+                    } 
                     //Speaker_Play(); // Play Ready to Drive sound obsolete after switching to horn
-
                 }
             } else {
                 digitalWrite(28, 0);
@@ -152,7 +143,6 @@ void threadVCU(void *pvParameters) {
             // if (!HIMAC_FLAG || RTM_ButtonState() == false) {
             //     vehicleState = STATE_IDLE;
             // } else {
-
             if (RTM_ButtonState()) {
 
                 DTI_SendEnableCommand(true);
@@ -190,7 +180,6 @@ void threadVCU(void *pvParameters) {
         } break;
 
         case STATE_FAULT:
-            Serial.println("fault state avadi help");
             // DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();

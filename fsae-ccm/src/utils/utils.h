@@ -30,14 +30,14 @@ operation)
 */
 constexpr int fault_address = 0;
 
-#define SERIALMONITOR_FLAG 1
+#define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
 #define WSS_FLAG 0
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
 #define APPS_DEBUG 0
-#define BSE_DEBUG 1
+#define BSE_DEBUG 0
 #define PRECHARGE_DEBUG 0
 #define LP_FLAG 0
 

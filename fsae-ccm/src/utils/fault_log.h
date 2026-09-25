@@ -1,9 +1,4 @@
 // Anteater Electric Racing
-// Fully generic bit-change log. This file knows nothing about DTI, CAN,
-// or any other module -- it only tracks a bitmask handed to it each call
-// and logs (bit position, timestamp) for every bit that turns 0->1.
-// Whoever calls FaultLog_CheckBits() is responsible for deciding what
-// each bit means.
 
 #pragma once
 #include <stdint.h>
@@ -21,10 +16,7 @@ typedef struct __attribute__((packed)) {
 
 void FaultLog_Init(void);
 
-// Call every loop with the CURRENT bitmask of whatever the caller is
-// tracking. Diffs against the bitmask from the last call; every bit that
-// is newly set (0->1) gets its own log entry. Bits turning off, or
-// staying the same either way, do nothing.
+
 void FaultLog_CheckBits(uint32_t currentBits);
 
 uint16_t FaultLog_Count(void);                          // valid entries stored

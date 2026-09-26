@@ -81,7 +81,7 @@ void threadVCU(void *pvParameters) {
         float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
-       // Serial.println(vehicleState);
+        // Serial.println(vehicleState);
 
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
@@ -100,35 +100,36 @@ void threadVCU(void *pvParameters) {
             }
             break;
         case STATE_IDLE:
-        //Serial.println("state idle\n");
-            //  transition to IDLE
+            // Serial.println("state idle\n");
+            //   transition to IDLE
             if (BSE_BrakesPressed()) {
-            //     if(RTM_ButtonState()) {
-            //         Serial.print("active | ");
-            //     } else {
-            //         Serial.print("inactive | ");
-            //     }
-            //     Serial.print("Fault Status: ");
-            // if(Faults_CheckAllClear()){
-            //     Serial.print("Faults: ");
-            //     Serial.println(Faults_GetFaults());
-            // } else {
-            //     Serial.println("Clear");
-            // }
+                //     if(RTM_ButtonState()) {
+                //         Serial.print("active | ");
+                //     } else {
+                //         Serial.print("inactive | ");
+                //     }
+                //     Serial.print("Fault Status: ");
+                // if(Faults_CheckAllClear()){
+                //     Serial.print("Faults: ");
+                //     Serial.println(Faults_GetFaults());
+                // } else {
+                //     Serial.println("Clear");
+                // }
                 if (RTM_ButtonState() && (Faults_GetFaults() == 0)) {
                     // assume rtm button gets sent, stays 1
-                    if(hornEnable){
-                        //Serial.println("Playing Audio");
+                    if (hornEnable) {
+                        // Serial.println("Playing Audio");
                         digitalWrite(28, 1);
                         delay(1000);
-                        digitalWrite(28,0);
+                        digitalWrite(28, 0);
                         if (PCC_PrechargeComplete()) {
-                            //Serial.println("This is getting triggered!");
+                            // Serial.println("This is getting triggered!");
                             vehicleState = STATE_DRIVING;
                         }
                         hornEnable = false;
-                    } 
-                    //Speaker_Play(); // Play Ready to Drive sound obsolete after switching to horn
+                    }
+                    // Speaker_Play(); // Play Ready to Drive sound obsolete
+                    // after switching to horn
                 }
             } else {
                 digitalWrite(28, 0);

@@ -37,30 +37,10 @@ void Bypass_UpdateState() { EEPROM.update(fault_address, feedbackStatus); }
 
 void Bypass_TSSI() {
     feedbackStatus = digitalRead(TSSI_FEEDBACK_PIN);
-
-    // if not in startup state
     bool imdFaulted = (IMD_GetInfo()->status == 0x200) ? LOW : HIGH;
-    // bool bmsFaulted = (BMS_GetOrionData()->relayState)
-
     bool actualFault = imdFaulted; // || bmsFaulted;
-
-    // Serial.print("in startup? : ");
-    // Serial.print(startup ? "TRUE" : "FALSE");
-    // Serial.print(" | feedbackStatus = ");
-    // Serial.print(feedbackStatus ? "NO FAULT" : "FAULT");
-    // Serial.print(" | ");
-    // Serial.print("latched fault from prev ON = ");
-    // Serial.print(is_fault ? "NO FAULT ---- BYPASSING"
-    //                       : "FAULT ---- DON'T BYPASS");
-    // Serial.print("\r");
-
-    // I get feedback as FAULT always on startup
-    // issue is that no fault feedback happens until I click the latchboard
-
     if (startup) {
         if (feedbackStatus == HIGH) {
-            // IMD and BMS stabilized, exit startup mode
-            // Serial.println("trigger1");
             digitalWrite(TSSI_BYPASS_PIN, HIGH);
             startup = false;
         } else if (feedbackStatus == LOW) {
@@ -73,23 +53,7 @@ void Bypass_TSSI() {
                 // Serial.println("trigger3");
                 // Was healthy before - bypass this startup fault
                 digitalWrite(TSSI_BYPASS_PIN, LOW);
-
-                // if (actualFault) {
-                //     is_fault = LOW;
-                //     //     //want this to happen after buttons clicked
-                //     //     //i only know when buttons are clicked if state
-                //     //     changes
-                //     //     //case is if feedback is clicked, still low
-                //     //     //if deeback is low and actual fault, or what if I
-                //     do
-                //     //     if bypass high
-                //     // TBD Fix nly when ubttons are pressed
-                // }
             }
-
-            // feedback status is always low on startup, so when its being
-            // bypassed,
-            //
         }
     } else {
         // Normal operation

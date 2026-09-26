@@ -21,6 +21,7 @@ enum {
 };
 
 void prechargeInit();
+int getSDCval();
 
 float getTSVoltage();
 float getAccumulatorVoltage();

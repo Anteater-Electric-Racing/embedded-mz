@@ -67,7 +67,7 @@ typedef struct __attribute__((packed)) {
     // 4: CONTROL_MODE_POS
     // 7: CONTROL_MODE_NONE
     // 0, 5, 6: NOT USED
-    int16_t targetLq;
+    int16_t targetIq;
     int16_t motorPosition; // in degrees
     int8_t isMotorStill;   // in still position or not
     int16_t reserved;
@@ -94,8 +94,8 @@ typedef struct __attribute__((packed)) {
 } PKT_DTI4;
 
 typedef struct __attribute__((packed)) {
-    int32_t focLd; // foc alg Ld
-    int32_t focLq; // foc alg Lq
+    int32_t focId; // foc alg Id (d-axis current)
+    int32_t focIq; // foc alg Iq (q-axis current)
 } PKT_DTI5;
 
 typedef struct __attribute__((packed)) {
@@ -160,7 +160,7 @@ typedef struct {
     // 4: CONTROL_MODE_POS
     // 7: CONTROL_MODE_NONE
     // 0, 5, 6: NOT USED
-    float targetLq;
+    float targetIq;
     float motorPosition;  // in degrees
     uint8_t isMotorStill; // in still position or not
     float eRPM;           // eRPM = motor RPM * number of motor pole pairs
@@ -171,8 +171,8 @@ typedef struct {
     float controllerTemp; // temp of inverter semiconductors
     float motorTemp;      // temp of motor measured by inverter
     uint8_t faultCode;    // all inverter faults, add to faultMAP TODO
-    float focLd;          // foc alg Ld
-    float focLq;          // foc alg lq
+    float focId;          // foc alg Id (d-axis current in A)
+    float focIq;          // foc alg Iq (q-axis current in A)
 
     uint8_t driveEnabled; // RTM toggle
 
@@ -228,7 +228,7 @@ typedef struct {
 
 // ============ Orion BMS, Isobender IMD ========================= //
 typedef struct __attribute__((packed)) {
-    int32_t packCurrent;  // Byte 0-1: Pack Current (0.1A/bit)
+    int16_t packCurrent;  // Byte 0-1: Pack Current (0.1A/bit)
     uint16_t packVoltage; // Byte 2-3: Pack Voltage (0.1V/bit)
     uint8_t packSOC;      // Byte 4: SOC (0.5%/bit)
     uint8_t relayState;   // Byte 5: Relay State Bitmask
@@ -311,6 +311,8 @@ OrionBMSData *BMS_GetOrionData();
 IMDData *IMD_GetInfo();
 dtiData1 *DTI_GetDTIData();
 dtiData2 *DTI_GetDTI_ExtraData();
+
+void DTI_RunDebug(void);
 
 void Bus_Init();
 void threadBus(void *pvParameters);

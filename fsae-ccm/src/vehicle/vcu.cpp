@@ -10,13 +10,12 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
                                     // than this returns max derating factor
 
 #include "vehicle/vcu.h"
+#include "devices/linpots.h"
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
 #include "peripherals/wdt.h"
 
 #include "utils/utils.h"
-
-#include <arduino_freertos.h>
 
 #include "vehicle/comms/bus.h"
 #include "vehicle/comms/pcc.h"
@@ -31,19 +30,21 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/vcu.h"
 #include <arduino_freertos.h>
 
-template <typename T> T constrain(T val, T minVal, T maxVal) {
-    if (val < minVal)
-        return minVal;
-    if (val > maxVal)
-        return maxVal;
-    return val;
-}
+// template <typename T> T constrain(T val, T minVal, T maxVal) {
+//     if (val < minVal)
+//         return minVal;
+//     if (val > maxVal)
+//         return maxVal;
+//     return val;
+// }
 
 static VehicleState vehicleState;
 static DriveState driveState;
 static TickType_t xLastWakeTime;
 
 static bool enableRegen = false;
+bool hornEnable = false;
+static float debugPedalDemand = 0.0f;
 
 // Define 3 Presets (Steepness k, Midpoint x0)
 // Map 0: Rain (High precision, late power)
@@ -62,6 +63,8 @@ void VCU_Init() {
     driveState.controlMode = TORQUE;
     driveState.driveStrategy = OPEN_LOOP;
     DTI_LinkControlMode(&driveState.controlMode);
+    pinMode(28, 1);
+    digitalWrite(28, 1);
 
     k = k_vals[ACTIVE_MAP];
     x0 = x0_vals[ACTIVE_MAP];
@@ -75,59 +78,108 @@ void threadVCU(void *pvParameters) {
         vcu_last_run_tick = xTaskGetTickCount(); // update WDT tick
         float pedalAccel = APPS_GetAPPSReading();
         float pedalBrake = BSE_GetBSEAverage();
+        float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
+        // Serial.println(vehicleState);
+
+#if HIMAC_FLAG
+        pedalAccel = debugPedalDemand;
+#endif
+
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
+            vehicleState = STATE_IDLE;
             DTI_SendEnableCommand(false);
-            DTI_SetDCLimits(60.0, -2.0);
-            DTI_SetACLimits(150.0, -20.0);
+
+            // ENSURE never above 80kW limit (in DTI asw)
+            DTI_SetDCLimits(300.0F, -2.0);
+            DTI_SetACLimits(400.0F, -AC_MAX_R);
             if (PCC_PrechargeComplete()) {
                 vehicleState = STATE_IDLE;
             }
             break;
         case STATE_IDLE:
-            DTI_SendEnableCommand(false);
-            //  transition to IDLE
-            //  TODO Update brake light threshold if we only want to move when
-            //  mech brakes are engaged
+            // Serial.println("state idle\n");
+            //   transition to IDLE
             if (BSE_BrakesPressed()) {
-                if (RTM_ButtonState() && Faults_CheckAllClear()) {
-                    Speaker_Play(); // Play Ready to Drive sound
-                    vehicleState = STATE_DRIVING;
+                //     if(RTM_ButtonState()) {
+                //         Serial.print("active | ");
+                //     } else {
+                //         Serial.print("inactive | ");
+                //     }
+                //     Serial.print("Fault Status: ");
+                // if(Faults_CheckAllClear()){
+                //     Serial.print("Faults: ");
+                //     Serial.println(Faults_GetFaults());
+                // } else {
+                //     Serial.println("Clear");
+                // }
+                if (RTM_ButtonState() && (Faults_GetFaults() == 0)) {
+                    // assume rtm button gets sent, stays 1
+                    if (hornEnable) {
+                        // Serial.println("Playing Audio");
+                        digitalWrite(28, 1);
+                        delay(1000);
+                        digitalWrite(28, 0);
+                        if (PCC_PrechargeComplete()) {
+                            // Serial.println("This is getting triggered!");
+                            vehicleState = STATE_DRIVING;
+                        }
+                        hornEnable = false;
+                    }
+                    // Speaker_Play(); // Play Ready to Drive sound obsolete
+                    // after switching to horn
                 }
             } else {
+                digitalWrite(28, 0);
+                hornEnable = true;
                 RTM_ButtonReset();
+                DTI_SendEnableCommand(false);
             }
             // motorData.desiredTorque = 0.0F;
+
             break;
-        case STATE_DRIVING:
-            if (RTM_ButtonState() == false) {
-                vehicleState = STATE_IDLE;
-            } else {
+        case STATE_DRIVING: {
+            // if (!HIMAC_FLAG || RTM_ButtonState() == false) {
+            //     vehicleState = STATE_IDLE;
+            // } else {
+            if (RTM_ButtonState()) {
+
                 DTI_SendEnableCommand(true);
+                if (HIMAC_FLAG) {
+                    targetTorque = VCU_TorqueMap(debugPedalDemand);
+                } else {
+                    targetTorque = VCU_TorqueMap(pedalAccel);
+                }
 
-                float targetTorque = VCU_TorqueMap(pedalAccel);
+                // float batteryFactor =
+                // VCU_Derate(BMS_GetOrionData()->highTemp); float
+                // motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
+                // float inverterFactor =
+                // VCU_Derate(DTI_GetDTIData()->controllerTemp);
 
-                float batteryFactor = VCU_Derate(BMS_GetOrionData()->highTemp);
-                float motorFactor = VCU_Derate(DTI_GetDTIData()->motorTemp);
-                float inverterFactor =
-                    VCU_Derate(DTI_GetDTIData()->controllerTemp);
+                // // Get the Smallest Factor
+                // float smallestFactor =
+                //     min(batteryFactor, min(motorFactor, inverterFactor));
 
-                // Get the Smallest Factor
-                float smallestFactor =
-                    min(batteryFactor, min(motorFactor, inverterFactor));
+                DTI_SetDCLimits(350.0F, -2.0);
+                DTI_SetACLimits(400.0F, -AC_MAX_R);
 
-                DTI_SetDCLimits(60.0 * smallestFactor, -2.0);
-                DTI_SetACLimits(150.0 * smallestFactor, -20.0);
+                DTI_SendAccelCommand(targetTorque);
 
-                DTI_SendAccelCommand(targetTorque * smallestFactor);
+                // Serial.println(targetTorque * smallestFactor);
                 if (enableRegen && BSE_BrakesPressed()) {
                     DTI_SendBrakeCommand(pedalBrake);
                 }
+
+            } else {
+                vehicleState = STATE_IDLE;
+                targetTorque = 0;
             }
 
-            break;
+        } break;
+
         case STATE_FAULT:
             // DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {
@@ -141,15 +193,16 @@ void threadVCU(void *pvParameters) {
     }
 }
 
-float VCU_Derate(float temperature) {
-    float factor = 1.0f;
-    float min_factor = 0.2f;
-    temperature = constrain(temperature, TEMP_START, TEMP_MAX);
-    // Piecewise Linear Derating
-    factor = 1.0f - (1.0f - min_factor) *
-                        ((temperature - TEMP_START) / (TEMP_MAX - TEMP_START));
-    return factor;
-}
+// float VCU_Derate(float temperature) {
+//     float factor = 1.0f;
+//     float min_factor = 0.2f;
+//     temperature = constrain(temperature, TEMP_START, TEMP_MAX);
+//     // Piecewise Linear Derating
+//     factor = 1.0f - (1.0f - min_factor) *
+//                         ((temperature - TEMP_START) / (TEMP_MAX -
+//                         TEMP_START));
+//     return factor;
+// }
 
 // TODO switch to LUT for all applicable strategies
 float VCU_TorqueMap(float pedal) {
@@ -162,7 +215,9 @@ float VCU_TorqueMap(float pedal) {
             float raw = 1.0f / (1.0f + expf(-k * (pedal - x0)));
             float normalized_ratio =
                 (raw - low_limit) / (high_limit - low_limit);
-            target = (normalized_ratio * CAPPED_MOTOR_TORQUE);
+            normalized_ratio = CLAMP(normalized_ratio, 0.0f, 1.0f);
+            target = CLAMP((normalized_ratio * 100), 0, 100);
+
             break;
         }
     case TRACTION_CTRL: {
@@ -175,15 +230,18 @@ float VCU_TorqueMap(float pedal) {
         break;
     }
     }
-    return target;
+    return CLAMP(target, 0.0f, 100.0f);
 }
-void VCU_SetFaultState() { vehicleState = STATE_FAULT; }
+void VCU_SetFaultState() { vehicleState = STATE_IDLE; }
 
-void VCU_ForceIdleState() {
-    vehicleState = STATE_FAULT;
-    RTM_ButtonReset();
-}
+void VCU_SetState(VehicleState state) { vehicleState = state; }
+
+void VCU_ForceFaultIdleState() { RTM_ButtonReset(); }
 
 void VCU_ClearFaultState() { vehicleState = STATE_DRIVING; }
+
+// void VCU_SetDebugPedalDemand(float pedalDemand) {
+//     debugPedalDemand = constrain(pedalDemand, 0.0f, 1.0f);
+// }
 
 VehicleState VCU_GetState() { return vehicleState; }

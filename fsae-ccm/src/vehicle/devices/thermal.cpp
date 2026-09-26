@@ -19,11 +19,14 @@ void thermal_Init() {
     analogWriteFrequency(PUMP2_PIN,
                          ANALOG_WRITE_FREQUENCY);   // 25 kHz for Koolance
     analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
+    analogWrite(PUMP1_PIN, 0);
+    // analogWrite(PUMP2_PIN, 0);
 
     pinMode(FAN_PIN, OUTPUT);
     analogWriteFrequency(FAN_PIN,
                          FAN_WRITE_FREQ);           // 25 kHz for Koolance
     analogWriteResolution(ANALOG_WRITE_RESOLUTION); // 0-255
+    // analogWrite(FAN_PIN, 0);
 
     // thermal_forceOff();
 }
@@ -31,7 +34,6 @@ void thermal_Init() {
 /*open loop  control */
 /**
  * faults to add: (temp out of bounds??)
- *
  */
 
 void thermal_forceOn() {
@@ -47,32 +49,35 @@ void thermal_regulate() {
         fan{0.0, 0.0, 0.0, xTaskGetTickCount()};
     float temp =
         max(DTI_GetDTIData()->controllerTemp, DTI_GetDTIData()->motorTemp);
-    analogWrite(PUMP1_PIN,
-                DUTY_CYCLE_MAX * computePID(&pump1, PUMP_THRESHOLD, temp,
-                                            PUMP1_PROPORIONAL_GAIN,
-                                            PUMP1_INTEGRAL_GAIN,
-                                            PUMP1_DERIVATIVE_GAIN));
-    analogWrite(PUMP2_PIN,
-                DUTY_CYCLE_MAX * computePID(&pump2, PUMP_THRESHOLD, temp,
-                                            PUMP2_PROPORTIONAL_GAIN,
-                                            PUMP2_INTEGRAL_GAIN,
-                                            PUMP2_DERIVATIVE_GAIN));
-    analogWrite(FAN_PIN, DUTY_CYCLE_MAX * computePID(&fan, FAN_THRESHOLD, temp,
-                                                     FAN_PROPORIONAL_GAIN,
-                                                     FAN_INTEGRAL_GAIN,
-                                                     FAN_DERIVATIVE_GAIN));
+    float fanOutput =
+        computePID(&fan, FAN_THRESHOLD, temp, FAN_PROPORIONAL_GAIN,
+                   FAN_INTEGRAL_GAIN, FAN_DERIVATIVE_GAIN);
+    float pump1Output =
+        computePID(&pump1, FAN_THRESHOLD, temp, PUMP1_PROPORIONAL_GAIN,
+                   PUMP1_INTEGRAL_GAIN, PUMP1_DERIVATIVE_GAIN);
+    analogWrite(PUMP1_PIN, DUTY_CYCLE_MAX * (1 - pump1Output));
+    // Commented out because its being jerryrigged to the same output as pump 1
+    // for now
+    //  analogWrite(PUMP2_PIN, DUTY_CYCLE_MAX * (1 - pump2Output));
+    analogWrite(FAN_PIN, DUTY_CYCLE_MAX * (1 - fanOutput));
 }
 
 float computePID(PIDState *state, float setPoint, float input, float propGain,
                  float integralGain, float derivativeGain) {
     TickType_t now = xTaskGetTickCount();
-    float dt = (now - state->lastTime) / (double)configTICK_RATE_HZ; // Convert
+    TickType_t elapsed = now - state->lastTime;
+
+    if (elapsed == 0) {
+        return state->prevOutput;
+    }
+    float dt = static_cast<float>(elapsed) /
+               static_cast<float>(configTICK_RATE_HZ); // Convert
     state->lastTime = now;
     float error = input - setPoint; // Find the size of error
     // From here to the end of if statement is not necissary for a general PID
     // controller
     if (input < setPoint) {
-        state->integral = error * dt;
+        state->integral = 0.0f; // Was: error * dt
         state->prevError = error;
         state->prevOutput = 0;
         return 0;

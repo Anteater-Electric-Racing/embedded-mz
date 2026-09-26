@@ -62,6 +62,7 @@ void Faults_SetFault(FaultType fault) {
     }
     case FAULT_CAN: {
 #if DEBUG_FLAG
+
         Serial.println("Setting CAN Timeout Fault");
 #endif
         faultBitMap |= FAULT_CAN_MASK;
@@ -143,11 +144,6 @@ void Faults_HandleFaults() {
 #endif
 
     if (faultBitMap == 0) {
-        // #if DEBUG_FLAG
-        //         Serial.println("Clearing all faults in handle faults");
-        // #endif
-
-        //         Motor_ClearFaultState();
         return;
     }
     if (faultBitMap & FAULT_OVER_CURRENT_MASK) {

@@ -45,8 +45,9 @@ void threadMain(void *pvParameters) {
         accumulator_voltage = getAccumulatorVoltage();
         ts_voltage = getTSVoltage();
         state = getPrechargeState();
-
-        Serial.print("                                              State: ");
+        Serial.print("SDC IN: ");
+        Serial.print(getSDCval());
+        Serial.print(" | State: ");
         switch (state) {
         case STATE_STANDBY:
             Serial.print("STANDBY");
@@ -75,7 +76,14 @@ void threadMain(void *pvParameters) {
         Serial.print("V");
         Serial.print(" | TS Voltage: ");
         Serial.print(ts_voltage, 4);
-        Serial.print("V");
+        Serial.print("V | ");
+        Serial.print("IR +: ");
+        Serial.print(digitalRead(IR_PLUS));
+        Serial.print(" | IR -: ");
+        Serial.print(digitalRead(IR_MINUS));
+        // Serial.print(" | Precharge Time: ");
+        // Serial.print(times_s.PreChargeTime);
+        // Serial.print(" ms");
         Serial.print("\r");
         vTaskDelay(100);
     }

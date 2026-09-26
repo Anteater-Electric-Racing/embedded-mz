@@ -8,14 +8,18 @@
 #include "rtm.h"
 
 static bool rtmState = false; // Latching state of RTM based on momentary button
-                              // press. True - driving state, false - idle state
-static uint32_t lastDebounceTime = 0;
 
 void RTM_ButtonUpdate(bool rtmButton) {
-    if (rtmButton == 1 && millis() - lastDebounceTime > BUTTON_DEBOUNCE_MS) {
-        rtmState = !rtmState; // Toggle the state
-        lastDebounceTime = millis();
+
+    static bool lastState;
+
+    // rtmState = rtmButton;
+
+    if (lastState == false && rtmButton == true) {
+        rtmState = true;
     }
+    // reset it at the end
+    lastState = rtmButton;
 }
 
 bool RTM_ButtonState() { return rtmState; }

@@ -6,8 +6,8 @@
 
 #define ADC_FAULT_TIME_THRESHOLD_MS 100
 #define CAN_FAULT_TIME_THRESHOLD_MS 100
-#define MAIN_FAULT_TIME_THRESHOLD_MS 100
-#define VCU_FAULT_TIME_THRESHOLD_MS 100
+#define MAIN_FAULT_TIME_THRESHOLD_MS 300
+#define VCU_FAULT_TIME_THRESHOLD_MS 1000000
 
 // Global watchdog tick tracking variables
 TickType_t adc_last_run_tick = 0;
@@ -95,7 +95,7 @@ void threadWDT(void *pvParameters) {
         // pet if 0b0000
         if (mask == WDT_REQUIRED_MASK) {
             WDT.feed(); // pet hardware watchdog
-                        // Serial.println("WDT fed successfully");
+            // Serial.println("WDT fed successfully");
         } else {
             if (mask & WDT_BIT_ADC) {
                 Serial.println("WDT: ADC thread overdue");

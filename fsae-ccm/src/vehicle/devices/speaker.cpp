@@ -1,11 +1,12 @@
 // Anteater Electric Racing, 2026
 
 #include "speaker.h"
+#include "arduino_freertos.h"
+#include <Arduino.h>
 
-void Speaker_Init() { pinMode(speakerPin, OUTPUT); }
+void Speaker_Init() { pinMode(speakerPin, arduino::OUTPUT); }
 
 void Speaker_Play() {
-    tone(speakerPin, speakerFrequency);
-    vTaskDelay(pdMS_TO_TICKS(speakerDuration));
-    noTone(speakerPin);
+    Serial.println("playin a sound type");
+    vTaskDelay(pdMS_TO_TICKS(20));
 }

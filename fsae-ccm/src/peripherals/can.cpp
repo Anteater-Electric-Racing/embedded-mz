@@ -43,7 +43,7 @@ void CAN_Init() {
     can3.enableFIFO();
 
     tp.begin();
-    tp.setWriteBus(&can3); // Set the bus to write to can3
+    tp.setWriteBus(&can2); // Set the bus to write to can3
 }
 
 void CAN_Send(uint32_t id, uint64_t msg) {

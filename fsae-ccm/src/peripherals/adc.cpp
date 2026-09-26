@@ -18,7 +18,7 @@
 #include <stdint.h>
 
 /* Reference CCM PCB for what A0-A9 correspond to */
-enum SensorIndexesADC0 { // TODO: Update with real values
+enum SensorIndexesADC0 {    // TODO: Update with real values
     THERMISTOR_1_INDEX = 0, // A0
     APPS_1_INDEX = 5,
     APPS_2_INDEX = 4, // A4
@@ -44,11 +44,11 @@ enum SensorIndexesADC1 { // TODO: Update with real values
     SUSP_TRAV_LINPOT42
 };
 uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {A0, A1, A2, A3, A4,
-                                      A5, A6, A7, A8, A9};
+                                          A5, A6, A7, A8, A9};
 uint16_t adc0Reads[SENSOR_PIN_AMT_ADC0];
 
 uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {// A17, A16, A15,
-                                      A7, A6, A5, A4, A3, A2, A1, A0};
+                                          A7, A6, A5, A4, A3, A2, A1, A0};
 uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 static TickType_t lastWakeTime;

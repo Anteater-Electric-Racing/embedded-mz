@@ -50,7 +50,7 @@ void thermal_regulate() {
     float temp =
         max(DTI_GetDTIData()->controllerTemp, DTI_GetDTIData()->motorTemp);
     float fanOutput =
-        computePID(&fan, FAN_THRESHOLD, temp, FAN_PROPORIONAL_GAIN,
+        computePID(&fan, FAN_THRESHOLD, 50, FAN_PROPORIONAL_GAIN,
                    FAN_INTEGRAL_GAIN, FAN_DERIVATIVE_GAIN);
     float pump1Output =
         computePID(&pump1, FAN_THRESHOLD, temp, PUMP1_PROPORIONAL_GAIN,

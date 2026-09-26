@@ -7,7 +7,8 @@
 static IMDData imdData;
 
 void IMD_HandleGeneralMessage(const uint8_t *data, uint8_t length) {
-    if (length < sizeof(IMD_General)) return;
+    if (length < sizeof(IMD_General))
+        return;
 
     IMD_General raw;
     memcpy(&raw, data, sizeof(raw));
@@ -21,7 +22,8 @@ void IMD_HandleGeneralMessage(const uint8_t *data, uint8_t length) {
 }
 
 void IMD_HandleVoltageMessage(const uint8_t *data, uint8_t length) {
-    if (length < sizeof(IMD_Voltage)) return;
+    if (length < sizeof(IMD_Voltage))
+        return;
 
     IMD_Voltage raw;
     memcpy(&raw, data, sizeof(raw));

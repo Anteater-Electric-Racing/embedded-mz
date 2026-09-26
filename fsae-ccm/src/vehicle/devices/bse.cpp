@@ -35,18 +35,10 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
     // Filter incoming values
     LOWPASS_FILTER(bseReading1, bseRawData.bseRawFront, bseAlpha);
     LOWPASS_FILTER(bseReading2, bseRawData.bseRawRear, bseAlpha);
-
-    float bseVoltage1 = ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawFront);
-    float bseVoltage2 = ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawRear);
-
-    // // #if HIMACBSE_FLAG
-    // Serial.print("bseRawData.bseRawFront: ");
-    // Serial.print(bseVoltage1);
-    // Serial.print(" | bseRawData.bseRawRear: ");
-    // Serial.print(bseVoltage2);
-    // Serial.print("\r");
-    // // #endif
-
+    float bseVoltage2 =
+        ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawFront, ADC_VOLTAGE_DIVIDER);
+    float bseVoltage1 =
+        ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawRear, ADC_VOLTAGE_DIVIDER);
     // Check BSE open/short circuit
     if (bseVoltage1 < BSE_LOWER_THRESHOLD ||
         bseVoltage1 > BSE_UPPER_THRESHOLD ||
@@ -56,9 +48,9 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
         TickType_t elapsedTicks = now - bseLatestHealthyStateTime;
         TickType_t elapsedMs = elapsedTicks * portTICK_PERIOD_MS;
         if (elapsedMs > BSE_FAULT_TIME_THRESHOLD_MS) {
-            // // #if DEBUG_FLAG
-            // Serial.println("Setting BSE fault");
-            // // #endif
+#if DEBUG_FLAG
+            Serial.println("Setting BSE fault");
+#endif
             Faults_SetFault(FAULT_BSE);
         }
 
@@ -66,9 +58,8 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
         bseLatestHealthyStateTime = xTaskGetTickCount();
         Faults_ClearFault(FAULT_BSE);
     }
-
-    bseData.bseFront_Reading = BSE_VOLTAGE_TO_PSI(bseVoltage1);
-    bseData.bseRear_Reading = BSE_VOLTAGE_TO_PSI(bseVoltage2);
+    bseData.bseFront_Reading = bseVoltage1;
+    bseData.bseRear_Reading = bseVoltage2;
 }
 
 BSEData *BSE_GetBSEReading() { return &bseData; }
@@ -78,6 +69,5 @@ float BSE_GetBSEAverage() {
 }
 
 bool BSE_BrakesPressed() {
-    return (BSE_GetBSEReading()->bseFront_Reading >= BRAKE_LIGHT_THRESHOLD &&
-            BSE_GetBSEReading()->bseRear_Reading >= BRAKE_LIGHT_THRESHOLD);
+    return (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD);
 }

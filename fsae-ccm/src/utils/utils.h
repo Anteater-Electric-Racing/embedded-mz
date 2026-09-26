@@ -28,12 +28,18 @@ operation)
     TODO Fixes:
     BIG MZ Change - INTERUPT BASED CAN Testing:
 */
+constexpr int fault_address = 0;
+
 #define SERIALMONITOR_FLAG 0
 #define DEBUG_FLAG 0
 #define HIMAC_FLAG 0
-#define WSS_FLAG 1
-#define BMS_FLAG 0 // TO REMOVE
+#define WSS_FLAG 0
+#define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
+#define APPS_DEBUG 0
+#define BSE_DEBUG 0
+#define PRECHARGE_DEBUG 0
+#define LP_FLAG 0
 
 #define ACTIVE_MAP 1
 
@@ -53,6 +59,11 @@ operation)
 #define THREAD_WDT_STACK_SIZE 128
 #define THREAD_WDT_PRIORITY 9
 
+/**
+ *
+ *
+ */
+
 #define WHEEL_SPEED_1_PIN 2
 #define WHEEL_SPEED_2_PIN 3
 #define rtm_PIN 36
@@ -61,101 +72,113 @@ operation)
 #define LOGIC_LEVEL_V 3.3F
 #define TIME_STEP 0.001F // 1ms time step
 
-#define ADC_AVERAGING 1
+#define ADC_AVERAGING 4
 #define ADC_RESOLUTION 12
 #define ADC_MAX_VALUE ((1 << ADC_RESOLUTION) - 1)
 #define TICKTYPE_FREQUENCY 1
 
-#define ADC_VOLTAGE_DIVIDER 1.515151F
+#define ADC_VOLTAGE_DIVIDER 1.88F
+#define ADC_VOLTAGE_DIVIDER1 1.88F
+#define ADC_VOLTAGE_DIVIDER2 1.36F
 
-#define ADC_VALUE_TO_VOLTAGE(x)                                                \
-    ((x) * (LOGIC_LEVEL_V * ADC_VOLTAGE_DIVIDER / ADC_MAX_VALUE))
+#define ADC_VALUE_TO_VOLTAGE(x, divider)                                       \
+    ((x) * (LOGIC_LEVEL_V * (divider) / ADC_MAX_VALUE))
 
-#define APPS_FAULT_PERCENT_MIN .1
-#define APPS_FAULT_PERCENT_MAX .9
+#define APPS_FAULT_PERCENT_MIN .1F
+#define APPS_FAULT_PERCENT_MAX .9F
 
-#define APPS1_VOLTAGE_LEVEL 3.3
-#define APPS2_VOLTAGE_LEVEL 5
+#define APPS1_VOLTAGE_LEVEL 3.3F
+#define APPS2_VOLTAGE_LEVEL 3.3F
 
-#define APPS_RANGE_MIN_PERCENT .15
-#define APPS_RANGE_MAX_PERCENT .85
+// idt this is the play
+#define APPS_RANGE_MIN_PERCENT .15F
+#define APPS_RANGE_MAX_PERCENT .85F
 
-#define APPS_3V3_MIN 0.52F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
-#define APPS_3V3_MAX 0.65F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
+// #define APPS_3V3_MIN 1.45  //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
+// #define APPS_3V3_MAX 2.00F //(APPS1_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
 
-#define APPS_5V_MIN 3.50F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MIN_PERCENT)
-#define APPS_5V_MAX 3.68F //(APPS2_VOLTAGE_LEVEL * APPS_RANGE_MAX_PERCENT)
+// #define APPS_3V3_INV_MIN 1.76F //(APPS2_VOLTAGE_LEVEL *
+// APPS_RANGE_MIN_PERCENT) #define APPS_3V3_INV_MAX 1.25F //(APPS2_VOLTAGE_LEVEL
+// * APPS_RANGE_MAX_PERCENT)
 
-/*     ANOOP TESTING FOR 20% HERE     */
+extern float APPS1_REST_ADC;
+extern float APPS2_REST_ADC;
 
-// APPS 0-20% -> 0-100% scaling
+#define APPS1_FULL_PCT_ADC 476.21F
+#define APPS2_FULL_PCT_ADC 2512.51F
 
-// ADC values corresponding to physical 20% pedal)
-#define APPS1_20PCT_ADC 784.0F
-#define APPS2_20PCT_ADC 1150.0F
-
-/**KZ Driving MAX (30%)) */
-#define APPS1_FULL_PCT_ADC 1526.0F
-#define APPS2_FULL_PCT_ADC 3659.0F
-
-// Measured resting ADC (change these with actual findings this is just safe
-// zone values)
-/**KZ Driving MIN (1+2) */
-#define APPS1_REST_ADC 11.0F
-#define APPS2_REST_ADC 2827.0F
-
-// Clamp helper
+// // Clamp helper
 #define CLAMP(x, lo, hi) ((x) < (lo) ? (lo) : ((x) > (hi) ? (hi) : (x)))
 #define CLAMP01(x) CLAMP((x), 0.0F, 1.0F)
 
-// Convert raw ADC -> commanded percent using only 0-20% physical range
-#define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20)                         \
-    CLAMP01(((float)(adc) - (float)(rest_adc)) /                               \
-            ((float)(adc_20) - (float)(rest_adc)))
+// // Convert raw ADC -> commanded percent using only 0-20% physical range
+// #define APPS_ADC_TO_CMD_PERCENT(adc, rest_adc, adc_20)
+//     CLAMP01(((float)(adc) - (float)(rest_adc)) /
+//             ((float)(adc_20) - (float)(rest_adc)))
 
-/*     END ANOOP TESTING FOR 20% HERE     */
+// noise adjustment
+#define APPS_3V3_MIN                                                           \
+    ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC, ADC_VOLTAGE_DIVIDER1) - 0.15F
+#define APPS_3V3_MAX                                                           \
+    ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER1) + 0.15F
 
-#define APPS_3V3_FAULT_MIN (APPS1_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MIN)
-#define APPS_3V3_FAULT_MAX (APPS1_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MAX)
+#define APPS_3V3_INV_MIN                                                       \
+    ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC, ADC_VOLTAGE_DIVIDER2) + 0.15F
+#define APPS_3V3_INV_MAX                                                       \
+    ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER2) - 0.15F
 
-#define APPS_5V_FAULT_MIN (APPS2_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MIN)
-#define APPS_5V_FAULT_MAX (APPS2_VOLTAGE_LEVEL * APPS_FAULT_PERCENT_MAX)
+// go back to idle faults
+#define APPS_3V3_FAULT_MIN                                                     \
+    ADC_VALUE_TO_VOLTAGE(APPS1_REST_ADC, ADC_VOLTAGE_DIVIDER1) - 0.3F
+#define APPS_3V3_FAULT_MAX                                                     \
+    ADC_VALUE_TO_VOLTAGE(APPS1_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER1) + 0.3F
 
+#define APPS_3V3_INV_FAULT_MIN                                                 \
+    ADC_VALUE_TO_VOLTAGE(APPS2_REST_ADC, ADC_VOLTAGE_DIVIDER2) + 0.3F
+#define APPS_3V3_INV_FAULT_MAX                                                 \
+    ADC_VALUE_TO_VOLTAGE(APPS2_FULL_PCT_ADC, ADC_VOLTAGE_DIVIDER2) - 0.3F
 #define APPS_FAULT_TIME_THRESHOLD_MS 100
 
-#define APPS_IMPLAUSABILITY_THRESHOLD 0.2             // 10%
-#define APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD 0.15 // 15%
+#define APPS_IMPLAUSABILITY_THRESHOLD 0.10F            // 10%
+#define APPS_BSE_PLAUSABILITY_THROTTLE_THRESHOLD 0.25F // 25% as per rules
 #define APPS_BSE_PLAUSABILITY_BRAKE_THRESHOLD                                  \
-    0.50 // TODO: change back to PSI200    // IN VOLTS
-#define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05 // 5%
+    0.50 // TODO: change back to PSI200    // IN VOLTS --> use PSI value here
+#define APPS_BSE_PLAUSIBILITY_RESET_THRESHOLD 0.05F // 5%
 
-#define BSE_VOLTAGE_DIVIDER 2.0F // TODO: Update with real value: 1.515151F
-#define BSE_ADC_VALUE_TO_VOLTAGE(x)                                            \
-    (x * (LOGIC_LEVEL_V / ADC_MAX_VALUE)) *                                    \
-        BSE_VOLTAGE_DIVIDER // ADC value to voltage conversion
-
-#define BSE_VOLTAGE_TO_PSI(x) x // Voltage to PSI conversion
+extern float BSE_MIN_PSI1;
+extern float BSE_MIN_PSI2;
+#define BSE_MIN_PSI 3.0F
+#define BSE_MAX_PSI 1000.0F
+extern float BSE_MIN_V1;
+extern float BSE_MIN_V2;
+#define BSE_MIN_V 0.5F
+#define BSE_MAX_V 4.5F
+#define BSE_VOLTAGE_TO_PSI(x)                                                  \
+    (BSE_MAX_PSI / (BSE_MAX_V - BSE_MIN_V)) * (x - BSE_MIN_V)
 
 // ALL in volts rn
-#define BRAKE_LIGHT_THRESHOLD 0.45F
-#define BSE_LOWER_THRESHOLD 0.25F
+#define BRAKE_LIGHT_THRESHOLD 4.0F // PSI
+extern float BRAKE_LIGHT_AVG_THRESHOLD;
+#define BSE_LOWER_THRESHOLD -1.00F
 #define BSE_UPPER_THRESHOLD 4.5F
 #define BSE_IMPLAUSABILITY_THRESHOLD 0.1F
 
 #define BSE_FAULT_TIME_THRESHOLD_MS 100
 
-#define BSE_CUTOFF_HZ 100.0F
+#define BSE_CUTOFF_HZ 40.0F
 
 #define CAN_FAULT_TIME_THRESHOLD_MS 100
 
-#define MOTOR_MAX_TORQUE 260.0F // TODO: Update with real value //used to be 260
-#define CAPPED_MOTOR_TORQUE 80.0F
+#define MOTOR_MAX_TORQUE 220.0F // TODO: Update with real value //used to be 220
+#define CAPPED_MOTOR_TORQUE 200.0F
 #define MAX_TORQUE_STEP_UP_PCT 0F
 #define MAX_TORQUE_STEP_DOWN_PCT 1.0F
 #define TORQUE_SHIFT_OFFSET 5.0F
 
-#define BATTERY_MAX_CURRENT_A 140.0F // TO CHANGE
-#define BATTERY_MAX_REGEN_A 140.0F   // TO CHANGE
+#define BATTERY_MAX_CURRENT_A 200.0F // TO CHANGE
+#define BATTERY_MAX_REGEN_A 60.0F    // TO CHANGE
+#define AC_MAX 200.0F                // TO CHANGE
+#define AC_MAX_R 60.0F               // TO CHANGE
 
 #define COMPUTE_ALPHA(CUTOFF_HZ)                                               \
     (1.0F / (1.0F + (1.0F / (2.0F * M_PI * CUTOFF_HZ)) / TIME_STEP))

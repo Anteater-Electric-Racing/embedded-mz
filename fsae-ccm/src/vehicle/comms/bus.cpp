@@ -7,7 +7,16 @@
 #include "peripherals/can.h"
 #include "peripherals/wdt.h"
 #include "telemetry.h"
+#include "utils/fault_log.h"
 #include "utils/utils.h"
+#include <string.h>
+
+// Compile-time switch, same pattern as DEBUG_FLAG. 0 = today's behavior,
+// exactly as before. Flip to 1 (or pass -DDTI_DEBUG=1 as a build flag) to
+// start checking DTI conditions into the fault log each loop iteration.
+#ifndef DTI_DEBUG
+#define DTI_DEBUG 1
+#endif
 
 static TickType_t xLastWakeTime;
 static uint32_t rx_id;
@@ -31,7 +40,7 @@ void Bus_Init() {
                // 4: CONTROL_MODE_POS
                // 7: CONTROL_MODE_NONE
                // 0, 5, 6: NOT USED
-               .targetLq = 0,
+               .targetIq = 0,
                .motorPosition = 0, // in degrees
                .isMotorStill = 0,  // in still position or not
                .eRPM = 0,      // eRPM = motor RPM * number of motor pole pairs
@@ -42,8 +51,8 @@ void Bus_Init() {
                .controllerTemp = 0, // temp of inverter semiconductors
                .motorTemp = 0,      // temp of motor measured by inverter
                .faultCode = 0,      // all inverter faults, add to faultMAP TODO
-               .focLd = 0,          // foc alg Ld
-               .focLq = 0,          // foc alg lq.
+               .focId = 0,          // foc alg Id
+               .focIq = 0,          // foc alg Iq
                .driveEnabled = 0,   // RTM toggle.
                .maxAC_Current = 0,
                .avMaxAC_Current = 0,
@@ -97,8 +106,45 @@ void Bus_Init() {
                .status = 0,        // Raw flags
                .isolation_fault = false};
 
+    FaultLog_Init();
+
     // Initialize the motor thread
 }
+
+#if DTI_DEBUG
+// Reads characters from Serial as they arrive and dispatches a command
+// once a full line comes in (Enter/newline). Non-blocking: only touches
+// Serial when there's actually data waiting, so it's cheap to call every
+// loop iteration.
+static void HandleSerialCommands(void) {
+    static char cmdBuf[32];
+    static uint8_t cmdLen = 0;
+
+    while (Serial.available() > 0) {
+        char c = (char)Serial.read();
+
+        if (c == '\n' || c == '\r') {
+            if (cmdLen > 0) {
+                cmdBuf[cmdLen] = '\0';
+                Serial.print("Got: ");
+                Serial.println(cmdBuf);
+
+                if (strcmp(cmdBuf, "log") == 0) {
+                    FaultLog_Print();
+                } else if (strcmp(cmdBuf, "clear") == 0) {
+                    FaultLog_Clear();
+                    Serial.println("Fault log cleared.");
+                } else {
+                    Serial.println("Unknown command.");
+                }
+                cmdLen = 0;
+            }
+        } else if (cmdLen < sizeof(cmdBuf) - 1) {
+            cmdBuf[cmdLen++] = c;
+        }
+    }
+}
+#endif
 
 void threadBus(void *pvParameters) {
     xLastWakeTime = xTaskGetTickCount();
@@ -111,21 +157,23 @@ void threadBus(void *pvParameters) {
         canAgeMs = (can_last_run_tick - canLatestHealthyStateTime) *
                    portTICK_PERIOD_MS;
         if (canAgeMs > CAN_FAULT_TIME_THRESHOLD_MS) { // 100 ms
-            Faults_SetFault(FAULT_CAN);
+            // Faults_SetFault(FAULT_CAN);
+            // Serial.println("CAN FAULT");
+            //  Serial.println("  <-- FAULT TIME");
         } else {
             Faults_ClearFault(FAULT_CAN);
         }
-        // TODO ADD SHIFT  >> by 8 here will ONLY work for DTI.. maybe not.
-        // distinguish case for all in same loop??
-        switch ((rx_id >> 8)) {
+        // Normalize DTI frames that carry the node ID in the low byte.
+        // Serial.print(rx_id);
+        switch (((rx_id & 0xFF) == DTI_NODE_ID) ? (rx_id >> 8) : rx_id) {
         case PKT_1_ID: {
             PKT_DTI1 dti1 = {0};
             memcpy(&dti1, &rx_data, sizeof(dti1));
 
             taskENTER_CRITICAL(); // Enter critical section
             dtiData.controlMode = dti1.controlMode,
-            dtiData.targetLq =
-                (float)((int16_t)CHANGE_ENDIANESS_16(dti1.targetLq)) *
+            dtiData.targetIq =
+                (float)((int16_t)CHANGE_ENDIANESS_16(dti1.targetIq)) *
                 DTI_16_SCALE;
             dtiData.motorPosition =
                 (float)((int16_t)CHANGE_ENDIANESS_16(dti1.motorPosition)) *
@@ -181,9 +229,9 @@ void threadBus(void *pvParameters) {
             PKT_DTI5 dti5 = {0};
             memcpy(&dti5, &rx_data, sizeof(dti5));
             taskENTER_CRITICAL();
-            dtiData.focLd = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focLd)) *
+            dtiData.focId = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focId)) *
                             DTI_32_SCALE;
-            dtiData.focLq = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focLq)) *
+            dtiData.focIq = (float)((int32_t)CHANGE_ENDIANESS_32(dti5.focIq)) *
                             DTI_32_SCALE;
             taskEXIT_CRITICAL();
             break;
@@ -268,16 +316,16 @@ void threadBus(void *pvParameters) {
         }
 
         case mOBMS1_ID: {
-            // > 8 bytes - FIX
-            // OBMS1 raw = {0};
-            // memcpy(&raw, &rx_data, sizeof(raw));
+            // now 8 bytes
+            OBMS1 raw = {0};
+            memcpy(&raw, &rx_data, sizeof(raw));
 
-            // taskENTER_CRITICAL();
-            // bmsData.packCurrent = raw.packCurrent * 0.1F;
-            // bmsData.packVoltage = raw.packVoltage * 0.1F;
-            // bmsData.soc = raw.packSOC * 0.5F;
-            // bmsData.relayState = raw.relayState;
-            // taskEXIT_CRITICAL();
+            taskENTER_CRITICAL();
+            bmsData.packCurrent = raw.packCurrent * 0.1F;
+            bmsData.packVoltage = raw.packVoltage * 0.1F;
+            bmsData.soc = raw.packSOC * 0.5F;
+            bmsData.relayState = raw.relayState;
+            taskEXIT_CRITICAL();
             break;
         }
 
@@ -334,12 +382,103 @@ void threadBus(void *pvParameters) {
             break;
         }
         }
+#if DTI_DEBUG
+        DTI_RunDebug();
+        HandleSerialCommands();
+#endif
         vTaskDelayUntil(&xLastWakeTime, pdMS_TO_TICKS(1));
     }
 }
 
 dtiData1 *DTI_GetDTIData() { return &dtiData; }
 dtiData2 *DTI_GetDTI_ExtraData() { return &dtiExtra; }
+
+// Bit positions for the bitmask passed to FaultLog_CheckBits(). This
+// numbering is bus.cpp's own bookkeeping -- fault_log has no idea what
+// any of these mean, it just tracks which bit positions turn on.
+enum {
+    FAULT_DTI_CAP_TEMP = 0,
+    FAULT_DTI_DC_TEMP,
+    FAULT_DTI_DRIVE_ENABLE,
+    FAULT_DTI_IGBT_ACCEL,
+    FAULT_DTI_IGBT_TEMP,
+    FAULT_DTI_INPUT_VOLTAGE,
+    FAULT_DTI_MOTOR_ACCEL,
+    FAULT_DTI_MOTOR_TEMP,
+    FAULT_DTI_RPM_MIN,
+    FAULT_DTI_RPM_MAX,
+    FAULT_DTI_POWER,
+    // dtiData.faultCode broken into one bit per specific code (1-8), per the
+    // DTI CAN protocol, instead of one combined "some fault happened" bit --
+    // so the log tells you WHICH hard fault fired, not just that one did.
+    FAULT_DTI_CODE_OVERVOLTAGE,     // faultCode == 1
+    FAULT_DTI_CODE_UNDERVOLTAGE,    // faultCode == 2
+    FAULT_DTI_CODE_DRV,             // faultCode == 3
+    FAULT_DTI_CODE_ABS_OVERCURRENT, // faultCode == 4
+    FAULT_DTI_CODE_CONTROLLER_TEMP, // faultCode == 5
+    FAULT_DTI_CODE_MOTOR_TEMP,      // faultCode == 6
+    FAULT_DTI_CODE_SENSOR_WIRING,   // faultCode == 7
+    FAULT_DTI_CODE_SENSOR_GENERAL,  // faultCode == 8
+};
+
+// Decodes the current DTI state into one bitmask and hands it to the
+// (fully independent) fault log in a single call.
+void DTI_RunDebug(void) {
+    uint32_t bits = 0;
+    if (dtiExtra.capTempLimitActive)
+        bits |= (1UL << FAULT_DTI_CAP_TEMP);
+    if (dtiExtra.dcTempLimitActive)
+        bits |= (1UL << FAULT_DTI_DC_TEMP);
+    if (dtiExtra.driveEnableLimitActive)
+        bits |= (1UL << FAULT_DTI_DRIVE_ENABLE);
+    if (dtiExtra.IGBTaccelLimitActive)
+        bits |= (1UL << FAULT_DTI_IGBT_ACCEL);
+    if (dtiExtra.IGBTtempLimitActive)
+        bits |= (1UL << FAULT_DTI_IGBT_TEMP);
+    if (dtiExtra.inputVoltageLimitActive)
+        bits |= (1UL << FAULT_DTI_INPUT_VOLTAGE);
+    if (dtiExtra.motorAccelTempLimitActive)
+        bits |= (1UL << FAULT_DTI_MOTOR_ACCEL);
+    if (dtiExtra.motorTempLimitActive)
+        bits |= (1UL << FAULT_DTI_MOTOR_TEMP);
+    if (dtiExtra.RPMminLimitActive)
+        bits |= (1UL << FAULT_DTI_RPM_MIN);
+    if (dtiExtra.RPMmaxLimitActive)
+        bits |= (1UL << FAULT_DTI_RPM_MAX);
+    if (dtiExtra.powerLimitActive)
+        bits |= (1UL << FAULT_DTI_POWER);
+
+    switch (dtiData.faultCode) {
+    case 1:
+        bits |= (1UL << FAULT_DTI_CODE_OVERVOLTAGE);
+        break;
+    case 2:
+        bits |= (1UL << FAULT_DTI_CODE_UNDERVOLTAGE);
+        break;
+    case 3:
+        bits |= (1UL << FAULT_DTI_CODE_DRV);
+        break;
+    case 4:
+        bits |= (1UL << FAULT_DTI_CODE_ABS_OVERCURRENT);
+        break;
+    case 5:
+        bits |= (1UL << FAULT_DTI_CODE_CONTROLLER_TEMP);
+        break;
+    case 6:
+        bits |= (1UL << FAULT_DTI_CODE_MOTOR_TEMP);
+        break;
+    case 7:
+        bits |= (1UL << FAULT_DTI_CODE_SENSOR_WIRING);
+        break;
+    case 8:
+        bits |= (1UL << FAULT_DTI_CODE_SENSOR_GENERAL);
+        break;
+    default:
+        break; // 0 = no fault
+    }
+
+    FaultLog_CheckBits(bits);
+}
 
 OrionBMSData *BMS_GetOrionData() { return &bmsData; }
 

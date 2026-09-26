@@ -7,6 +7,6 @@
 void Speaker_Init() { pinMode(speakerPin, arduino::OUTPUT); }
 
 void Speaker_Play() {
-        Serial.println("playin a sound type");
-        vTaskDelay(pdMS_TO_TICKS(20));
+    Serial.println("playin a sound type");
+    vTaskDelay(pdMS_TO_TICKS(20));
 }

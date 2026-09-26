@@ -39,9 +39,6 @@ void BSE_UpdateData(uint32_t bseReading1, uint32_t bseReading2) {
         ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawFront, ADC_VOLTAGE_DIVIDER);
     float bseVoltage1 =
         ADC_VALUE_TO_VOLTAGE(bseRawData.bseRawRear, ADC_VOLTAGE_DIVIDER);
-    // bseVoltage1 = -1 * bseVoltage1;
-    // bseVoltage2 = -1 * bseVoltage2;
-
     // Check BSE open/short circuit
     if (bseVoltage1 < BSE_LOWER_THRESHOLD ||
         bseVoltage1 > BSE_UPPER_THRESHOLD ||

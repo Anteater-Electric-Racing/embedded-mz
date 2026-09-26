@@ -96,7 +96,6 @@ void threadMain(void *pvParameters) {
         // thermal_regulate(); //still need to tune parameters
 
         if (BSE_GetBSEAverage() > BRAKE_LIGHT_AVG_THRESHOLD) {
-            //Serial.println("uhh working?\n");
             digitalWrite(BRAKE_LIGHT_PIN, HIGH);
         } else {
             digitalWrite(BRAKE_LIGHT_PIN, LOW);

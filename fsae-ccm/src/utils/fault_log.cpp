@@ -28,11 +28,13 @@ void FaultLog_CheckBits(uint32_t currentBits) {
 
     for (uint8_t bit = 0; bit < 32 && newlySet != 0; bit++) {
         if (newlySet & (1UL << bit)) {
-            logBuf[head].timestamp_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
-            logBuf[head].bit          = bit;
+            logBuf[head].timestamp_ms =
+                xTaskGetTickCount() * portTICK_PERIOD_MS;
+            logBuf[head].bit = bit;
 
             head = (head + 1) % FAULT_LOG_CAPACITY;
-            if (count < FAULT_LOG_CAPACITY) count++;
+            if (count < FAULT_LOG_CAPACITY)
+                count++;
 
             newlySet &= ~(1UL << bit); // lets the loop exit early once done
         }
@@ -44,7 +46,8 @@ void FaultLog_CheckBits(uint32_t currentBits) {
 uint16_t FaultLog_Count(void) { return count; }
 
 bool FaultLog_Get(uint16_t index, FaultLogEntry_t *out) {
-    if (index >= count || out == nullptr) return false;
+    if (index >= count || out == nullptr)
+        return false;
     // Once the buffer has wrapped, 'head' points at the oldest entry.
     uint16_t start = (count < FAULT_LOG_CAPACITY) ? 0 : head;
     uint16_t realIndex = (start + index) % FAULT_LOG_CAPACITY;

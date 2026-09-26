@@ -41,7 +41,6 @@ constexpr int fault_address = 0;
 #define PRECHARGE_DEBUG 0
 #define LP_FLAG 0
 
-
 #define ACTIVE_MAP 1
 
 #define HIGH 1

@@ -411,42 +411,70 @@ enum {
     // dtiData.faultCode broken into one bit per specific code (1-8), per the
     // DTI CAN protocol, instead of one combined "some fault happened" bit --
     // so the log tells you WHICH hard fault fired, not just that one did.
-    FAULT_DTI_CODE_OVERVOLTAGE,       // faultCode == 1
-    FAULT_DTI_CODE_UNDERVOLTAGE,      // faultCode == 2
-    FAULT_DTI_CODE_DRV,               // faultCode == 3
-    FAULT_DTI_CODE_ABS_OVERCURRENT,   // faultCode == 4
-    FAULT_DTI_CODE_CONTROLLER_TEMP,   // faultCode == 5
-    FAULT_DTI_CODE_MOTOR_TEMP,        // faultCode == 6
-    FAULT_DTI_CODE_SENSOR_WIRING,     // faultCode == 7
-    FAULT_DTI_CODE_SENSOR_GENERAL,    // faultCode == 8
+    FAULT_DTI_CODE_OVERVOLTAGE,     // faultCode == 1
+    FAULT_DTI_CODE_UNDERVOLTAGE,    // faultCode == 2
+    FAULT_DTI_CODE_DRV,             // faultCode == 3
+    FAULT_DTI_CODE_ABS_OVERCURRENT, // faultCode == 4
+    FAULT_DTI_CODE_CONTROLLER_TEMP, // faultCode == 5
+    FAULT_DTI_CODE_MOTOR_TEMP,      // faultCode == 6
+    FAULT_DTI_CODE_SENSOR_WIRING,   // faultCode == 7
+    FAULT_DTI_CODE_SENSOR_GENERAL,  // faultCode == 8
 };
 
 // Decodes the current DTI state into one bitmask and hands it to the
 // (fully independent) fault log in a single call.
 void DTI_RunDebug(void) {
     uint32_t bits = 0;
-    if (dtiExtra.capTempLimitActive)        bits |= (1UL << FAULT_DTI_CAP_TEMP);
-    if (dtiExtra.dcTempLimitActive)         bits |= (1UL << FAULT_DTI_DC_TEMP);
-    if (dtiExtra.driveEnableLimitActive)    bits |= (1UL << FAULT_DTI_DRIVE_ENABLE);
-    if (dtiExtra.IGBTaccelLimitActive)      bits |= (1UL << FAULT_DTI_IGBT_ACCEL);
-    if (dtiExtra.IGBTtempLimitActive)       bits |= (1UL << FAULT_DTI_IGBT_TEMP);
-    if (dtiExtra.inputVoltageLimitActive)   bits |= (1UL << FAULT_DTI_INPUT_VOLTAGE);
-    if (dtiExtra.motorAccelTempLimitActive) bits |= (1UL << FAULT_DTI_MOTOR_ACCEL);
-    if (dtiExtra.motorTempLimitActive)      bits |= (1UL << FAULT_DTI_MOTOR_TEMP);
-    if (dtiExtra.RPMminLimitActive)         bits |= (1UL << FAULT_DTI_RPM_MIN);
-    if (dtiExtra.RPMmaxLimitActive)         bits |= (1UL << FAULT_DTI_RPM_MAX);
-    if (dtiExtra.powerLimitActive)          bits |= (1UL << FAULT_DTI_POWER);
+    if (dtiExtra.capTempLimitActive)
+        bits |= (1UL << FAULT_DTI_CAP_TEMP);
+    if (dtiExtra.dcTempLimitActive)
+        bits |= (1UL << FAULT_DTI_DC_TEMP);
+    if (dtiExtra.driveEnableLimitActive)
+        bits |= (1UL << FAULT_DTI_DRIVE_ENABLE);
+    if (dtiExtra.IGBTaccelLimitActive)
+        bits |= (1UL << FAULT_DTI_IGBT_ACCEL);
+    if (dtiExtra.IGBTtempLimitActive)
+        bits |= (1UL << FAULT_DTI_IGBT_TEMP);
+    if (dtiExtra.inputVoltageLimitActive)
+        bits |= (1UL << FAULT_DTI_INPUT_VOLTAGE);
+    if (dtiExtra.motorAccelTempLimitActive)
+        bits |= (1UL << FAULT_DTI_MOTOR_ACCEL);
+    if (dtiExtra.motorTempLimitActive)
+        bits |= (1UL << FAULT_DTI_MOTOR_TEMP);
+    if (dtiExtra.RPMminLimitActive)
+        bits |= (1UL << FAULT_DTI_RPM_MIN);
+    if (dtiExtra.RPMmaxLimitActive)
+        bits |= (1UL << FAULT_DTI_RPM_MAX);
+    if (dtiExtra.powerLimitActive)
+        bits |= (1UL << FAULT_DTI_POWER);
 
     switch (dtiData.faultCode) {
-        case 1: bits |= (1UL << FAULT_DTI_CODE_OVERVOLTAGE);     break;
-        case 2: bits |= (1UL << FAULT_DTI_CODE_UNDERVOLTAGE);    break;
-        case 3: bits |= (1UL << FAULT_DTI_CODE_DRV);             break;
-        case 4: bits |= (1UL << FAULT_DTI_CODE_ABS_OVERCURRENT); break;
-        case 5: bits |= (1UL << FAULT_DTI_CODE_CONTROLLER_TEMP); break;
-        case 6: bits |= (1UL << FAULT_DTI_CODE_MOTOR_TEMP);      break;
-        case 7: bits |= (1UL << FAULT_DTI_CODE_SENSOR_WIRING);   break;
-        case 8: bits |= (1UL << FAULT_DTI_CODE_SENSOR_GENERAL);  break;
-        default: break; // 0 = no fault
+    case 1:
+        bits |= (1UL << FAULT_DTI_CODE_OVERVOLTAGE);
+        break;
+    case 2:
+        bits |= (1UL << FAULT_DTI_CODE_UNDERVOLTAGE);
+        break;
+    case 3:
+        bits |= (1UL << FAULT_DTI_CODE_DRV);
+        break;
+    case 4:
+        bits |= (1UL << FAULT_DTI_CODE_ABS_OVERCURRENT);
+        break;
+    case 5:
+        bits |= (1UL << FAULT_DTI_CODE_CONTROLLER_TEMP);
+        break;
+    case 6:
+        bits |= (1UL << FAULT_DTI_CODE_MOTOR_TEMP);
+        break;
+    case 7:
+        bits |= (1UL << FAULT_DTI_CODE_SENSOR_WIRING);
+        break;
+    case 8:
+        bits |= (1UL << FAULT_DTI_CODE_SENSOR_GENERAL);
+        break;
+    default:
+        break; // 0 = no fault
     }
 
     FaultLog_CheckBits(bits);

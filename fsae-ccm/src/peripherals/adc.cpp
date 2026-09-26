@@ -47,8 +47,7 @@ uint16_t adc0Pins[SENSOR_PIN_AMT_ADC0] = {A0, A1, A2, A3, A4,
                                           A5, A6, A7, A8, A9};
 uint16_t adc0Reads[SENSOR_PIN_AMT_ADC0];
 
-uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {// A17, A16, A15,
-                                          A7, A6, A5, A4, A3, A2, A1, A0};
+uint16_t adc1Pins[SENSOR_PIN_AMT_ADC1] = {A7, A6, A5, A4, A3, A2, A1, A0};
 uint16_t adc1Reads[SENSOR_PIN_AMT_ADC1];
 
 static TickType_t lastWakeTime;

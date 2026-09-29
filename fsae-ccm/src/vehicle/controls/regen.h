@@ -1,10 +1,12 @@
 #pragma once
+#include "utils/utils.h"
+#include "vehicle/devices/bse.h"
 
 // Zero defaults disable the preview until vehicle calibration is filled in.
 struct RegenConfig {
     float liftOffEnd = 0.25f; // accelerator fraction where lift-off regen ends
-    float brakeFullAboveRestPsi =
-        BSE_GetBSEAverage();  // PSI rise for full added regen. Must be
+    float brakeFullAboveRestPsi = BSE_VOLTAGE_TO_PSI(
+        BSE_GetBSEAverage()); // PSI rise for full added regen. Must be
                               // initialized before Brakes are pressed down
     float liftOffA = 0.0f;    // motor AC amps at released accelerator
     float brakeAddedA = 0.0f; // extra motor AC amps at full brake pressure

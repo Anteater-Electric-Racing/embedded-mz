@@ -14,6 +14,7 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "peripherals/can.h"
 #include "peripherals/gpio.h"
 #include "peripherals/wdt.h"
+#include "vehicle/controls/regen.h"
 
 #include "utils/utils.h"
 
@@ -42,7 +43,11 @@ static VehicleState vehicleState;
 static DriveState driveState;
 static TickType_t xLastWakeTime;
 
-static bool enableRegen = false;
+// Fill in approved values here; zero defaults disable the calculation.
+static const RegenConfig regenConfig{};
+// Debugger observations only. These values never reach a DTI command.
+static volatile float regenPreviewMotorA = 0.0f;
+static volatile float regenPreviewBatteryA = 0.0f;
 bool hornEnable = false;
 static float debugPedalDemand = 0.0f;
 
@@ -58,7 +63,8 @@ static float k = 0.0f, x0 = 0.0f, low_limit = 0.0f, high_limit = 0.0f;
 
 void VCU_Init() {
     vehicleState = STATE_PRECHARGING; // DEFAULT TO PRECHARGE
-    enableRegen = false;
+    regenPreviewMotorA = 0.0f;
+    regenPreviewBatteryA = 0.0f;
 
     driveState.controlMode = TORQUE;
     driveState.driveStrategy = OPEN_LOOP;
@@ -77,7 +83,6 @@ void threadVCU(void *pvParameters) {
     while (true) {
         vcu_last_run_tick = xTaskGetTickCount(); // update WDT tick
         float pedalAccel = APPS_GetAPPSReading();
-        float pedalBrake = BSE_GetBSEAverage();
         float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
@@ -86,6 +91,28 @@ void threadVCU(void *pvParameters) {
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
 #endif
+
+        // Preview only: existing getters do not establish telemetry freshness.
+        RegenInputs regenInputs;
+        taskENTER_CRITICAL();
+        regenInputs.accelerator = pedalAccel;
+        regenInputs.brakePsi = BSE_VOLTAGE_TO_PSI(BSE_GetBSEAverage());
+        regenInputs.brakeRestPsi = (BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0f;
+        const OrionBMSData *battery = BMS_GetOrionData();
+        regenInputs.packV = battery->packVoltage;
+        regenInputs.batteryLowC = battery->lowTemp;
+        regenInputs.batteryHighC = battery->highTemp;
+        regenInputs.chargeLimitA = battery->chargeLimit;
+        regenInputs.forwardErpm = DTI_GetDTIData()->eRPM;
+        const bool inverterHealthy = DTI_GetDTIData()->faultCode == 0;
+        taskEXIT_CRITICAL();
+        RegenRequest preview;
+        if (vehicleState == STATE_DRIVING && RTM_ButtonState() &&
+            Faults_CheckAllClear() && inverterHealthy && !HIMAC_FLAG) {
+            preview = Regen_Calculate(regenInputs, regenConfig);
+        }
+        regenPreviewMotorA = preview.motorBrakeA;
+        regenPreviewBatteryA = preview.batteryChargeLimitA;
 
         switch (vehicleState) {
         case STATE_PRECHARGING: /* default state */
@@ -168,10 +195,7 @@ void threadVCU(void *pvParameters) {
 
                 DTI_SendAccelCommand(targetTorque);
 
-                // Serial.println(targetTorque * smallestFactor);
-                if (enableRegen && BSE_BrakesPressed()) {
-                    DTI_SendBrakeCommand(pedalBrake);
-                }
+                // Regen preview is not connected to the inverter yet.
 
             } else {
                 vehicleState = STATE_IDLE;

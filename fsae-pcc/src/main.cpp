@@ -90,7 +90,7 @@ void threadMain(void *pvParameters) {
         // Serial.print(times_s.PreChargeTime);
         // Serial.print(" ms");
         Serial.print("\r");
-        vTaskDelay(100);
+        vTaskDelay(100);//
     }
 }
 

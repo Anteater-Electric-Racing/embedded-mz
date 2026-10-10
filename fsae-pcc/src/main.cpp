@@ -81,6 +81,11 @@ void threadMain(void *pvParameters) {
         Serial.print(digitalRead(IR_PLUS));
         Serial.print(" | IR -: ");
         Serial.print(digitalRead(IR_MINUS));
+        Serial.print(" | T1: ");
+        Serial.print(getThermistor1Temp());
+        Serial.print("C | T2: ");
+        Serial.print(getThermistor2Temp());
+        Serial.print("C ");
         // Serial.print(" | Precharge Time: ");
         // Serial.print(times_s.PreChargeTime);
         // Serial.print(" ms");

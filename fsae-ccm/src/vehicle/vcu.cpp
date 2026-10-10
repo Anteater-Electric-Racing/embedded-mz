@@ -81,6 +81,7 @@ void threadVCU(void *pvParameters) {
         float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
+        //Serial.println(PCC_PrechargeComplete());
         // Serial.println(vehicleState);
 
 #if HIMAC_FLAG
@@ -100,6 +101,7 @@ void threadVCU(void *pvParameters) {
             }
             break;
         case STATE_IDLE:
+            DTI_SendEnableCommand(false);
             // Serial.println("state idle\n");
             //   transition to IDLE
             if (BSE_BrakesPressed()) {
@@ -123,7 +125,7 @@ void threadVCU(void *pvParameters) {
                         delay(1000);
                         digitalWrite(28, 0);
                         if (PCC_PrechargeComplete()) {
-                            // Serial.println("This is getting triggered!");
+                            Serial.println("This is getting triggered!");
                             vehicleState = STATE_DRIVING;
                         }
                         hornEnable = false;
@@ -135,7 +137,6 @@ void threadVCU(void *pvParameters) {
                 digitalWrite(28, 0);
                 hornEnable = true;
                 RTM_ButtonReset();
-                DTI_SendEnableCommand(false);
             }
             // motorData.desiredTorque = 0.0F;
 
@@ -176,12 +177,14 @@ void threadVCU(void *pvParameters) {
             } else {
                 vehicleState = STATE_IDLE;
                 targetTorque = 0;
+                DTI_SendAccelCommand(targetTorque);
             }
 
         } break;
 
         case STATE_FAULT:
-            // DTI_SendEnableCommand(false);
+            DTI_SendEnableCommand(false);
+            Serial.println("Fault?");
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
             }

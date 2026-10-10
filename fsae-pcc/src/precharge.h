@@ -23,6 +23,9 @@ enum {
 void prechargeInit();
 int getSDCval();
 
+int16_t getThermistor1Temp();
+int16_t getThermistor2Temp();
+
 float getTSVoltage();
 float getAccumulatorVoltage();
 PrechargeState getPrechargeState();

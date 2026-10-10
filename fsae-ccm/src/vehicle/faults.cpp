@@ -146,6 +146,8 @@ void Faults_HandleFaults() {
     if (faultBitMap == 0) {
         return;
     }
+    // Serial.print("FAULT: ");
+    // Serial.println(faultBitMap);
     if (faultBitMap & FAULT_OVER_CURRENT_MASK) {
         VCU_SetFaultState();
     }

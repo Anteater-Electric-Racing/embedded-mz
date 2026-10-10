@@ -102,13 +102,13 @@ void prechargeTask(void *pvParameters) {
         //                ", FREQ_ACC: " + (String)FREQ_ACC);
 
         // Check thermistor readings, discharge if exceeded
-        // if (!checkSafeTemperature()) {
-        //     state = STATE_DISCHARGE;
-
-        // } else {
+        if (!checkSafeTemperature()) {
+            tempData.isSafeTemperature = false;
+            //state = STATE_ERROR;
+        } else {
         // Update temperature CAN flag
-        tempData.isSafeTemperature = true;
-        //}
+            tempData.isSafeTemperature = true;
+        }
 
         updateVoltage(ACCUMULATOR_VOLTAGE_PIN); // Get raw accumulator voltage
         updateVoltage(TS_VOLTAGE_PIN); // Get raw tractive system voltage
@@ -413,6 +413,9 @@ float getTSVoltage() {
     return pcData.tsVoltage;
 }
 
+int16_t getThermistor1Temp() { return tempData.T1Temp; }
+int16_t getThermistor2Temp() { return tempData.T2Temp; }
+
 float getAccumulatorVoltage() {
     // Get the accumulator voltage
     return pcData.accVoltage;
@@ -495,6 +498,8 @@ bool checkSafeTemperature() {
                  ", T1Temp: " + (String)T1Temp + ", T2Temp: " +
                  (String)T2Temp);
     */
+
+    //Serial.printf("Temperature %d\n", (int)max(T1Temp, T2Temp));
 
     if (T1Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C &&
         T2Temp < THERMISTOR_TEMPERATURE_THRESHOLD_C) {

@@ -14,7 +14,8 @@ void CAN_Send(DTIMessage *msg);
 
 void CAN_Receive(uint32_t *rx_id, uint64_t *rx_data);
 
-void CAN_ISOTP_Send(uint32_t id, uint8_t *msg, uint16_t size);
+// Standard Classic CAN on bus 2 or 3. False means invalid input or queue full.
+bool CAN_SendFrame(uint8_t bus, uint32_t id, const uint8_t *data, uint8_t length);
 
 bool CAN_IsBusHealthy(uint8_t bus);
 void CAN_CheckHealth();

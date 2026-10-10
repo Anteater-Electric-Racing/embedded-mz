@@ -1,8 +1,8 @@
 // Anteater Electric Racing, 2025
-#define TELEMETRY_CAN_ID 0x666 // Example CAN ID for telemetry messages
-#define TELEMETRY_PERIOD_MS 10 // Telemetry update period in milliseconds
+#define TELEMETRY_PERIOD_MS 50 // 20 Hz; 25 Classic CAN frames per snapshot
 
 #include "vehicle/comms/telemetry.h"
+#include "vehicle/comms/telemetry_frames.h"
 
 #include <arduino_freertos.h>
 
@@ -91,6 +91,7 @@ void Telemetry_Init() {
 }
 
 void threadTelemetry(void *pvParameters) {
+    uint16_t snapshotCounter = 0;
     static TickType_t lastWakeTime =
         xTaskGetTickCount(); // Initialize the last wake time
     while (true) {
@@ -178,20 +179,103 @@ void threadTelemetry(void *pvParameters) {
             .powerLimitActive = DTI_GetDTI_ExtraData()->powerLimitActive,
 
             .CANmapVersion = DTI_GetDTI_ExtraData()->CANmapVersion,
-            .vehicleState = STATE_OFF,
+            .vehicleState = VCU_GetState(),
 
             .faultMap = Faults_GetFaults()};
         taskEXIT_CRITICAL();
 
-        // Serial.print(telemetryData.faultMap);
-        // Serial.print(" | ");
-        // Serial.print(sizeof(TelemetryData));
-        // Serial.print("\r");
-
-        CAN_Send(0x520, (uint64_t)telemetryData.RTMState);
-
-        uint8_t *serializedData = (uint8_t *)&telemetryData;
-        CAN_ISOTP_Send(TELEMETRY_CAN_ID, serializedData, sizeof(TelemetryData));
+        // Each named struct is sent on CAN2 and CAN3. Abort only the congested
+        // bus; an omitted footer identifies its incomplete snapshot.
+        using namespace TelemetryMessages;
+        const uint16_t counter = snapshotCounter++;
+        const TelemetryFrame frames[] = {
+            Pack(SnapshotBegin{counter}),
+            Pack(DriverInputs{telemetryData.APPS_Travel, telemetryData.BSEAvg}),
+            Pack(BrakePressures{telemetryData.BSEFront, telemetryData.BSERear}),
+            Pack(FrontSuspension{telemetryData.FLLinpots,
+                                 telemetryData.FRLinpots}),
+            Pack(RearSuspension{telemetryData.BLLinpots,
+                                telemetryData.BRLinpots}),
+            Pack(BatteryPower{telemetryData.packVoltage,
+                              telemetryData.packCurrent}),
+            Pack(BatteryState{telemetryData.soc, telemetryData.avgCellVolt}),
+            Pack(BatteryLimits{telemetryData.dischargeLimit,
+                               telemetryData.chargeLimit}),
+            Pack(CellVoltages{telemetryData.lowCellVolt,
+                              telemetryData.highCellVolt}),
+            Pack(MotorMotion{telemetryData.eRPM, telemetryData.motorPosition}),
+            Pack(MotorCurrentDemand{telemetryData.targetIq,
+                                    telemetryData.acCurrent}),
+            Pack(InverterPower{telemetryData.inputVoltage,
+                               telemetryData.dcCurrent}),
+            Pack(MotorTemperatures{telemetryData.controllerTemp,
+                                   telemetryData.motorTemp}),
+            Pack(FOCCurrents{telemetryData.focId, telemetryData.focIq}),
+            Pack(ACDriveLimits{telemetryData.maxAC_Current,
+                               telemetryData.avMaxAC_Current}),
+            Pack(ACBrakeLimits{telemetryData.minAC_Current,
+                               telemetryData.avMinAC_Current}),
+            Pack(DCDriveLimits{telemetryData.maxDC_Current,
+                               telemetryData.avMaxDC_Current}),
+            Pack(DCBrakeLimits{telemetryData.minDC_Current,
+                               telemetryData.avMinDC_Current}),
+            Pack(MotorInputs{telemetryData.dti_throttleInput,
+                             telemetryData.dti_brakeInput}),
+            Pack(MotorDutyCycle{telemetryData.dutyCycle}),
+            Pack(IsolationResistance{telemetryData.imdResistance}),
+            Pack(VehicleStatus{
+                telemetryData.RTMState, telemetryData.controlMode,
+                telemetryData.isMotorStill, telemetryData.faultCode,
+                telemetryData.driveEnabled, telemetryData.CANmapVersion,
+                uint8_t(telemetryData.vehicleState)}),
+            Pack(VehicleFlags{
+                telemetryData.digitalIn1,
+                telemetryData.digitalIn2,
+                telemetryData.digitalIn3,
+                telemetryData.digitalIn4,
+                telemetryData.digitalOut1,
+                telemetryData.digitalOut2,
+                telemetryData.digitalOut3,
+                telemetryData.digitalOut4,
+                telemetryData.capTempLimitActive,
+                telemetryData.dcTempLimitActive,
+                telemetryData.driveEnableLimitActive,
+                telemetryData.IGBTaccelLimitActive,
+                telemetryData.IGBTtempLimitActive,
+                telemetryData.inputVoltageLimitActive,
+                telemetryData.motorAccelTempLimitActive,
+                telemetryData.motorTempLimitActive,
+                telemetryData.RPMminLimitActive,
+                telemetryData.RPMmaxLimitActive,
+                telemetryData.powerLimitActive,
+                telemetryData.imdStatus,
+            }),
+            Pack(VehicleFaults{telemetryData.faultMap}),
+            Pack(SnapshotEnd{counter}),
+        };
+        const TickType_t start = xTaskGetTickCount();
+        uint8_t activeBuses = 0x03; // bit 0: CAN2; bit 1: CAN3
+        for (const auto &frame : frames) {
+            uint8_t pendingBuses = activeBuses;
+            while (pendingBuses != 0) {
+                for (uint8_t bus = 2; bus <= 3; ++bus) {
+                    const uint8_t mask = uint8_t(1U << (bus - 2));
+                    if ((pendingBuses & mask) != 0 &&
+                        CAN_SendFrame(bus, frame.id, frame.data, 8)) {
+                        pendingBuses &= uint8_t(~mask);
+                    }
+                }
+                if (pendingBuses == 0)
+                    break;
+                if ((xTaskGetTickCount() - start) >= pdMS_TO_TICKS(20)) {
+                    activeBuses &= uint8_t(~pendingBuses);
+                    break;
+                }
+                vTaskDelay(pdMS_TO_TICKS(1));
+            }
+            if (activeBuses == 0)
+                break;
+        }
 
         vTaskDelayUntil(
             &lastWakeTime,

@@ -1,0 +1,621 @@
+VERSION "embedded-mz proposed named telemetry v2"
+
+NS_ :
+    CM_
+    VAL_
+    BA_DEF_
+    BA_
+    SIG_VALTYPE_
+
+BS_:
+
+BU_: CCM PCC DTI BMS IMD Vector__XXX
+
+CM_ "Code-derived debugging map. Classic telemetry on standard 0x540-0x558. Not verified against hardware. Extended DBC IDs include bit 31. See can/README.md.";
+
+BA_DEF_ BO_ "VFrameFormat" ENUM "StandardCAN","ExtendedCAN";
+
+BO_ 2147491649 DTI_Packet1_Node41: 8 DTI
+ SG_ ControlMode : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ TargetIq : 15|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ MotorPosition : 31|16@0- (0.1,0) [-3276.8|3276.7000000000003] "deg" Vector__XXX
+ SG_ IsMotorStill : 40|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ Reserved : 55|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 31 DTI_Packet1_Bare: 8 DTI
+ SG_ ControlMode : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ TargetIq : 15|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ MotorPosition : 31|16@0- (0.1,0) [-3276.8|3276.7000000000003] "deg" Vector__XXX
+ SG_ IsMotorStill : 40|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ Reserved : 55|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 2147491905 DTI_Packet2_Node41: 8 DTI
+ SG_ ElectricalRPM : 7|32@0- (1,0) [-2147483648|2147483647] "eRPM" Vector__XXX
+ SG_ DutyCycle : 39|16@0- (0.1,0) [-3276.8|3276.7000000000003] "" Vector__XXX
+ SG_ InputVoltage : 55|16@0- (1,0) [-32768|32767] "V" Vector__XXX
+
+BO_ 32 DTI_Packet2_Bare: 8 DTI
+ SG_ ElectricalRPM : 7|32@0- (1,0) [-2147483648|2147483647] "eRPM" Vector__XXX
+ SG_ DutyCycle : 39|16@0- (0.1,0) [-3276.8|3276.7000000000003] "" Vector__XXX
+ SG_ InputVoltage : 55|16@0- (1,0) [-32768|32767] "V" Vector__XXX
+
+BO_ 2147492161 DTI_Packet3_Node41: 8 DTI
+ SG_ ACCurrent : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ DCCurrent : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ Reserved : 39|32@0+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 33 DTI_Packet3_Bare: 8 DTI
+ SG_ ACCurrent : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ DCCurrent : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ Reserved : 39|32@0+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 2147492417 DTI_Packet4_Node41: 8 DTI
+ SG_ ControllerTemperature : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "degC" Vector__XXX
+ SG_ MotorTemperature : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "degC" Vector__XXX
+ SG_ FaultCode : 32|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ Reserved : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved2 : 55|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 34 DTI_Packet4_Bare: 8 DTI
+ SG_ ControllerTemperature : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "degC" Vector__XXX
+ SG_ MotorTemperature : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "degC" Vector__XXX
+ SG_ FaultCode : 32|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ Reserved : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved2 : 55|16@0+ (1,0) [0|65535] "" Vector__XXX
+
+BO_ 2147492673 DTI_Packet5_Node41: 8 DTI
+ SG_ FocId : 7|32@0- (0.01,0) [-21474836.48|21474836.47] "A" Vector__XXX
+ SG_ FocIq : 39|32@0- (0.01,0) [-21474836.48|21474836.47] "A" Vector__XXX
+
+BO_ 35 DTI_Packet5_Bare: 8 DTI
+ SG_ FocId : 7|32@0- (0.01,0) [-21474836.48|21474836.47] "A" Vector__XXX
+ SG_ FocIq : 39|32@0- (0.01,0) [-21474836.48|21474836.47] "A" Vector__XXX
+
+BO_ 2147492929 DTI_Packet6_Node41: 8 DTI
+ SG_ ThrottleInput : 0|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ BrakeInput : 8|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ DigitalIn1 : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalIn2 : 17|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalIn3 : 18|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalIn4 : 19|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut1 : 20|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut2 : 21|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut3 : 22|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut4 : 23|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DriveEnabled : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ CapTempLimitActive : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DCTempLimitActive : 33|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DriveEnableLimitActive : 34|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IGBTAccelLimitActive : 35|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IGBTTempLimitActive : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ InputVoltageLimitActive : 37|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ MotorAccelTempLimitActive : 38|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ MotorTempLimitActive : 39|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RPMMinLimitActive : 40|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RPMMaxLimitActive : 41|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ PowerLimitActive : 42|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero1 : 43|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero2 : 44|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero3 : 45|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero4 : 46|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero5 : 47|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Reserved : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ CANMapVersion : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 36 DTI_Packet6_Bare: 8 DTI
+ SG_ ThrottleInput : 0|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ BrakeInput : 8|8@1- (1,0) [-128|127] "" Vector__XXX
+ SG_ DigitalIn1 : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalIn2 : 17|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalIn3 : 18|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalIn4 : 19|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut1 : 20|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut2 : 21|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut3 : 22|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DigitalOut4 : 23|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DriveEnabled : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ CapTempLimitActive : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DCTempLimitActive : 33|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ DriveEnableLimitActive : 34|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IGBTAccelLimitActive : 35|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IGBTTempLimitActive : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ InputVoltageLimitActive : 37|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ MotorAccelTempLimitActive : 38|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ MotorTempLimitActive : 39|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RPMMinLimitActive : 40|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RPMMaxLimitActive : 41|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ PowerLimitActive : 42|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero1 : 43|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero2 : 44|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero3 : 45|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero4 : 46|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Zero5 : 47|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Reserved : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ CANMapVersion : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2147493185 DTI_Packet7_Node41: 8 DTI
+ SG_ MaxACCurrent : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMaxACCurrent : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ MinACCurrent : 39|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMinACCurrent : 55|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 37 DTI_Packet7_Bare: 8 DTI
+ SG_ MaxACCurrent : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMaxACCurrent : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ MinACCurrent : 39|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMinACCurrent : 55|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147493441 DTI_Packet8_Node41: 8 DTI
+ SG_ MaxDCCurrent : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMaxDCCurrent : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ MinDCCurrent : 39|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMinDCCurrent : 55|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 38 DTI_Packet8_Bare: 8 DTI
+ SG_ MaxDCCurrent : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMaxDCCurrent : 23|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ MinDCCurrent : 39|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ AvailableMinDCCurrent : 55|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147484225 DTI_SetBrakeCurrent: 2 CCM
+ SG_ Command : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147484481 DTI_SetERPM: 4 CCM
+ SG_ Command : 7|32@0- (0.1,0) [-214748364.8|214748364.70000002] "" Vector__XXX
+
+BO_ 2147484993 DTI_SetRelativeCurrent: 2 CCM
+ SG_ Command : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "" Vector__XXX
+
+BO_ 2147485761 DTI_SetMaxACCurrent: 2 CCM
+ SG_ Command : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147486017 DTI_SetMaxBrakeACCurrent: 2 CCM
+ SG_ Command : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147486273 DTI_SetMaxDCCurrent: 2 CCM
+ SG_ Command : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147486529 DTI_SetMaxBrakeDCCurrent: 2 CCM
+ SG_ Command : 7|16@0- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+
+BO_ 2147486785 DTI_SetDriveEnable: 1 CCM
+ SG_ Enable : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1712 BMS_Pack: 8 BMS
+ SG_ PackCurrent : 0|16@1- (0.1,0) [-3276.8|3276.7000000000003] "A" Vector__XXX
+ SG_ PackVoltage : 16|16@1+ (0.1,0) [0.0|6553.5] "V" Vector__XXX
+ SG_ SOC : 32|8@1+ (0.5,0) [0.0|127.5] "%" Vector__XXX
+ SG_ RelayState : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1713 BMS_Limits: 8 BMS
+ SG_ DischargeCurrentLimit : 0|16@1+ (1,0) [0|65535] "A" Vector__XXX
+ SG_ ChargeCurrentLimit : 16|16@1+ (1,0) [0|65535] "A" Vector__XXX
+ SG_ HighTemperature : 32|8@1- (1,0) [-128|127] "degC" Vector__XXX
+ SG_ LowTemperature : 40|8@1- (1,0) [-128|127] "degC" Vector__XXX
+ SG_ Reserved : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1714 BMS_Cells: 8 BMS
+ SG_ LowCellVoltage : 0|16@1+ (0.0001,0) [0.0|6.5535000000000005] "V" Vector__XXX
+ SG_ HighCellVoltage : 16|16@1+ (0.0001,0) [0.0|6.5535000000000005] "V" Vector__XXX
+ SG_ AverageCellVoltage : 32|16@1+ (0.0001,0) [0.0|6.5535000000000005] "V" Vector__XXX
+ SG_ LowCellID : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1715 BMS_Provisional: 8 BMS
+ SG_ PackResistanceRaw : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ PackOpenVoltageRaw : 16|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ Reserved : 32|24@1+ (1,0) [0|16777215] "" Vector__XXX
+ SG_ Checksum : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 546 PCC_Status: 8 PCC
+ SG_ State : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ PrechargeTooFast : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ PrechargeTooSlow : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ BMSTimeout : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ StateUndefined : 15|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ AccumulatorVoltage : 16|16@1+ (0.01,0) [0.0|655.35] "V" Vector__XXX
+ SG_ TSVoltage : 32|16@1+ (0.01,0) [0.0|655.35] "V" Vector__XXX
+ SG_ PrechargeProgress : 48|16@1+ (1,0) [0|65535] "%" Vector__XXX
+
+BO_ 547 PCC_Temperatures: 5 PCC
+ SG_ Thermistor1 : 0|16@1- (1,0) [-32768|32767] "degC" Vector__XXX
+ SG_ Thermistor2 : 16|16@1- (1,0) [-32768|32767] "degC" Vector__XXX
+ SG_ SafeTemperature : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 389 BMS_ChargerStatus: 8 BMS
+ SG_ Byte0 : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte1 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte2 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte3 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte4 : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte5 : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ ChargerSafetyActive : 51|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Byte7 : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 774 BMS_ChargerCommand: 8 BMS
+ SG_ PackVoltage : 7|16@0+ (0.1,0) [0.0|6553.5] "V" Vector__XXX
+ SG_ ChargeCurrentLimit : 16|8@1+ (0.8,0) [0.0|204.0] "A" Vector__XXX
+ SG_ Byte3 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte4 : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte5 : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ RollingCounter : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte7 : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2566849012 IMD_General: 8 IMD
+ SG_ IsolationResistance : 0|16@1+ (1,0) [0|65535] "kOhm" Vector__XXX
+ SG_ ResistanceStatus : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ MeasurementCounter : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Error : 32|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IsolationAlarm : 36|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ OtherStatusLow : 33|3@1+ (1,0) [0|7] "" Vector__XXX
+ SG_ OtherStatusHigh : 37|11@1+ (1,0) [0|2047] "" Vector__XXX
+ SG_ DeviceActivity : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2566849524 IMD_Voltages: 8 IMD
+ SG_ HVSystem : 0|16@1+ (0.05,-1606.4) [-1606.4|1670.35] "V" Vector__XXX
+ SG_ HVNegativeToEarth : 16|16@1+ (0.05,-1606.4) [-1606.4|1670.35] "V" Vector__XXX
+ SG_ HVPositiveToEarth : 32|16@1+ (0.05,-1606.4) [-1606.4|1670.35] "V" Vector__XXX
+ SG_ MeasurementCounter : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2566849268 IMD_DetailRaw: 8 Vector__XXX
+ SG_ Byte0 : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte1 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte2 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte3 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte4 : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte5 : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte6 : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte7 : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2566849780 IMD_ITSystemRaw: 8 Vector__XXX
+ SG_ Byte0 : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte1 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte2 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte3 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte4 : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte5 : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte6 : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte7 : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 2565862423 IMD_CommandRaw: 8 Vector__XXX
+ SG_ Byte0 : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte1 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte2 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte3 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte4 : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte5 : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte6 : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte7 : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1312 CCM_RTM: 8 CCM
+ SG_ RTMState : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Padding : 8|56@1+ (1,0) [0|72057594037927935] "" Vector__XXX
+
+BO_ 1638 CCM_ISOTP_TelemetryRaw: 8 Vector__XXX
+ SG_ Byte0 : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte1 : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte2 : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte3 : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte4 : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte5 : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte6 : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Byte7 : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1344 SnapshotBegin: 8 CCM
+ SG_ SnapshotCounter : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ ProtocolVersion : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ DataFrameCount : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 1368 SnapshotEnd: 8 CCM
+ SG_ SnapshotCounter : 0|16@1+ (1,0) [0|65535] "" Vector__XXX
+ SG_ ProtocolVersion : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ DataFrameCount : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 1345 DriverInputs: 8 CCM
+ SG_ APPS_Travel : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "%" Vector__XXX
+ SG_ BSEAvg : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "PSI" Vector__XXX
+
+BO_ 1346 BrakePressures: 8 CCM
+ SG_ BSEFront : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "PSI" Vector__XXX
+ SG_ BSERear : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "PSI" Vector__XXX
+
+BO_ 1347 FrontSuspension: 8 CCM
+ SG_ FLLinpots : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "mm" Vector__XXX
+ SG_ FRLinpots : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "mm" Vector__XXX
+
+BO_ 1348 RearSuspension: 8 CCM
+ SG_ BLLinpots : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "mm" Vector__XXX
+ SG_ BRLinpots : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "mm" Vector__XXX
+
+BO_ 1349 BatteryPower: 8 CCM
+ SG_ packVoltage : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "V" Vector__XXX
+ SG_ packCurrent : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1350 BatteryState: 8 CCM
+ SG_ soc : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "%" Vector__XXX
+ SG_ avgCellVolt : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "V" Vector__XXX
+
+BO_ 1351 BatteryLimits: 8 CCM
+ SG_ dischargeLimit : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ chargeLimit : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1352 CellVoltages: 8 CCM
+ SG_ lowCellVolt : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "V" Vector__XXX
+ SG_ highCellVolt : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "V" Vector__XXX
+
+BO_ 1353 MotorMotion: 8 CCM
+ SG_ eRPM : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "eRPM" Vector__XXX
+ SG_ motorPosition : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "deg" Vector__XXX
+
+BO_ 1354 MotorCurrentDemand: 8 CCM
+ SG_ targetIq : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ acCurrent : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1355 InverterPower: 8 CCM
+ SG_ inputVoltage : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "V" Vector__XXX
+ SG_ dcCurrent : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1356 MotorTemperatures: 8 CCM
+ SG_ controllerTemp : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "degC" Vector__XXX
+ SG_ motorTemp : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "degC" Vector__XXX
+
+BO_ 1357 FOCCurrents: 8 CCM
+ SG_ focId : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ focIq : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1358 ACDriveLimits: 8 CCM
+ SG_ maxAC_Current : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ avMaxAC_Current : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1359 ACBrakeLimits: 8 CCM
+ SG_ minAC_Current : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ avMinAC_Current : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1360 DCDriveLimits: 8 CCM
+ SG_ maxDC_Current : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ avMaxDC_Current : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1361 DCBrakeLimits: 8 CCM
+ SG_ minDC_Current : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+ SG_ avMinDC_Current : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "A" Vector__XXX
+
+BO_ 1362 MotorInputs: 8 CCM
+ SG_ dti_throttleInput : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "" Vector__XXX
+ SG_ dti_brakeInput : 32|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "" Vector__XXX
+
+BO_ 1363 MotorDutyCycle: 8 CCM
+ SG_ dutyCycle : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "" Vector__XXX
+ SG_ Reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 1364 IsolationResistance: 8 CCM
+ SG_ imdResistance : 0|32@1- (1,0) [-3.402823466e+38|3.402823466e+38] "kOhm" Vector__XXX
+ SG_ Reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 1365 VehicleStatus: 8 CCM
+ SG_ RTMState : 0|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ controlMode : 8|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ isMotorStill : 16|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ faultCode : 24|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ driveEnabled : 32|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ CANmapVersion : 40|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ vehicleState : 48|8@1+ (1,0) [0|255] "" Vector__XXX
+ SG_ Reserved : 56|8@1+ (1,0) [0|255] "" Vector__XXX
+
+BO_ 1366 VehicleFlags: 8 CCM
+ SG_ digitalIn1 : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalIn2 : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalIn3 : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalIn4 : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalOut1 : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalOut2 : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalOut3 : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ digitalOut4 : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ capTempLimitActive : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ dcTempLimitActive : 9|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ driveEnableLimitActive : 10|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IGBTaccelLimitActive : 11|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ IGBTtempLimitActive : 12|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ inputVoltageLimitActive : 13|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ motorAccelTempLimitActive : 14|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ motorTempLimitActive : 15|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RPMminLimitActive : 16|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ RPMmaxLimitActive : 17|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ powerLimitActive : 18|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Reserved : 19|13@1+ (1,0) [0|8191] "" Vector__XXX
+ SG_ imdStatus : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+BO_ 1367 VehicleFaults: 8 CCM
+ SG_ Fault_OverCurrent : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_UnderVoltage : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_OverTemperature : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_APPS : 3|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_BSE : 4|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_BPPS : 5|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_APPSBrakePlausibility : 6|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_CANTimeout : 7|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_LowBatteryVoltage : 8|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ Fault_UnknownBits : 9|23@1+ (1,0) [0|8388607] "" Vector__XXX
+ SG_ Reserved : 32|32@1+ (1,0) [0|4294967295] "" Vector__XXX
+
+CM_ BO_ 2147491649 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147491649 1;
+VAL_ 2147491649 ControlMode 1 "Speed" 2 "Current" 3 "BrakeCurrent" 4 "Position" 7 "None";
+CM_ BO_ 31 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 31 0;
+VAL_ 31 ControlMode 1 "Speed" 2 "Current" 3 "BrakeCurrent" 4 "Position" 7 "None";
+CM_ BO_ 2147491905 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147491905 1;
+CM_ BO_ 32 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 32 0;
+CM_ BO_ 2147492161 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147492161 1;
+CM_ BO_ 33 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 33 0;
+CM_ BO_ 2147492417 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147492417 1;
+CM_ BO_ 34 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 34 0;
+CM_ BO_ 2147492673 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147492673 1;
+CM_ BO_ 35 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 35 0;
+CM_ BO_ 2147492929 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147492929 1;
+CM_ BO_ 36 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 36 0;
+CM_ BO_ 2147493185 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147493185 1;
+CM_ BO_ 37 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 37 0;
+CM_ BO_ 2147493441 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 2147493441 1;
+CM_ BO_ 38 "Source: fsae-ccm/src/vehicle/comms/bus.h and bus.cpp. Code-derived; verify wire ID, signedness and scale against capture. Bare standard IDs are receiver aliases, not confirmed device transmissions. Bitfields assume Teensy ARM least-significant-bit allocation. DutyCycle unit is intentionally unspecified.";
+BA_ "VFrameFormat" BO_ 38 0;
+CM_ BO_ 2147484225 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147484225 1;
+CM_ BO_ 2147484481 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147484481 1;
+CM_ BO_ 2147484993 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147484993 1;
+CM_ BO_ 2147485761 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147485761 1;
+CM_ BO_ 2147486017 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147486017 1;
+CM_ BO_ 2147486273 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147486273 1;
+CM_ BO_ 2147486529 "Source: dti.cpp and peripherals/can.cpp. Matches implemented sender, not a verified vendor specification. SetERPM casts to int16_t before storing in uint32_t; negative values wrap through unsigned conversion. Relative-current and ERPM units need confirmation.";
+BA_ "VFrameFormat" BO_ 2147486529 1;
+CM_ BO_ 2147486785 "Source: dti.cpp; extended ID from CAN_Send.";
+BA_ "VFrameFormat" BO_ 2147486785 1;
+VAL_ 2147486785 Enable 0 "Disabled" 1 "Enabled";
+CM_ BO_ 1712 "Source: bus.h/bus.cpp. Little endian matches firmware memcpy; confirm configured Orion byte order. Relay bits unspecified; checksum exposed without validation.";
+BA_ "VFrameFormat" BO_ 1712 0;
+CM_ BO_ 1713 "Source: bus.h/bus.cpp. Assumes configured Orion layout matches firmware.";
+BA_ "VFrameFormat" BO_ 1713 0;
+CM_ BO_ 1714 "Source: bus.h/bus.cpp. Assumes configured Orion layout matches firmware.";
+BA_ "VFrameFormat" BO_ 1714 0;
+CM_ BO_ 1715 "PROVISIONAL: bus.h labels these fields as examples; no receive case, units or conversion implemented. Do not interpret as validated physical values.";
+BA_ "VFrameFormat" BO_ 1715 0;
+CM_ BO_ 546 "Source: fsae-pcc/src/can.h and precharge.cpp. Voltage scale comes from sender (*100), despite can.h comment. ErrorCode decoded as individual known bits.";
+BA_ "VFrameFormat" BO_ 546 0;
+VAL_ 546 State 0 "Standby" 1 "Precharge" 2 "Discharge" 3 "Online" 4 "Charging" 5 "Error" 6 "Undefined";
+CM_ BO_ 547 "Source: PCC can.h/precharge.cpp. Packed size 5 and bit 32 assume Teensy ARM bitfield allocation; confirm DLC in capture.";
+BA_ "VFrameFormat" BO_ 547 0;
+CM_ BO_ 389 "Source: PCC can.cpp. Only byte 6 bit 3 is defined; length 8 assumed, confirm capture.";
+BA_ "VFrameFormat" BO_ 389 0;
+CM_ BO_ 774 "Source: PCC can.cpp. Firmware consumes these values only while charger safety is active; DBC decoding is unconditional. Length 8 assumed.";
+BA_ "VFrameFormat" BO_ 774 0;
+CM_ BO_ 2566849012 "Source: bus.h/bus.cpp. Known status bits split out; other bits retain raw values. Special resistance values are not interpreted.";
+BA_ "VFrameFormat" BO_ 2566849012 1;
+VAL_ 2566849012 ResistanceStatus 252 "Startup" 253 "FirstMeasurement" 254 "Normal";
+VAL_ 2566849012 DeviceActivity 0 "Init" 1 "Normal" 2 "SelfTest";
+CM_ BO_ 2566849524 "Source: bus.h. Formula (raw - 32128)*0.05. Firmware consumes HVSystem only; other two conversions follow struct comments.";
+BA_ "VFrameFormat" BO_ 2566849524 1;
+CM_ BO_ 2566849268 "ID declared in bus.h, payload layout not implemented. Raw bytes only; length 8 provisional.";
+BA_ "VFrameFormat" BO_ 2566849268 1;
+CM_ BO_ 2566849780 "ID declared in bus.h, payload layout not implemented. Raw bytes only; length 8 provisional.";
+BA_ "VFrameFormat" BO_ 2566849780 1;
+CM_ BO_ 2565862423 "ID declared in bus.h, payload layout not implemented. Raw bytes only; length 8 provisional.";
+BA_ "VFrameFormat" BO_ 2565862423 1;
+CM_ BO_ 1312 "LEGACY: previous RTM broadcast; current firmware uses VehicleStatus 0x555 instead.";
+BA_ "VFrameFormat" BO_ 1312 0;
+VAL_ 1312 RTMState 0 "Inactive" 1 "Active";
+CM_ BO_ 1638 "LEGACY ISO-TP transport bytes; current firmware uses standard IDs 0x540-0x558. Do not decode transport bytes as TelemetryData.";
+BA_ "VFrameFormat" BO_ 1638 0;
+CM_ BO_ 1344 "Proposed named telemetry v2; 23 data frames between matching header/footer counters. 20 Hz. All IDs standard, DLC 8.";
+BA_ "VFrameFormat" BO_ 1344 0;
+CM_ BO_ 1368 "Proposed named telemetry v2; 23 data frames between matching header/footer counters. 20 Hz. All IDs standard, DLC 8.";
+BA_ "VFrameFormat" BO_ 1368 0;
+CM_ BO_ 1345 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1345 0;
+SIG_VALTYPE_ 1345 APPS_Travel : 1;
+SIG_VALTYPE_ 1345 BSEAvg : 1;
+CM_ BO_ 1346 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1346 0;
+SIG_VALTYPE_ 1346 BSEFront : 1;
+SIG_VALTYPE_ 1346 BSERear : 1;
+CM_ BO_ 1347 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1347 0;
+SIG_VALTYPE_ 1347 FLLinpots : 1;
+SIG_VALTYPE_ 1347 FRLinpots : 1;
+CM_ BO_ 1348 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1348 0;
+SIG_VALTYPE_ 1348 BLLinpots : 1;
+SIG_VALTYPE_ 1348 BRLinpots : 1;
+CM_ BO_ 1349 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1349 0;
+SIG_VALTYPE_ 1349 packVoltage : 1;
+SIG_VALTYPE_ 1349 packCurrent : 1;
+CM_ BO_ 1350 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1350 0;
+SIG_VALTYPE_ 1350 soc : 1;
+SIG_VALTYPE_ 1350 avgCellVolt : 1;
+CM_ BO_ 1351 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1351 0;
+SIG_VALTYPE_ 1351 dischargeLimit : 1;
+SIG_VALTYPE_ 1351 chargeLimit : 1;
+CM_ BO_ 1352 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1352 0;
+SIG_VALTYPE_ 1352 lowCellVolt : 1;
+SIG_VALTYPE_ 1352 highCellVolt : 1;
+CM_ BO_ 1353 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1353 0;
+SIG_VALTYPE_ 1353 eRPM : 1;
+SIG_VALTYPE_ 1353 motorPosition : 1;
+CM_ BO_ 1354 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1354 0;
+SIG_VALTYPE_ 1354 targetIq : 1;
+SIG_VALTYPE_ 1354 acCurrent : 1;
+CM_ BO_ 1355 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1355 0;
+SIG_VALTYPE_ 1355 inputVoltage : 1;
+SIG_VALTYPE_ 1355 dcCurrent : 1;
+CM_ BO_ 1356 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1356 0;
+SIG_VALTYPE_ 1356 controllerTemp : 1;
+SIG_VALTYPE_ 1356 motorTemp : 1;
+CM_ BO_ 1357 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1357 0;
+SIG_VALTYPE_ 1357 focId : 1;
+SIG_VALTYPE_ 1357 focIq : 1;
+CM_ BO_ 1358 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1358 0;
+SIG_VALTYPE_ 1358 maxAC_Current : 1;
+SIG_VALTYPE_ 1358 avMaxAC_Current : 1;
+CM_ BO_ 1359 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1359 0;
+SIG_VALTYPE_ 1359 minAC_Current : 1;
+SIG_VALTYPE_ 1359 avMinAC_Current : 1;
+CM_ BO_ 1360 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1360 0;
+SIG_VALTYPE_ 1360 maxDC_Current : 1;
+SIG_VALTYPE_ 1360 avMaxDC_Current : 1;
+CM_ BO_ 1361 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1361 0;
+SIG_VALTYPE_ 1361 minDC_Current : 1;
+SIG_VALTYPE_ 1361 avMinDC_Current : 1;
+CM_ BO_ 1362 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1362 0;
+SIG_VALTYPE_ 1362 dti_throttleInput : 1;
+SIG_VALTYPE_ 1362 dti_brakeInput : 1;
+CM_ BO_ 1363 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1363 0;
+SIG_VALTYPE_ 1363 dutyCycle : 1;
+CM_ BO_ 1364 "IEEE754 binary32 little-endian; SIG_VALTYPE_ declares float signals. No ISO-TP. Values match the sampled C++ fields without quantization.";
+BA_ "VFrameFormat" BO_ 1364 0;
+SIG_VALTYPE_ 1364 imdResistance : 1;
+CM_ BO_ 1365 "Proposed vehicle state. Enum encoded explicitly as one byte, independent of compiler ABI.";
+BA_ "VFrameFormat" BO_ 1365 0;
+VAL_ 1365 controlMode 1 "Speed" 2 "Current" 3 "BrakeCurrent" 4 "Position" 7 "None";
+VAL_ 1365 vehicleState 0 "Off" 1 "Standby" 2 "Precharging" 3 "Idle" 4 "Driving" 5 "Fault";
+CM_ BO_ 1366 "Boolean flags explicitly packed into bits; IMD status retained in full.";
+BA_ "VFrameFormat" BO_ 1366 0;
+CM_ BO_ 1367 "All 32 faultMap bits preserved. Named bits come from vehicle/faults.cpp; remaining bits exposed as raw.";
+BA_ "VFrameFormat" BO_ 1367 0;

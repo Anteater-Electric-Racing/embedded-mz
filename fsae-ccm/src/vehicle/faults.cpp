@@ -148,30 +148,39 @@ void Faults_HandleFaults() {
     }
     if (faultBitMap & FAULT_OVER_CURRENT_MASK) {
         VCU_SetFaultState();
+        Serial.println("Over Current Fault Detected");
     }
     if (faultBitMap & FAULT_UNDER_VOLTAGE_MASK) {
         VCU_SetFaultState();
+        Serial.println("Under Voltage Fault Detected");
     }
     if (faultBitMap & FAULT_OVER_TEMP_MASK) {
         VCU_SetFaultState();
+        Serial.println("Over Temperature Fault Detected");
     }
     if (faultBitMap & FAULT_APPS_MASK) {
         VCU_SetFaultState();
+        Serial.println("APPS Fault Detected");
     }
     if (faultBitMap & FAULT_BSE_MASK) {
         VCU_SetFaultState();
+        Serial.println("BSE Fault Detected");
     }
     if (faultBitMap & FAULT_BPPS_MASK) {
         VCU_SetFaultState();
+        Serial.println("BPPS Fault Detected");
     }
     if (faultBitMap & FAULT_APPS_BRAKE_PLAUSIBILITY_MASK) {
         VCU_SetFaultState();
+        Serial.println("APPS Brake Plausibility Fault Detected");
     }
     if (faultBitMap & FAULT_CAN_MASK) {
         VCU_SetFaultState();
+        Serial.println("CAN Timeout Fault Detected");
     }
     if (faultBitMap & LOW_BATTERY_VOLTAGE_MASK) {
         VCU_SetFaultState();
+        Serial.println("Low Battery Voltage Fault Detected");
     }
 }
 

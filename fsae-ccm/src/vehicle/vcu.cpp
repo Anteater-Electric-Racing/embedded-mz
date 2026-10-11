@@ -181,7 +181,7 @@ void threadVCU(void *pvParameters) {
         } break;
 
         case STATE_FAULT:
-            // DTI_SendEnableCommand(false);
+            DTI_SendEnableCommand(false);
             if (Faults_CheckAllClear()) {
                 VCU_ClearFaultState();
             }

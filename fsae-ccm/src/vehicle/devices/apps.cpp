@@ -44,13 +44,14 @@ void APPS_UpdateData(uint16_t rawReading1,
 
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
-    appsData.appsReading1_Percentage =
-        LINEAR_MAP(appsData.apps1RawReading, (float)APPS1_REST_ADC,
-                   (float)APPS1_FULL_PCT_ADC, 0.0F, 1.0F);
+    // Serial.print(rawReading1);
+    // Serial.print(" ");
+    // Serial.println(rawReading2);
+    appsData.appsReading1_Percentage = LINEAR_MAP(
+        appsData.apps1RawReading, (float)862, (float)1218, 0.0F, 1.0F);
 
-    appsData.appsReading2_Percentage =
-        LINEAR_MAP(appsData.apps2RawReading, (float)APPS2_REST_ADC,
-                   (float)APPS2_FULL_PCT_ADC, 0.0F, 1.0F);
+    appsData.appsReading2_Percentage = LINEAR_MAP(
+        appsData.apps2RawReading, (float)1886, (float)1528, 0.0F, 1.0F);
 
     appsData.appsReading1_Voltage =
         ADC_VALUE_TO_VOLTAGE(appsData.apps1RawReading, ADC_VOLTAGE_DIVIDER1);

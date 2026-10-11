@@ -20,14 +20,14 @@
 /* Reference CCM PCB for what A0-A9 correspond to */
 enum SensorIndexesADC0 {    // TODO: Update with real values
     THERMISTOR_1_INDEX = 0, // A0
-    APPS_1_INDEX = 5,
-    APPS_2_INDEX = 4, // A4
-    BSE_1_INDEX = 3,
-    BSE_2_INDEX = 2,
-    SUSP_TRAV_LINPOT1 = 6,
-    SUSP_TRAV_LINPOT2 = 7,
-    SUSP_TRAV_LINPOT3 = 8,
-    SUSP_TRAV_LINPOT4 = 9,
+    APPS_1_INDEX = 7,
+    APPS_2_INDEX = 9, // A4
+    BSE_1_INDEX = 6,
+    BSE_2_INDEX = 8,
+    SUSP_TRAV_LINPOT1 = 2,
+    SUSP_TRAV_LINPOT2 = 3,
+    SUSP_TRAV_LINPOT3 = 4,
+    SUSP_TRAV_LINPOT4 = 5,
     THERMISTOR_2_INDEX = 10, // A1
     THERMISTOR_3_INDEX,      // A2
     THERMISTOR_4_INDEX       // A3
@@ -108,7 +108,7 @@ void ADC_Init() {
 
         // BRAKE_LIGHT_AVG_THRESHOLD =
         //     ((BSE_MIN_PSI1 + BSE_MIN_PSI2) / 2.0F + 15.0f);
-        BRAKE_LIGHT_AVG_THRESHOLD = 1.07;
+        BRAKE_LIGHT_AVG_THRESHOLD = 0.31 + 0.15;
         calibrated = true;
     }
 }

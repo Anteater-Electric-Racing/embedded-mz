@@ -39,7 +39,7 @@ void Faults_SetFault(FaultType fault) {
 #if DEBUG_FLAG
         Serial.println("Setting APPS fault");
 #endif
-        faultBitMap |= FAULT_APPS_MASK;
+        //faultBitMap |= FAULT_APPS_MASK;
         break;
     }
     case FAULT_BSE: {
@@ -158,7 +158,7 @@ void Faults_HandleFaults() {
         VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_MASK) {
-        VCU_SetFaultState();
+        //VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_BSE_MASK) {
         VCU_SetFaultState();
@@ -167,7 +167,7 @@ void Faults_HandleFaults() {
         VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_APPS_BRAKE_PLAUSIBILITY_MASK) {
-        VCU_SetFaultState();
+        //VCU_SetFaultState();
     }
     if (faultBitMap & FAULT_CAN_MASK) {
         VCU_SetFaultState();

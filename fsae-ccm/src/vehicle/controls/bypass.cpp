@@ -58,7 +58,6 @@ void Bypass_TSSI() {
     } else {
         // Normal operation
         if (feedbackStatus == LOW) {
-            Serial.println("trigger4");
             // Fault detected
             digitalWrite(TSSI_BYPASS_PIN, HIGH);
         } else {

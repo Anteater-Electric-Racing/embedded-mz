@@ -36,8 +36,8 @@ constexpr int fault_address = 0;
 #define WSS_FLAG 0
 #define BMS_FLAG 0 // REMOVE
 #define IMD_FLAG 0
-#define APPS_DEBUG 1
-#define BSE_DEBUG 1
+#define APPS_DEBUG 0
+#define BSE_DEBUG 0
 #define PRECHARGE_DEBUG 0
 #define LP_FLAG 0
 
@@ -104,7 +104,7 @@ constexpr int fault_address = 0;
 extern float APPS1_REST_ADC;
 extern float APPS2_REST_ADC;
 
-#define APPS1_FULL_PCT_ADC 476.21F
+#define APPS1_FULL_PCT_ADC 580.21F
 #define APPS2_FULL_PCT_ADC 2512.51F
 
 // // Clamp helper

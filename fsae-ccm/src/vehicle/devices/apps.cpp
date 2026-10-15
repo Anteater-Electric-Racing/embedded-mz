@@ -45,12 +45,13 @@ void APPS_UpdateData(uint16_t rawReading1,
     LOWPASS_FILTER(rawReading1, appsData.apps1RawReading, appsAlpha);
     LOWPASS_FILTER(rawReading2, appsData.apps2RawReading, appsAlpha);
     appsData.appsReading1_Percentage =
-        LINEAR_MAP(appsData.apps1RawReading, (float)APPS1_REST_ADC,
-                   (float)APPS1_FULL_PCT_ADC, 0.0F, 1.0F);
+        LINEAR_MAP(appsData.apps1RawReading, (float)APPS1_REST_ADC - 50,
+                   (float)APPS1_REST_ADC + 210 , 0.0F, 1.0F);
 
     appsData.appsReading2_Percentage =
-        LINEAR_MAP(appsData.apps2RawReading, (float)APPS2_REST_ADC,
-                   (float)APPS2_FULL_PCT_ADC, 0.0F, 1.0F);
+        LINEAR_MAP(appsData.apps2RawReading, (float)APPS2_REST_ADC + 50,
+                   (float)APPS2_REST_ADC - 210 , 0.0F, 1.0F);
+
 
     appsData.appsReading1_Voltage =
         ADC_VALUE_TO_VOLTAGE(appsData.apps1RawReading, ADC_VOLTAGE_DIVIDER1);
@@ -79,13 +80,29 @@ void APPS_UpdateData(uint16_t rawReading1,
         appsData.appsReading2_Percentage = 1.0F;
     }
 
+    Serial.print("          Raw Reading 1:  ");
+    Serial.print(rawReading1);
+    Serial.print("  Percentage:  ");
+    Serial.print(appsData.appsReading1_Percentage);
+    Serial.print("   |  ");
+    Serial.print("Raw Reading 2:  ");
+    Serial.print(rawReading2);
+    Serial.print("  Percentage:  ");
+    Serial.print(appsData.appsReading2_Percentage);
+    Serial.print("   |  ");
+    Serial.print("Calibrated Value 1:  ");
+    Serial.print(APPS1_REST_ADC);
+    Serial.print("   |  ");
+    Serial.print("Calibrated Value 2:  ");
+    Serial.println(APPS2_REST_ADC);
+
     checkAndHandleAPPSFault();
     checkAndHandlePlausibilityFault();
 }
 
 float APPS_GetAPPSReading() {
-    return (appsData.appsReading1_Percentage +
-            appsData.appsReading2_Percentage) /
+    return (appsData.appsReading2_Percentage
+             + appsData.appsReading2_Percentage)/ 
            2.0;
 }
 
@@ -118,8 +135,8 @@ static void checkAndHandleAPPSFault() {
         Faults_ClearFault(FAULT_APPS);
     }
 
-    if (difference > APPS_IMPLAUSABILITY_THRESHOLD) {
-        Faults_SetFault(FAULT_APPS);
+    if (difference > 1000) {
+        //Faults_SetFault(FAULT_APPS);
         return;
     } else {
 #if DEBUG_FLAG

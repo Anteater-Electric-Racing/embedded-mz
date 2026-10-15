@@ -51,8 +51,7 @@ void setup() { // runs once on bootup
     PCC_Init();
     thermal_Init();
     Bypass_Init();
-    GPIO_Init();
-    WSS_Init();
+    // WSS_Init();
     WDT_Init();
     Speaker_Init();
 

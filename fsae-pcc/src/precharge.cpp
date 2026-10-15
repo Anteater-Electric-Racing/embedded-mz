@@ -104,7 +104,7 @@ void prechargeTask(void *pvParameters) {
         // Check thermistor readings, discharge if exceeded
         if (!checkSafeTemperature()) {
             tempData.isSafeTemperature = false;
-            //state = STATE_ERROR;
+            state = STATE_ERROR;
         } else {
         // Update temperature CAN flag
             tempData.isSafeTemperature = true;

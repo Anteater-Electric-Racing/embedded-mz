@@ -20,14 +20,14 @@
 /* Reference CCM PCB for what A0-A9 correspond to */
 enum SensorIndexesADC0 {    // TODO: Update with real values
     THERMISTOR_1_INDEX = 0, // A0
-    APPS_1_INDEX = 5,
-    APPS_2_INDEX = 4, // A4
-    BSE_1_INDEX = 3,
-    BSE_2_INDEX = 2,
-    SUSP_TRAV_LINPOT1 = 6,
-    SUSP_TRAV_LINPOT2 = 7,
-    SUSP_TRAV_LINPOT3 = 8,
-    SUSP_TRAV_LINPOT4 = 9,
+    APPS_1_INDEX = 7,
+    APPS_2_INDEX = 9, // A4
+    BSE_1_INDEX = 6,
+    BSE_2_INDEX = 8,
+    SUSP_TRAV_LINPOT1 =  2,
+    SUSP_TRAV_LINPOT2 = 3,
+    SUSP_TRAV_LINPOT3 = 4,
+    SUSP_TRAV_LINPOT4 = 5,
     THERMISTOR_2_INDEX = 10, // A1
     THERMISTOR_3_INDEX,      // A2
     THERMISTOR_4_INDEX       // A3
@@ -86,18 +86,30 @@ void ADC_Init() {
     float bseSum1 = 0;
     float bseSum2 = 0;
 
-    constexpr uint16_t samples = 30;
+    constexpr uint16_t samples = 500;
     static bool calibrated = false;
+    delay(5000);
     if (!calibrated) {
         for (uint16_t i = 0; i < samples; i++) {
             apps1Sum += adc->adc0->analogRead(adc0Pins[APPS_1_INDEX]);
             apps2Sum += adc->adc0->analogRead(adc0Pins[APPS_2_INDEX]);
             bseSum1 += adc->adc0->analogRead(adc0Pins[BSE_1_INDEX]);
             bseSum2 += adc->adc0->analogRead(adc0Pins[BSE_2_INDEX]);
+            if((i % 20) == 0){
+                Serial.print("APPS 1: ");
+                Serial.print(adc->adc0->analogRead(adc0Pins[APPS_1_INDEX]));
+                Serial.print(" |  APPS 2: ");
+                Serial.println(adc->adc0->analogRead(adc0Pins[APPS_2_INDEX]));
+            }
+
         }
 
-        APPS1_REST_ADC = apps1Sum / samples;
-        APPS2_REST_ADC = apps2Sum / samples;
+        APPS1_REST_ADC = (apps1Sum/samples);
+        APPS2_REST_ADC = (apps2Sum / samples);
+        Serial.print("APPS1 Calibrated: ");
+        Serial.print(APPS1_REST_ADC);
+        Serial.print(" |   APPS2 Calibrated: ");
+        Serial.println(APPS2_REST_ADC);
         bseSum1 /= samples;
         bseSum2 /= samples;
 
@@ -105,7 +117,7 @@ void ADC_Init() {
         BSE_MIN_V2 = ADC_VALUE_TO_VOLTAGE(bseSum2, ADC_VOLTAGE_DIVIDER);
         BSE_MIN_PSI1 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V1);
         BSE_MIN_PSI2 = BSE_VOLTAGE_TO_PSI(BSE_MIN_V2); // this lowks doesnt do anything rn for some reason only this converts to psi and not the actual bse reading
-        BRAKE_LIGHT_AVG_THRESHOLD = ((BSE_MIN_V1 + BSE_MIN_V2) / 2.0F + 0.04f);
+        BRAKE_LIGHT_AVG_THRESHOLD = ((BSE_MIN_V1 + BSE_MIN_V2) / 2.0F + 0.40f);
         // BRAKE_LIGHT_AVG_THRESHOLD = 1.07;
         calibrated = true;
     }
@@ -131,8 +143,8 @@ void threadADC(void *pvParameters) {
         }
         APPS_UpdateData(adc0Reads[APPS_1_INDEX], adc0Reads[APPS_2_INDEX]);
         BSE_UpdateData(adc0Reads[BSE_1_INDEX], adc0Reads[BSE_2_INDEX]);
-        ShockTravelUpdateData(
-            adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
-            adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
+        // ShockTravelUpdateData(
+        //     adc0Reads[SUSP_TRAV_LINPOT1], adc0Reads[SUSP_TRAV_LINPOT2],
+        //     adc0Reads[SUSP_TRAV_LINPOT3], adc0Reads[SUSP_TRAV_LINPOT4]);
     }
 }

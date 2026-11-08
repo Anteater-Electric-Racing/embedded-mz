@@ -30,5 +30,6 @@ void VCU_ForceIdleState();
 void VCU_SetDebugPedalDemand(float pedalDemand);
 float VCU_Derate(float temperature);
 float VCU_TorqueMap(float pedal);
+float VCU_LutLookup(float pedal);
 
 VehicleState VCU_GetState();

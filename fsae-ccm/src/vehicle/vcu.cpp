@@ -30,6 +30,8 @@ constexpr float TEMP_MAX = 100.0f;  // Max Temperature, any Temperature greater
 #include "vehicle/vcu.h"
 #include <arduino_freertos.h>
 
+#include "lut.h"
+
 // template <typename T> T constrain(T val, T minVal, T maxVal) {
 //     if (val < minVal)
 //         return minVal;
@@ -81,8 +83,8 @@ void threadVCU(void *pvParameters) {
         float targetTorque = 0.0f;
         Faults_HandleFaults();
         WSS_Update();
-        //Serial.println(PCC_PrechargeComplete());
-        // Serial.println(vehicleState);
+        // Serial.println(PCC_PrechargeComplete());
+        //  Serial.println(vehicleState);
 
 #if HIMAC_FLAG
         pedalAccel = debugPedalDemand;
@@ -149,9 +151,9 @@ void threadVCU(void *pvParameters) {
 
                 DTI_SendEnableCommand(true);
                 if (HIMAC_FLAG) {
-                    targetTorque = VCU_TorqueMap(debugPedalDemand);
+                    targetTorque = VCU_LutLookup(debugPedalDemand);
                 } else {
-                    targetTorque = VCU_TorqueMap(pedalAccel);
+                    targetTorque = VCU_LutLookup(pedalAccel);
                 }
 
                 // float batteryFactor =
@@ -235,6 +237,28 @@ float VCU_TorqueMap(float pedal) {
     }
     return CLAMP(target, 0.0f, 100.0f);
 }
+
+// VCU LUT Implementation
+float VCU_LutLookup(float pedal) {
+    // pedal guard to prevent out-of-bounds error
+    pedal = CLAMP(pedal, 0.0f, 1.0f);
+    float position = pedal * LUT_SEGMENTS;
+    int lowerIndex = (int)position;
+
+    if (lowerIndex > LUT_SEGMENTS - 1) {
+        lowerIndex = LUT_SEGMENTS - 1;
+    } // if pedal == 1.0
+    int upperIndex = lowerIndex + 1;
+
+    float lowerTorque = (float)TORQUE_LUT[ACTIVE_MAP][lowerIndex];
+    float upperTorque = (float)TORQUE_LUT[ACTIVE_MAP][upperIndex];
+    float fraction = position - (float)lowerIndex;
+
+    // Linear Interpolation
+    return (float)TORQUE_LUT[ACTIVE_MAP][lowerIndex] +
+           fraction * (upperTorque - lowerTorque); // returns between 0 & 100
+}
+
 void VCU_SetFaultState() { vehicleState = STATE_IDLE; }
 
 void VCU_SetState(VehicleState state) { vehicleState = state; }
